@@ -81,9 +81,8 @@ body {
 .admin-save-btn { display: block; width: calc(100% - 36px); margin: 16px 18px 0; background: #b8960c; color: #fff; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
 .admin-save-btn:active { background: #9a7e0a; }
 .admin-reset-btn { display: block; width: calc(100% - 36px); margin: 10px 18px 0; background: none; color: #666; border: 1px solid #444; padding: 11px; border-radius: 12px; font-size: 14px; cursor: pointer; }
-.mod-btn { position: absolute; left: 14px; top: 20px; height: 38px; padding: 0 12px; border-radius: 19px; border: 1.5px solid #555; background: #2a2a2a; font-size: 12px; font-weight: 700; cursor: pointer; color: #c8b88a; letter-spacing: 0.5px; display: none; }
+.mod-btn { position: absolute; left: 14px; top: 20px; height: 38px; padding: 0 12px; border-radius: 19px; border: 1.5px solid #555; background: #2a2a2a; font-size: 12px; font-weight: 700; cursor: pointer; color: #c8b88a; display: none; align-items: center; }
 .mod-btn.hareketli { background: #3a2200; border-color: #e07020; color: #f0a040; }
-.mod-aktif { display: inline-flex !important; align-items: center; gap: 4px; }
 .item-del-btn { background: #6b1a1a; border: none; color: #ff8080; border-radius: 6px; width: 28px; height: 28px; font-size: 16px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
 .item-del-btn:active { background: #9a1a1a; }
 .add-item-box { margin: 8px 18px 0; background: #1a1a2a; border: 1px solid #2a2a4a; border-radius: 10px; padding: 12px 14px; }
@@ -151,7 +150,7 @@ body {
       <input class="admin-inp" style="width:175px" type="text" id="aPhone" placeholder="444 0 000">
     </div>
 
-    <div class="sec-title">Has Fiyat Düzeltme — Normal Mod</div>
+    <div class="sec-title">Has Fiyat Düzeltme</div>
     <div class="admin-row">
       <span class="row-label">Alış Farkı</span>
       <div class="inp-group">
@@ -168,25 +167,6 @@ body {
     </div>
     <div class="hint-box" style="margin-bottom:4px">
       <b>Has Alış</b> = API fiyatı + Alış Farkı &nbsp;|&nbsp; Eksi değer girilebilir (örn: -50)
-    </div>
-
-    <div class="sec-title" style="color:#f0a040">⚡ Has Fiyat Düzeltme — Hareketli Mod</div>
-    <div class="admin-row" style="background:#251800;border-color:#3a2800">
-      <span class="row-label">Alış Farkı</span>
-      <div class="inp-group">
-        <input class="admin-inp" type="number" step="1" id="aHasDuzAH" placeholder="0" style="width:82px;border-color:#5a3800">
-        <span class="inp-unit">₺</span>
-      </div>
-    </div>
-    <div class="admin-row" style="background:#251800;border-color:#3a2800">
-      <span class="row-label">Satış Farkı</span>
-      <div class="inp-group">
-        <input class="admin-inp" type="number" step="1" id="aHasDuzSH" placeholder="0" style="width:82px;border-color:#5a3800">
-        <span class="inp-unit">₺</span>
-      </div>
-    </div>
-    <div class="hint-box" style="margin-bottom:4px;background:#251800;border-color:#5a3800;color:#c8a060">
-      Hareketli modda kullanılır. Ekranda ⚡ butonu ile geçiş yapılır.
     </div>
 
     <div class="sec-title">Kredi Kartı Komisyonu</div>
@@ -211,6 +191,12 @@ body {
       <b>Satış</b> = Has Satış × işçilik
     </div>
     <div id="adminRows"></div>
+
+    <div class="sec-title" style="color:#f0a040">⚡ Hareketli Mod Çarpanları</div>
+    <div class="hint-box" style="background:#1e1500;border-color:#5a3800;color:#c8a060">
+      Hareketli modda bu çarpanlar kullanılır. Ekranda ⚡ butonu ile geçiş yapılır.
+    </div>
+    <div id="adminRowsH"></div>
 
     <div class="sec-title">Ürün Listesi Yönetimi</div>
     <div class="urun-mgr">
@@ -317,7 +303,8 @@ if (window.location.search.indexOf('admin') === -1) {
   document.getElementById('adminBtn').style.display = 'none';
   document.getElementById('bottomNav').style.display = 'none';
 } else {
-  document.getElementById('modBtn').classList.add('mod-aktif');
+  var mb = document.getElementById('modBtn');
+  mb.style.display = 'flex';
 }
 updateModBtn();
 
@@ -367,12 +354,13 @@ var settings = loadSettings();
 var hasAlis  = parseFloat(localStorage.getItem('gp10_ha') || '0') || null;
 var hasSatis = parseFloat(localStorage.getItem('gp10_hs') || '0') || null;
 var prevPrices = {};
-var aktifMod = localStorage.getItem('gp10_mod') || 'normal'; // 'normal' veya 'hareketli'
+var aktifMod = localStorage.getItem('gp10_mod') || 'normal';
 
 function toggleMod() {
   aktifMod = aktifMod === 'normal' ? 'hareketli' : 'normal';
   localStorage.setItem('gp10_mod', aktifMod);
   updateModBtn();
+  document.getElementById('priceRows').innerHTML = '';
   renderTable();
   showToast(aktifMod === 'hareketli' ? '⚡ Hareketli Mod Aktif' : '✅ Normal Mod Aktif');
 }
@@ -407,6 +395,7 @@ document.querySelector('.nav-item:last-child').onclick = function() {
 };
 
 function getLabor(item) {
+  if (aktifMod === 'hareketli' && settings.laborH && settings.laborH[item.id]) return settings.laborH[item.id];
   if (settings && settings.labor && settings.labor[item.id]) return settings.labor[item.id];
   return { a: item.defA, s: item.defS };
 }
@@ -485,17 +474,15 @@ function setStatus(ok) {
 }
 
 // ── API ──────────────────────────────────────────────────────────────────────
-var GOLD_API_URL = 'https://api.gold-api.com/price/XAU';
-var USD_URL      = 'https://api.exchangerate-api.com/v4/latest/USD';
-var USD_PROXY    = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://api.exchangerate-api.com/v4/latest/USD');
+// Altın fiyatı: exchangerate-api XAU bazlı (Safari uyumlu, aynı servis döviz bandında da var)
+var XAU_URL      = 'https://api.exchangerate-api.com/v4/latest/XAU';
+var XAU_PROXY    = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://api.exchangerate-api.com/v4/latest/XAU');
 var activeXHR = null;
 var cachedUsdTry = 0;
 
 function applyPrices(a, s) {
-  var duzA = aktifMod === 'hareketli' ? (parseFloat(settings.hasDuzAH) || 0) : (parseFloat(settings.hasDuzA) || 0);
-  var duzS = aktifMod === 'hareketli' ? (parseFloat(settings.hasDuzSH) || 0) : (parseFloat(settings.hasDuzS) || 0);
-  a = a + duzA;
-  s = s + duzS;
+  a = a + (parseFloat(settings.hasDuzA) || 0);
+  s = s + (parseFloat(settings.hasDuzS) || 0);
   if (!a || a < 100) return false;
   hasAlis = a; hasSatis = s;
   localStorage.setItem('gp10_ha', a);
@@ -507,65 +494,17 @@ function applyPrices(a, s) {
 
 function fetchPrices() {
   if (activeXHR) { try { activeXHR.abort(); } catch(e){} activeXHR = null; }
-  fetchUsdTry(function(usdTry) {
-    if (usdTry > 0) cachedUsdTry = usdTry;
-    fetchGoldPrice(cachedUsdTry);
+  fetchPricesXAU(XAU_URL, function(ok) {
+    if (!ok) fetchPricesXAU(XAU_PROXY, function(ok2) {
+      if (!ok2) { setStatus(false); if (hasAlis) renderTable(); }
+    });
   });
 }
 
-function fetchUsdTry(cb) {
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', USD_URL, true);
-  xhr.timeout = 7000;
-  xhr.onload = function() {
-    if (xhr.status >= 200 && xhr.status < 300) {
-      try {
-        var data = JSON.parse(xhr.responseText);
-        var rate = parseFloat(data.rates && data.rates.TRY);
-        if (rate > 1) { cb(rate); return; }
-      } catch(e) {}
-    }
-    var xhr2 = new XMLHttpRequest();
-    xhr2.open('GET', USD_PROXY, true);
-    xhr2.timeout = 7000;
-    xhr2.onload = function() {
-      try {
-        var data = JSON.parse(xhr2.responseText);
-        var rate = parseFloat(data.rates && data.rates.TRY);
-        if (rate > 1) { cb(rate); return; }
-      } catch(e) {}
-      cb(0);
-    };
-    xhr2.onerror = xhr2.ontimeout = function() { cb(0); };
-    xhr2.send();
-  };
-  xhr.onerror = xhr.ontimeout = function() {
-    var xhr2 = new XMLHttpRequest();
-    xhr2.open('GET', USD_PROXY, true);
-    xhr2.timeout = 7000;
-    xhr2.onload = function() {
-      try {
-        var data = JSON.parse(xhr2.responseText);
-        var rate = parseFloat(data.rates && data.rates.TRY);
-        if (rate > 1) { cb(rate); return; }
-      } catch(e) {}
-      cb(0);
-    };
-    xhr2.onerror = xhr2.ontimeout = function() { cb(0); };
-    xhr2.send();
-  };
-  xhr.send();
-}
-
-function fetchGoldPrice(usdTry) {
-  if (!usdTry || usdTry < 1) {
-    setStatus(false);
-    if (hasAlis) renderTable();
-    return;
-  }
+function fetchPricesXAU(url, cb) {
   var xhr = new XMLHttpRequest();
   activeXHR = xhr;
-  xhr.open('GET', GOLD_API_URL, true);
+  xhr.open('GET', url, true);
   xhr.timeout = 7000;
   xhr.onload = function() {
     if (activeXHR !== xhr) return;
@@ -573,27 +512,23 @@ function fetchGoldPrice(usdTry) {
     if (xhr.status >= 200 && xhr.status < 300) {
       try {
         var data = JSON.parse(xhr.responseText);
-        var onsUsd = parseFloat(data.price);
-        if (!onsUsd || onsUsd < 100) throw new Error('Geçersiz altın fiyatı');
-        var onsTry = onsUsd * usdTry;
+        // XAU bazlı: rates.TRY = 1 ons altının TRY değeri
+        var onsTry = parseFloat(data.rates && data.rates.TRY);
+        if (!onsTry || onsTry < 1000) throw new Error();
         var gramTl = onsTry / 31.1035;
         var a = gramTl * 0.9995;
         var s = gramTl * 1.0005;
-        if (!applyPrices(a, s)) throw new Error('applyPrices hata');
-      } catch(e) {
-        setStatus(false);
-        if (hasAlis) renderTable();
-      }
-    } else {
-      setStatus(false);
-      if (hasAlis) renderTable();
-    }
+        if (!applyPrices(a, s)) throw new Error();
+        // USD/TRY kurunu da güncelle (döviz bandı için)
+        if (data.rates.USD) cachedUsdTry = data.rates.TRY / data.rates.USD;
+        if(cb) cb(true);
+      } catch(e) { if(cb) cb(false); }
+    } else { if(cb) cb(false); }
   };
   xhr.onerror = xhr.ontimeout = function() {
     if (activeXHR !== xhr) return;
     activeXHR = null;
-    setStatus(false);
-    if (hasAlis) renderTable();
+    if(cb) cb(false);
   };
   xhr.send();
 }
@@ -605,8 +540,6 @@ function openAdmin() {
   document.getElementById('aKK').value    = (settings.kkOran || 0).toFixed(2);
   document.getElementById('aHasDuzA').value = settings.hasDuzA || 0;
   document.getElementById('aHasDuzS').value = settings.hasDuzS || 0;
-  document.getElementById('aHasDuzAH').value = settings.hasDuzAH || 0;
-  document.getElementById('aHasDuzSH').value = settings.hasDuzSH || 0;
   document.getElementById('adminHasA').textContent = hasAlis  ? fmt(Math.round(hasAlis))  + ' ₺' : '—';
   document.getElementById('adminHasS').textContent = hasSatis ? fmt(Math.round(hasSatis)) + ' ₺' : '—';
   updateCustomerLink();
@@ -622,7 +555,7 @@ function updateCustomerLink() {
 }
 
 function renderAdminRows() {
-  // Carpan ayarlari
+  // Normal mod carpan ayarlari
   var html = '';
   getActiveItems().forEach(function(item) {
     var lab = getLabor(item);
@@ -638,6 +571,24 @@ function renderAdminRows() {
       + '<span class="prev-s">' + pS + '</span></div></div>';
   });
   document.getElementById('adminRows').innerHTML = html;
+
+  // Hareketli mod carpan ayarlari
+  var htmlH = '';
+  getActiveItems().forEach(function(item) {
+    var labH = (settings.laborH && settings.laborH[item.id]) ? settings.laborH[item.id] : (settings.labor && settings.labor[item.id] ? settings.labor[item.id] : { a: item.defA, s: item.defS });
+    var pA  = hasAlis  ? fmt(Math.round(hasAlis  * labH.a)) : '-';
+    var pS  = hasSatis ? fmt(Math.round(hasSatis * labH.s)) : '-';
+    htmlH += '<div class="admin-row" style="background:#1e1500;border-color:#3a2800">'
+      + '<span class="row-label" style="flex:1;min-width:70px;color:#e0c080">' + item.label + '</span>'
+      + '<div class="inp-group"><span class="inp-unit">Alis x</span>'
+      + '<input class="admin-inp" type="number" step="0.0001" min="0.1" max="5" id="ah_' + item.id + '" value="' + labH.a.toFixed(4) + '" style="border-color:#5a3800">'
+      + '<span class="prev-a">' + pA + '</span></div>'
+      + '<div class="inp-group"><span class="inp-unit">Satis x</span>'
+      + '<input class="admin-inp" type="number" step="0.0001" min="0.1" max="5" id="sh_' + item.id + '" value="' + labH.s.toFixed(4) + '" style="border-color:#5a3800">'
+      + '<span class="prev-s">' + pS + '</span></div></div>';
+  });
+  document.getElementById('adminRowsH').innerHTML = htmlH;
+
   // Urun listesi yonetimi
   renderUrunList();
 }
@@ -745,8 +696,6 @@ function saveAdmin() {
   settings.kkOran    = parseFloat(document.getElementById('aKK').value) || 0;
   settings.hasDuzA   = parseFloat(document.getElementById('aHasDuzA').value) || 0;
   settings.hasDuzS   = parseFloat(document.getElementById('aHasDuzS').value) || 0;
-  settings.hasDuzAH  = parseFloat(document.getElementById('aHasDuzAH').value) || 0;
-  settings.hasDuzSH  = parseFloat(document.getElementById('aHasDuzSH').value) || 0;
   // Şifre değiştir
   var p1 = document.getElementById('aNewPass').value;
   var p2 = document.getElementById('aNewPass2').value;
@@ -760,6 +709,13 @@ function saveAdmin() {
     settings.labor[item.id] = {
       a: parseFloat(document.getElementById('a_' + item.id).value) || item.defA,
       s: parseFloat(document.getElementById('s_' + item.id).value) || item.defS,
+    };
+  });
+  if (!settings.laborH) settings.laborH = {};
+  getActiveItems().forEach(function(item) {
+    settings.laborH[item.id] = {
+      a: parseFloat(document.getElementById('ah_' + item.id).value) || item.defA,
+      s: parseFloat(document.getElementById('sh_' + item.id).value) || item.defS,
     };
   });
   localStorage.setItem('gp10', JSON.stringify(settings));
@@ -808,7 +764,7 @@ function showToast(m) {
 // ── BAŞLAT ────────────────────────────────────────────────────────────────────
 settings = loadSettings();
 renderTable();
-// gold-api.com altın USD fiyatı verir; USD/TRY kuru için fetchUsdTry + fetchDoviz çalışır
+// XAU endpoint hem altın hem kuru veriyor; döviz bandı için fetchDoviz ayrıca çalışır
 fetchPrices();
 setInterval(fetchPrices, 5000);
 fetchDoviz();
