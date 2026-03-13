@@ -81,6 +81,9 @@ body {
 .admin-save-btn { display: block; width: calc(100% - 36px); margin: 16px 18px 0; background: #b8960c; color: #fff; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
 .admin-save-btn:active { background: #9a7e0a; }
 .admin-reset-btn { display: block; width: calc(100% - 36px); margin: 10px 18px 0; background: none; color: #666; border: 1px solid #444; padding: 11px; border-radius: 12px; font-size: 14px; cursor: pointer; }
+.mod-btn { position: absolute; left: 14px; top: 20px; height: 38px; padding: 0 12px; border-radius: 19px; border: 1.5px solid #555; background: #2a2a2a; font-size: 12px; font-weight: 700; cursor: pointer; color: #c8b88a; letter-spacing: 0.5px; display: none; }
+.mod-btn.hareketli { background: #3a2200; border-color: #e07020; color: #f0a040; }
+.mod-aktif { display: inline-flex !important; align-items: center; gap: 4px; }
 .item-del-btn { background: #6b1a1a; border: none; color: #ff8080; border-radius: 6px; width: 28px; height: 28px; font-size: 16px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
 .item-del-btn:active { background: #9a1a1a; }
 .add-item-box { margin: 8px 18px 0; background: #1a1a2a; border: 1px solid #2a2a4a; border-radius: 10px; padding: 12px 14px; }
@@ -111,6 +114,7 @@ body {
   <div class="phone" id="shopPhone">444 0 000</div>
   <span class="has-info" id="hasInfo"></span>
   <button class="admin-btn" id="adminBtn" onclick="openAdmin()">⋯</button>
+  <button class="mod-btn" id="modBtn" onclick="toggleMod()">⚡ Normal</button>
 </div>
 
 <div class="doviz-bant"><div class="doviz-bant-inner" id="dovizBant">⏳ Döviz yükleniyor...</div></div>
@@ -147,7 +151,7 @@ body {
       <input class="admin-inp" style="width:175px" type="text" id="aPhone" placeholder="444 0 000">
     </div>
 
-    <div class="sec-title">Has Fiyat Düzeltme</div>
+    <div class="sec-title">Has Fiyat Düzeltme — Normal Mod</div>
     <div class="admin-row">
       <span class="row-label">Alış Farkı</span>
       <div class="inp-group">
@@ -164,6 +168,25 @@ body {
     </div>
     <div class="hint-box" style="margin-bottom:4px">
       <b>Has Alış</b> = API fiyatı + Alış Farkı &nbsp;|&nbsp; Eksi değer girilebilir (örn: -50)
+    </div>
+
+    <div class="sec-title" style="color:#f0a040">⚡ Has Fiyat Düzeltme — Hareketli Mod</div>
+    <div class="admin-row" style="background:#251800;border-color:#3a2800">
+      <span class="row-label">Alış Farkı</span>
+      <div class="inp-group">
+        <input class="admin-inp" type="number" step="1" id="aHasDuzAH" placeholder="0" style="width:82px;border-color:#5a3800">
+        <span class="inp-unit">₺</span>
+      </div>
+    </div>
+    <div class="admin-row" style="background:#251800;border-color:#3a2800">
+      <span class="row-label">Satış Farkı</span>
+      <div class="inp-group">
+        <input class="admin-inp" type="number" step="1" id="aHasDuzSH" placeholder="0" style="width:82px;border-color:#5a3800">
+        <span class="inp-unit">₺</span>
+      </div>
+    </div>
+    <div class="hint-box" style="margin-bottom:4px;background:#251800;border-color:#5a3800;color:#c8a060">
+      Hareketli modda kullanılır. Ekranda ⚡ butonu ile geçiş yapılır.
     </div>
 
     <div class="sec-title">Kredi Kartı Komisyonu</div>
@@ -293,7 +316,10 @@ var IS_ADMIN = false;
 if (window.location.search.indexOf('admin') === -1) {
   document.getElementById('adminBtn').style.display = 'none';
   document.getElementById('bottomNav').style.display = 'none';
+} else {
+  document.getElementById('modBtn').classList.add('mod-aktif');
 }
+updateModBtn();
 
 function checkAdminSession() {
   return sessionStorage.getItem('gp10_admin') === '1';
@@ -341,6 +367,26 @@ var settings = loadSettings();
 var hasAlis  = parseFloat(localStorage.getItem('gp10_ha') || '0') || null;
 var hasSatis = parseFloat(localStorage.getItem('gp10_hs') || '0') || null;
 var prevPrices = {};
+var aktifMod = localStorage.getItem('gp10_mod') || 'normal'; // 'normal' veya 'hareketli'
+
+function toggleMod() {
+  aktifMod = aktifMod === 'normal' ? 'hareketli' : 'normal';
+  localStorage.setItem('gp10_mod', aktifMod);
+  updateModBtn();
+  renderTable();
+  showToast(aktifMod === 'hareketli' ? '⚡ Hareketli Mod Aktif' : '✅ Normal Mod Aktif');
+}
+
+function updateModBtn() {
+  var btn = document.getElementById('modBtn');
+  if (aktifMod === 'hareketli') {
+    btn.textContent = '⚡ Hareketli';
+    btn.classList.add('hareketli');
+  } else {
+    btn.textContent = '⚡ Normal';
+    btn.classList.remove('hareketli');
+  }
+}
 
 // Admin butonuna tıklandığında şifre sor
 document.getElementById('adminBtn').onclick = function() {
@@ -446,8 +492,10 @@ var activeXHR = null;
 var cachedUsdTry = 0;
 
 function applyPrices(a, s) {
-  a = a + (parseFloat(settings.hasDuzA) || 0);
-  s = s + (parseFloat(settings.hasDuzS) || 0);
+  var duzA = aktifMod === 'hareketli' ? (parseFloat(settings.hasDuzAH) || 0) : (parseFloat(settings.hasDuzA) || 0);
+  var duzS = aktifMod === 'hareketli' ? (parseFloat(settings.hasDuzSH) || 0) : (parseFloat(settings.hasDuzS) || 0);
+  a = a + duzA;
+  s = s + duzS;
   if (!a || a < 100) return false;
   hasAlis = a; hasSatis = s;
   localStorage.setItem('gp10_ha', a);
@@ -557,6 +605,8 @@ function openAdmin() {
   document.getElementById('aKK').value    = (settings.kkOran || 0).toFixed(2);
   document.getElementById('aHasDuzA').value = settings.hasDuzA || 0;
   document.getElementById('aHasDuzS').value = settings.hasDuzS || 0;
+  document.getElementById('aHasDuzAH').value = settings.hasDuzAH || 0;
+  document.getElementById('aHasDuzSH').value = settings.hasDuzSH || 0;
   document.getElementById('adminHasA').textContent = hasAlis  ? fmt(Math.round(hasAlis))  + ' ₺' : '—';
   document.getElementById('adminHasS').textContent = hasSatis ? fmt(Math.round(hasSatis)) + ' ₺' : '—';
   updateCustomerLink();
@@ -695,6 +745,8 @@ function saveAdmin() {
   settings.kkOran    = parseFloat(document.getElementById('aKK').value) || 0;
   settings.hasDuzA   = parseFloat(document.getElementById('aHasDuzA').value) || 0;
   settings.hasDuzS   = parseFloat(document.getElementById('aHasDuzS').value) || 0;
+  settings.hasDuzAH  = parseFloat(document.getElementById('aHasDuzAH').value) || 0;
+  settings.hasDuzSH  = parseFloat(document.getElementById('aHasDuzSH').value) || 0;
   // Şifre değiştir
   var p1 = document.getElementById('aNewPass').value;
   var p2 = document.getElementById('aNewPass2').value;
