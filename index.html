@@ -428,7 +428,7 @@ function setStatus(ok) {
   var src = document.getElementById('updSrc');
   var hi  = document.getElementById('hasInfo');
   if (ok) {
-    src.textContent = '● Canlı — gold-api.com'; src.className = 'upd-src ok';
+    src.textContent = '● Canlı — exchangerate-api.com'; src.className = 'upd-src ok';
     hi.textContent  = 'Has Alış: ' + fmt(Math.round(hasAlis)) + '  |  Has Satış: ' + fmt(Math.round(hasSatis));
     hi.className = 'has-info';
   } else {
@@ -439,6 +439,8 @@ function setStatus(ok) {
 }
 
 // ── API ──────────────────────────────────────────────────────────────────────
+// Canlidoviz worker proxy (gram, ceyrek, yarim, tam, cumhuriyet, has, ayar22, ons)
+var WORKER_URL = 'https://altin-proxy.ufuk87900.workers.dev';
 var activeXHR = null;
 var cachedUsdTry = 0;
 
@@ -454,188 +456,44 @@ function applyPrices(a, s) {
   return true;
 }
 
-// ── Kaynak 1: metals.live (gram altın USD, sonra USD/TRY ile çarp) ──────────
 function fetchPrices() {
   if (activeXHR) { try { activeXHR.abort(); } catch(e){} activeXHR = null; }
-  // Önce USD/TRY kur bilgisini çek, sonra altın fiyatını al
-  fetchUsdTryThen(function(usdTry) {
-    if (usdTry && usdTry > 1) {
-      cachedUsdTry = usdTry;
-      fetchGoldUSD(usdTry, function(ok) {
-        if (!ok) { setStatus(false); if (hasAlis) renderTable(); }
-      });
-    } else {
-      // Kur gelmedi, kayıtlı değeri kullan
-      var savedUsd = cachedUsdTry || parseFloat(localStorage.getItem('gp10_usdtry') || '0');
-      if (savedUsd > 1) {
-        fetchGoldUSD(savedUsd, function(ok) {
-          if (!ok) { setStatus(false); if (hasAlis) renderTable(); }
-        });
-      } else {
-        setStatus(false); if (hasAlis) renderTable();
-      }
-    }
-  });
-}
-
-// ── USD/TRY + ALTIN: Çok katmanlı yedek sistemi ─────────────────────────────
-// Her adım başarısız olursa bir sonrakini dener.
-
-// Adım sırası:
-// 1) exchangerate-api /v4/latest/USD  → USD/TRY al
-// 2) allorigins proxy ile aynısı
-// 3) fawazahmed0/currency-api (GitHub CDN) → USD/TRY
-// Altın için:
-// A) frankfurter.app (ECB bazlı, XAU yok ama döviz için iyi)
-// B) metals.live proxy üzerinden
-// C) open.er-api.com/v6/latest/XAU
-// D) corsproxy.io ile metals.live
-
-var PROXIES = [
-  'https://api.allorigins.win/raw?url=',
-  'https://corsproxy.io/?'
-];
-
-function xhrGet(url, timeout, onOk, onFail) {
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', url, true);
-  xhr.timeout = timeout || 7000;
+  activeXHR = xhr;
+  xhr.open('GET', WORKER_URL, true);
+  xhr.timeout = 10000;
   xhr.onload = function() {
-    if (xhr.status >= 200 && xhr.status < 300) { onOk(xhr.responseText); }
-    else { onFail(); }
+    if (activeXHR !== xhr) return;
+    activeXHR = null;
+    if (xhr.status >= 200 && xhr.status < 300) {
+      try {
+        var data = JSON.parse(xhr.responseText);
+        // has altin = 24 ayar gram fiyati
+        var a = parseFloat(data.has);
+        var s = parseFloat(data.gram);
+        if (!a || a < 100) throw new Error('Geçersiz fiyat');
+        if (!applyPrices(a, s)) throw new Error('applyPrices hata');
+      } catch(e) {
+        setStatus(false);
+        if (hasAlis) renderTable();
+      }
+    } else {
+      setStatus(false);
+      if (hasAlis) renderTable();
+    }
   };
-  xhr.onerror = xhr.ontimeout = onFail;
+  xhr.onerror = xhr.ontimeout = function() {
+    if (activeXHR !== xhr) return;
+    activeXHR = null;
+    setStatus(false);
+    if (hasAlis) renderTable();
+  };
   xhr.send();
 }
 
-// USD/TRY zinciri
-function fetchUsdTryThen(cb) {
-  // Kaynak 1: exchangerate-api doğrudan
-  xhrGet('https://api.exchangerate-api.com/v4/latest/USD', 6000, function(txt) {
-    try {
-      var t = parseFloat(JSON.parse(txt).rates.TRY);
-      if (t > 1) { localStorage.setItem('gp10_usdtry', t); cb(t); return; }
-    } catch(e) {}
-    tryUsdProxy(0, cb);
-  }, function() { tryUsdProxy(0, cb); });
-}
-
-function tryUsdProxy(idx, cb) {
-  if (idx >= PROXIES.length) {
-    // Kaynak son: fawazahmed0 GitHub CDN
-    var today = new Date().toISOString().slice(0,10);
-    xhrGet('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@' + today + '/v1/currencies/usd.json', 7000, function(txt) {
-      try {
-        var d = JSON.parse(txt);
-        var t = parseFloat(d.usd && d.usd.try);
-        if (t > 1) { localStorage.setItem('gp10_usdtry', t); cb(t); return; }
-      } catch(e) {}
-      cb(parseFloat(localStorage.getItem('gp10_usdtry') || '0'));
-    }, function() {
-      cb(parseFloat(localStorage.getItem('gp10_usdtry') || '0'));
-    });
-    return;
-  }
-  var url = PROXIES[idx] + encodeURIComponent('https://api.exchangerate-api.com/v4/latest/USD');
-  xhrGet(url, 7000, function(txt) {
-    try {
-      var t = parseFloat(JSON.parse(txt).rates.TRY);
-      if (t > 1) { localStorage.setItem('gp10_usdtry', t); cb(t); return; }
-    } catch(e) {}
-    tryUsdProxy(idx + 1, cb);
-  }, function() { tryUsdProxy(idx + 1, cb); });
-}
-
-// Altın fiyatı zinciri (ons USD → gram TL)
-function fetchGoldUSD(usdTry, cb) {
-  // Kaynak A: gold-api.com (ücretsiz, CORS açık, rate limit yok)
-  xhrGet('https://api.gold-api.com/price/XAU', 6000, function(txt) {
-    try {
-      var d = JSON.parse(txt);
-      var ons = parseFloat(d.price);
-      if (ons && ons > 100) { applyGold(ons, usdTry, cb, true); return; }
-    } catch(e) {}
-    xhrGet('https://metals.live/api/v1/spot', 6000, function(txt2) {
-      var ons2 = parseMetalsLive(txt2);
-      if (ons2) { applyGold(ons2, usdTry, cb, true); return; }
-      tryGoldProxy(0, usdTry, cb);
-    }, function() { tryGoldProxy(0, usdTry, cb); });
-  }, function() {
-    xhrGet('https://metals.live/api/v1/spot', 6000, function(txt2) {
-      var ons2 = parseMetalsLive(txt2);
-      if (ons2) { applyGold(ons2, usdTry, cb, true); return; }
-      tryGoldProxy(0, usdTry, cb);
-    }, function() { tryGoldProxy(0, usdTry, cb); });
-  });
-}
-
-function parseMetalsLive(txt) {
-  try {
-    var arr = JSON.parse(txt);
-    var g = null;
-    if (Array.isArray(arr)) { arr.forEach(function(x){ if(x.gold) g = parseFloat(x.gold); }); }
-    else if (arr.gold) { g = parseFloat(arr.gold); }
-    return (g && g > 100) ? g : null;
-  } catch(e) { return null; }
-}
-
-function tryGoldProxy(idx, usdTry, cb) {
-  if (idx >= PROXIES.length) {
-    // Kaynak C: open.er-api.com XAU
-    xhrGet('https://open.er-api.com/v6/latest/XAU', 7000, function(txt) {
-      try {
-        var d = JSON.parse(txt);
-        var ons = 1 / parseFloat(d.rates.USD);
-        if (ons > 100) { applyGold(ons, usdTry, cb, true); return; }
-      } catch(e) {}
-      // Kaynak D: fawazahmed0 XAU
-      var today = new Date().toISOString().slice(0,10);
-      xhrGet('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@' + today + '/v1/currencies/xau.json', 7000, function(txt2) {
-        try {
-          var d2 = JSON.parse(txt2);
-          // xau.try = 1 ons altın kaç TL
-          var onsTry = parseFloat(d2.xau && d2.xau.try);
-          if (onsTry > 1000) {
-            var gramTl = onsTry / 31.1035;
-            var a = gramTl * 0.9995;
-            var s = gramTl * 1.0005;
-            applyPrices(a, s); cb(true); return;
-          }
-        } catch(e) {}
-        cb(false);
-      }, function() { cb(false); });
-    }, function() {
-      var today = new Date().toISOString().slice(0,10);
-      xhrGet('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@' + today + '/v1/currencies/xau.json', 7000, function(txt2) {
-        try {
-          var d2 = JSON.parse(txt2);
-          var onsTry = parseFloat(d2.xau && d2.xau.try);
-          if (onsTry > 1000) {
-            var gramTl = onsTry / 31.1035;
-            applyPrices(gramTl * 0.9995, gramTl * 1.0005); cb(true); return;
-          }
-        } catch(e) {}
-        cb(false);
-      }, function() { cb(false); });
-    });
-    return;
-  }
-  // Proxy ile metals.live dene
-  var url = PROXIES[idx] + encodeURIComponent('https://metals.live/api/v1/spot');
-  xhrGet(url, 7000, function(txt) {
-    var ons = parseMetalsLive(txt);
-    if (ons) { applyGold(ons, usdTry, cb, true); return; }
-    tryGoldProxy(idx + 1, usdTry, cb);
-  }, function() { tryGoldProxy(idx + 1, usdTry, cb); });
-}
-
-function applyGold(onsUsd, usdTry, cb, call_cb) {
-  var gramTl = (onsUsd / 31.1035) * usdTry;
-  var a = gramTl * 0.9995;
-  var s = gramTl * 1.0005;
-  var ok = applyPrices(a, s);
-  if (call_cb && cb) cb(ok);
-}
+// fetchUsdTry ve fetchGoldPrice artık kullanılmıyor
+function fetchUsdTry(cb) { cb(0); }
+function fetchGoldPrice(usdTry) {}
 
 // ── YÖNETİCİ ─────────────────────────────────────────────────────────────────
 function openAdmin() {
@@ -843,7 +701,7 @@ function showToast(m) {
 // ── BAŞLAT ────────────────────────────────────────────────────────────────────
 settings = loadSettings();
 renderTable();
-// XAU endpoint hem altın hem kuru veriyor; döviz bandı için fetchDoviz ayrıca çalışır
+// gold-api.com altın USD fiyatı verir; USD/TRY kuru için fetchUsdTry + fetchDoviz çalışır
 fetchPrices();
 setInterval(fetchPrices, 5000);
 fetchDoviz();
