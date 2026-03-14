@@ -209,6 +209,18 @@ body {
       </div>
     </div>
 
+    <div class="sec-title" style="color:#7ab0e0">💱 Döviz Kurları (Sadece Admin)</div>
+    <div class="hint-box" style="background:#0a1a2a;border-color:#1a3a5a;color:#7ab0e0;margin-bottom:4px">
+      Canlı alış/satış + senin düzeltmen = gösterilen fiyat
+    </div>
+    <div id="adminDovizRows"></div>
+
+    <div class="sec-title" style="color:#c8a040">🔩 Hurda Altın (Sadece Admin)</div>
+    <div class="hint-box" style="background:#1a1500;border-color:#3a3000;color:#c8a040;margin-bottom:4px">
+      Has fiyatı × ayar oranı + düzeltme
+    </div>
+    <div id="adminHurdaRows"></div>
+
     <div class="sec-title">Müşteri Linki</div>
     <div class="share-box">
       <p>👥 Müşterilere bu adresi gönderin</p>
@@ -505,6 +517,10 @@ function fetchPrices() {
         var s = parseFloat(data.hasSatis);
         if (!a || a < 100) throw new Error('Geçersiz fiyat');
         if (!applyPrices(a, s)) throw new Error('applyPrices hata');
+        // Döviz verilerini sakla
+        liveDoviz = data;
+        if (document.getElementById('adminDovizRows')) renderAdminDoviz();
+        if (document.getElementById('adminHurdaRows')) renderAdminHurda();
       } catch(e) {
         setStatus(false);
         if (hasAlis) renderTable();
@@ -534,6 +550,8 @@ function openAdmin() {
   document.getElementById('adminHasS').textContent = hasSatis ? fmt(Math.round(hasSatis)) + ' ₺' : '—';
   updateCustomerLink();
   renderAdminRows();
+  renderAdminDoviz();
+  renderAdminHurda();
   document.getElementById('overlay').classList.add('open');
 }
 function closeAdmin() { document.getElementById('overlay').classList.remove('open'); }
@@ -708,6 +726,18 @@ function saveAdmin() {
       s: parseFloat(document.getElementById('sh_' + item.id).value) || item.defS,
     };
   });
+  // Döviz düzeltmeleri kaydet
+  if (!settings.dovizDuz) settings.dovizDuz = {};
+  DOVIZLER.forEach(function(d) {
+    settings.dovizDuz[d.id+'A'] = parseFloat(document.getElementById('duzA_'+d.id).value) || 0;
+    settings.dovizDuz[d.id+'S'] = parseFloat(document.getElementById('duzS_'+d.id).value) || 0;
+  });
+  // Hurda düzeltmeleri kaydet
+  if (!settings.hurdaDuz) settings.hurdaDuz = {};
+  HURDALAR.forEach(function(h) {
+    settings.hurdaDuz[h.id+'A'] = parseFloat(document.getElementById('hurdaA_'+h.id).value) || 0;
+    settings.hurdaDuz[h.id+'S'] = parseFloat(document.getElementById('hurdaS_'+h.id).value) || 0;
+  });
   localStorage.setItem('gp10', JSON.stringify(settings));
   renderTable();
   closeAdmin();
@@ -784,8 +814,11 @@ jsonbinLoad(function(cloud) {
 
 // ── DÖVİZ BANT ───────────────────────────────────────────────────────────────
 var dovizCache = {};
+var liveDoviz = {}; // worker'dan gelen canlı döviz verileri
 
 function fetchDoviz() {
+  // Worker'dan döviz verilerini çek (zaten fetchPrices ile geliyor, cachedDoviz kullan)
+  // Yedek olarak exchangerate-api kullan
   var url = 'https://api.exchangerate-api.com/v4/latest/USD';
   var xhr = new XMLHttpRequest();
   xhr.open('GET', url, true);
@@ -795,7 +828,6 @@ function fetchDoviz() {
       try {
         var data = JSON.parse(xhr.responseText);
         var rates = data.rates;
-        // TRY bazlı kurlar
         var usdTry = rates['TRY'];
         var eurTry = rates['TRY'] / rates['EUR'];
         var gbpTry = rates['TRY'] / rates['GBP'];
@@ -809,7 +841,6 @@ function fetchDoviz() {
 }
 
 function fetchDovizFallback() {
-  // Yedek proxy
   var url = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://api.exchangerate-api.com/v4/latest/USD');
   var xhr = new XMLHttpRequest();
   xhr.open('GET', url, true);
@@ -849,9 +880,65 @@ function updateDovizBant(rates) {
     html += '<span class="doviz-item">' + it.sym
       + ' <span class="d-kur' + (cls ? ' ' + cls : '') + '">' + valStr + ' ₺' + arrow + '</span></span>';
   });
-  // İki kopya - sonsuz kayan efekti için
   var bantEl = document.getElementById('dovizBant');
   bantEl.innerHTML = html + html;
+}
+
+// ── ADMİN DÖVİZ & HURDA TABLOSU ──────────────────────────────────────────────
+var DOVIZLER = [
+  { id:'usd', label:'USD', flag:'🇺🇸' },
+  { id:'eur', label:'EUR', flag:'🇪🇺' },
+  { id:'gbp', label:'GBP', flag:'🇬🇧' },
+  { id:'sar', label:'SAR', flag:'🇸🇦' },
+  { id:'chf', label:'CHF', flag:'🇨🇭' },
+];
+
+var HURDALAR = [
+  { id:'hurda22', label:'22 Ayar Hurda', oran: 22/24 },
+  { id:'hurda14', label:'14 Ayar Hurda', oran: 14/24 },
+  { id:'hurda8',  label:'8 Ayar Hurda',  oran: 8/24  },
+];
+
+function renderAdminDoviz() {
+  var html = '';
+  DOVIZLER.forEach(function(d) {
+    var alis  = liveDoviz[d.id+'Alis']  || 0;
+    var satis = liveDoviz[d.id+'Satis'] || 0;
+    var duzA  = parseFloat((settings.dovizDuz && settings.dovizDuz[d.id+'A']) || 0);
+    var duzS  = parseFloat((settings.dovizDuz && settings.dovizDuz[d.id+'S']) || 0);
+    var gosterA = alis  ? (alis  + duzA).toFixed(4) : '—';
+    var gosterS = satis ? (satis + duzS).toFixed(4) : '—';
+    html += '<div class="admin-row" style="flex-wrap:wrap;gap:4px">'
+      + '<span class="row-label" style="min-width:60px">' + d.flag + ' ' + d.label + '</span>'
+      + '<span style="font-size:13px;color:#5dba6a;min-width:70px">' + gosterA + ' ₺</span>'
+      + '<span style="font-size:13px;color:#e07050;min-width:70px">' + gosterS + ' ₺</span>'
+      + '<div class="inp-group"><span class="inp-unit">A±</span>'
+      + '<input class="admin-inp" type="number" step="0.01" id="duzA_'+d.id+'" value="'+duzA+'" style="width:72px"></div>'
+      + '<div class="inp-group"><span class="inp-unit">S±</span>'
+      + '<input class="admin-inp" type="number" step="0.01" id="duzS_'+d.id+'" value="'+duzS+'" style="width:72px"></div>'
+      + '</div>';
+  });
+  document.getElementById('adminDovizRows').innerHTML = html;
+}
+
+function renderAdminHurda() {
+  var html = '';
+  HURDALAR.forEach(function(h) {
+    var duzA = parseFloat((settings.hurdaDuz && settings.hurdaDuz[h.id+'A']) || 0);
+    var duzS = parseFloat((settings.hurdaDuz && settings.hurdaDuz[h.id+'S']) || 0);
+    var alis  = hasAlis  ? Math.round(hasAlis  * h.oran + duzA) : null;
+    var satis = hasSatis ? Math.round(hasSatis * h.oran + duzS) : null;
+    html += '<div class="admin-row" style="flex-wrap:wrap;gap:4px">'
+      + '<span class="row-label" style="min-width:100px">' + h.label + '</span>'
+      + '<span style="font-size:13px;color:#5dba6a;min-width:70px">' + (alis ? fmt(alis) : '—') + ' ₺</span>'
+      + '<span style="font-size:13px;color:#e07050;min-width:70px">' + (satis ? fmt(satis) : '—') + ' ₺</span>'
+      + '<div class="inp-group"><span class="inp-unit">A±</span>'
+      + '<input class="admin-inp" type="number" step="1" id="hurdaA_'+h.id+'" value="'+duzA+'" style="width:72px"></div>'
+      + '<div class="inp-group"><span class="inp-unit">S±</span>'
+      + '<input class="admin-inp" type="number" step="1" id="hurdaS_'+h.id+'" value="'+duzS+'" style="width:72px"></div>'
+      + '</div>';
+  });
+  document.getElementById('adminHurdaRows').innerHTML = html;
 }
 </script>
 </body>
