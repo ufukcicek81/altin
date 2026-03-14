@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Altın Fiyatları</title>
+<title>Asil Kuyumcum</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#b8960c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Asil Kuyumcum">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -11,6 +17,77 @@ body {
   background: #1a1a1a; color: #f0e6c8;
   max-width: 480px; margin: 0 auto;
   min-height: 100vh; display: flex; flex-direction: column;
+}
+
+/* ── MASAÜSTÜ RESPONSIVE ── */
+@media (min-width: 768px) {
+  body {
+    max-width: 100%;
+    flex-direction: column;
+  }
+  .header {
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    text-align: left;
+  }
+  .header .logo { width: 80px; height: 80px; margin-bottom: 0; }
+  .header h1 { font-size: 28px; }
+  .header .phone { font-size: 17px; border-top: none; padding-top: 0; margin-top: 4px; }
+  .has-info { font-size: 14px; }
+  .admin-btn { right: 24px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; font-size: 22px; }
+  .mod-btn { left: 24px; top: 50%; transform: translateY(-50%); }
+
+  .doviz-bant-inner { padding: 10px 0; }
+  .doviz-item { font-size: 15px; margin: 0 32px; }
+
+  .desktop-layout {
+    display: flex;
+    flex: 1;
+    gap: 0;
+  }
+  .desktop-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .desktop-side {
+    width: 320px;
+    background: #141414;
+    border-left: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .table-header {
+    padding: 12px 24px;
+    grid-template-columns: 1.5fr 1fr 1fr 1.1fr;
+  }
+  .table-header span { font-size: 15px; }
+
+  .price-row {
+    padding: 15px 24px;
+    grid-template-columns: 1.5fr 1fr 1fr 1.1fr;
+  }
+  .price-row .birim { font-size: 19px; }
+  .price-row .alis, .price-row .satis { font-size: 19px; }
+  .price-row .kk { font-size: 17px; }
+
+  .update-bar { padding: 12px 24px; }
+  .bottom-nav { display: none; }
+
+  .overlay { align-items: center; }
+  .admin-panel { border-radius: 18px; max-width: 560px; max-height: 88vh; }
+
+  #adminEkstra { display: none !important; }
+}
+
+@media (min-width: 1200px) {
+  .desktop-side { width: 380px; }
+  .price-row .birim { font-size: 21px; }
+  .price-row .alis, .price-row .satis { font-size: 21px; }
 }
 .header { text-align: center; padding: 16px 16px 10px; position: relative; background: #111; border-bottom: 2px solid #b8960c; }
 .header .logo { width: 90px; height: 90px; border-radius: 50%; margin-bottom: 8px; }
@@ -118,6 +195,8 @@ body {
 
 <div class="doviz-bant"><div class="doviz-bant-inner" id="dovizBant">⏳ Döviz yükleniyor...</div></div>
 
+<div class="desktop-layout">
+<div class="desktop-main">
 <div class="table-header">
   <span>Birim</span><span>Alış</span><span>Satış</span><span>K. Kartı</span>
 </div>
@@ -150,6 +229,31 @@ body {
   <span class="upd-text" id="updTime">Yükleniyor...</span>
   <span class="upd-src" id="updSrc"></span>
 </div>
+</div><!-- desktop-main -->
+
+<!-- Masaüstü sağ panel: döviz + hurda -->
+<div class="desktop-side" id="desktopSide" style="display:none">
+  <div style="background:#111;border-bottom:2px solid #1a3a5a;padding:14px 18px">
+    <span style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#7ab0e0">💱 Döviz Kurları</span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;background:#1a1a1a;padding:6px 18px;border-bottom:1px solid #2a2a2a">
+    <span style="font-size:12px;color:#888">Döviz</span>
+    <span style="font-size:12px;color:#5dba6a;text-align:right">Alış</span>
+    <span style="font-size:12px;color:#e07050;text-align:right">Satış</span>
+  </div>
+  <div id="desktopDovizRows"></div>
+
+  <div style="background:#111;border-top:2px solid #3a3000;border-bottom:2px solid #3a3000;padding:14px 18px;margin-top:8px">
+    <span style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#c8a040">🔩 Hurda Altın</span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;background:#1a1a1a;padding:6px 18px;border-bottom:1px solid #2a2a2a">
+    <span style="font-size:12px;color:#888">Tür</span>
+    <span style="font-size:12px;color:#5dba6a;text-align:right">Alış</span>
+    <span style="font-size:12px;color:#e07050;text-align:right">Satış</span>
+  </div>
+  <div id="desktopHurdaRows"></div>
+</div>
+</div><!-- desktop-layout -->
 
 <div class="bottom-nav" id="bottomNav">
   <button class="nav-item active"><span class="nav-icon">📊</span>Fiyat Panosu</button>
@@ -341,6 +445,7 @@ if (window.location.search.indexOf('admin') === -1) {
   var mb = document.getElementById('modBtn');
   mb.style.display = 'flex';
   document.getElementById('adminEkstra').style.display = 'block';
+  renderDesktopPanel();
 }
 updateModBtn();
 
@@ -550,6 +655,7 @@ function fetchPrices() {
         }
         renderEkstraDoviz();
         renderEkstraHurda();
+        renderDesktopPanel();
       } catch(e) {
         setStatus(false);
         if (hasAlis) renderTable();
@@ -810,6 +916,15 @@ function showToast(m) {
   setTimeout(function(){ t.classList.remove('show'); }, 2500);
 }
 
+// ── SERVICE WORKER ───────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('sw.js').catch(function(e) {
+      console.log('SW kayıt hatası:', e);
+    });
+  });
+}
+
 // ── BAŞLAT ────────────────────────────────────────────────────────────────────
 settings = loadSettings();
 renderTable();
@@ -990,7 +1105,46 @@ function renderAdminHurda() {
   renderEkstraHurda();
 }
 
-function renderEkstraDoviz() {
+function renderDesktopPanel() {
+  var side = document.getElementById('desktopSide');
+  if (!side) return;
+  // Sadece admin modunda ve geniş ekranda göster
+  var isAdmin = window.location.search.indexOf('admin') !== -1;
+  var isDesktop = window.innerWidth >= 768;
+  side.style.display = (isAdmin && isDesktop) ? 'flex' : 'none';
+  if (!isAdmin || !isDesktop) return;
+  side.style.flexDirection = 'column';
+
+  // Döviz
+  var dovizHtml = '';
+  DOVIZLER.forEach(function(d) {
+    var duzA  = parseFloat((settings.dovizDuz && settings.dovizDuz[d.id+'A']) || 0);
+    var duzS  = parseFloat((settings.dovizDuz && settings.dovizDuz[d.id+'S']) || 0);
+    var alis  = liveDoviz[d.id+'Alis']  ? (liveDoviz[d.id+'Alis']  + duzA).toFixed(2) : '—';
+    var satis = liveDoviz[d.id+'Satis'] ? (liveDoviz[d.id+'Satis'] + duzS).toFixed(2) : '—';
+    dovizHtml += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;padding:11px 18px;border-bottom:1px solid #2e2e2e;background:#1a1a1a">'
+      + '<span style="font-size:17px;font-weight:600;color:#e8d9b0">' + d.flag + ' ' + d.label + '</span>'
+      + '<span style="font-size:17px;font-weight:600;color:#5dba6a;text-align:right">' + alis + '</span>'
+      + '<span style="font-size:17px;font-weight:600;color:#e07050;text-align:right">' + satis + '</span>'
+      + '</div>';
+  });
+  document.getElementById('desktopDovizRows').innerHTML = dovizHtml;
+
+  // Hurda
+  var hurdaHtml = '';
+  HURDALAR.forEach(function(h) {
+    var carpA = parseFloat((settings.hurdaCarp && settings.hurdaCarp[h.id+'A']) || h.oran * 0.99);
+    var carpS = parseFloat((settings.hurdaCarp && settings.hurdaCarp[h.id+'S']) || h.oran);
+    var alis  = hasAlis  ? fmt(Math.round(hasAlis  * carpA)) : '—';
+    var satis = hasSatis ? fmt(Math.round(hasSatis * carpS)) : '—';
+    hurdaHtml += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;padding:11px 18px;border-bottom:1px solid #2e2e2e;background:#1a1a1a">'
+      + '<span style="font-size:15px;font-weight:600;color:#e8d9b0">' + h.label + '</span>'
+      + '<span style="font-size:15px;font-weight:600;color:#5dba6a;text-align:right">' + alis + '</span>'
+      + '<span style="font-size:15px;font-weight:600;color:#e07050;text-align:right">' + satis + '</span>'
+      + '</div>';
+  });
+  document.getElementById('desktopHurdaRows').innerHTML = hurdaHtml;
+}
   var el = document.getElementById('ekstraDovizRows');
   if (!el) return;
   var html = '';
