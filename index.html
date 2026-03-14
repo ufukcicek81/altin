@@ -463,7 +463,7 @@ function setStatus(ok) {
   var src = document.getElementById('updSrc');
   var hi  = document.getElementById('hasInfo');
   if (ok) {
-    src.textContent = '● Canlı — exchangerate-api.com'; src.className = 'upd-src ok';
+    src.textContent = '● Canlı — canlidoviz.com'; src.className = 'upd-src ok';
     hi.textContent  = 'Has Alış: ' + fmt(Math.round(hasAlis)) + '  |  Has Satış: ' + fmt(Math.round(hasSatis));
     hi.className = 'has-info';
   } else {
@@ -474,11 +474,8 @@ function setStatus(ok) {
 }
 
 // ── API ──────────────────────────────────────────────────────────────────────
-var GOLD_API_URL = 'https://api.gold-api.com/price/XAU';
-var USD_URL      = 'https://api.exchangerate-api.com/v4/latest/USD';
-var USD_PROXY    = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://api.exchangerate-api.com/v4/latest/USD');
+var WORKER_URL = 'https://altin-proxy.ufuk87900.workers.dev';
 var activeXHR = null;
-var cachedUsdTry = 0;
 
 function applyPrices(a, s) {
   a = a + (parseFloat(settings.hasDuzA) || 0);
@@ -494,79 +491,20 @@ function applyPrices(a, s) {
 
 function fetchPrices() {
   if (activeXHR) { try { activeXHR.abort(); } catch(e){} activeXHR = null; }
-  fetchUsdTry(function(usdTry) {
-    if (usdTry > 0) cachedUsdTry = usdTry;
-    fetchGoldPrice(cachedUsdTry);
-  });
-}
-
-function fetchUsdTry(cb) {
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', USD_URL, true);
-  xhr.timeout = 7000;
-  xhr.onload = function() {
-    if (xhr.status >= 200 && xhr.status < 300) {
-      try {
-        var data = JSON.parse(xhr.responseText);
-        var rate = parseFloat(data.rates && data.rates.TRY);
-        if (rate > 1) { cb(rate); return; }
-      } catch(e) {}
-    }
-    var xhr2 = new XMLHttpRequest();
-    xhr2.open('GET', USD_PROXY, true);
-    xhr2.timeout = 7000;
-    xhr2.onload = function() {
-      try {
-        var data = JSON.parse(xhr2.responseText);
-        var rate = parseFloat(data.rates && data.rates.TRY);
-        if (rate > 1) { cb(rate); return; }
-      } catch(e) {}
-      cb(0);
-    };
-    xhr2.onerror = xhr2.ontimeout = function() { cb(0); };
-    xhr2.send();
-  };
-  xhr.onerror = xhr.ontimeout = function() {
-    var xhr2 = new XMLHttpRequest();
-    xhr2.open('GET', USD_PROXY, true);
-    xhr2.timeout = 7000;
-    xhr2.onload = function() {
-      try {
-        var data = JSON.parse(xhr2.responseText);
-        var rate = parseFloat(data.rates && data.rates.TRY);
-        if (rate > 1) { cb(rate); return; }
-      } catch(e) {}
-      cb(0);
-    };
-    xhr2.onerror = xhr2.ontimeout = function() { cb(0); };
-    xhr2.send();
-  };
-  xhr.send();
-}
-
-function fetchGoldPrice(usdTry) {
-  if (!usdTry || usdTry < 1) {
-    setStatus(false);
-    if (hasAlis) renderTable();
-    return;
-  }
   var xhr = new XMLHttpRequest();
   activeXHR = xhr;
-  xhr.open('GET', GOLD_API_URL, true);
-  xhr.timeout = 7000;
+  xhr.open('GET', WORKER_URL, true);
+  xhr.timeout = 10000;
   xhr.onload = function() {
     if (activeXHR !== xhr) return;
     activeXHR = null;
     if (xhr.status >= 200 && xhr.status < 300) {
       try {
         var data = JSON.parse(xhr.responseText);
-        var onsUsd = parseFloat(data.price);
-        if (!onsUsd || onsUsd < 100) throw new Error('Geçersiz altın fiyatı');
-        var onsTry = onsUsd * usdTry;
-        var gramTl = onsTry / 31.1035;
-        var a = gramTl * 0.9995;
-        var s = gramTl * 1.0005;
-        if (!applyPrices(a, s)) throw new Error();
+        var a = parseFloat(data.hasAlis);
+        var s = parseFloat(data.hasSatis);
+        if (!a || a < 100) throw new Error('Geçersiz fiyat');
+        if (!applyPrices(a, s)) throw new Error('applyPrices hata');
       } catch(e) {
         setStatus(false);
         if (hasAlis) renderTable();
