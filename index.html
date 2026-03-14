@@ -4,7 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Asil Kuyumcum</title>
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" id="manifestLink" href="manifest.json">
+<script>
+if (window.location.search.indexOf('admin') !== -1) {
+  document.getElementById('manifestLink').href = 'manifest-admin.json';
+}
+</script>
 <meta name="theme-color" content="#b8960c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
