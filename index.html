@@ -57,9 +57,11 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-width: 0;
   }
   .desktop-side {
-    width: 320px;
+    flex: 1;
+    min-width: 0;
     background: #141414;
     border-left: 1px solid #333;
     display: flex;
@@ -73,12 +75,12 @@ body {
   .table-header span { font-size: 15px; }
 
   .price-row {
-    padding: 15px 24px;
+    padding: 12px 24px;
     grid-template-columns: 1.5fr 1fr 1fr 1.1fr;
   }
-  .price-row .birim { font-size: 19px; }
-  .price-row .alis, .price-row .satis { font-size: 19px; }
-  .price-row .kk { font-size: 17px; }
+  .price-row .birim { font-size: 17px; }
+  .price-row .alis, .price-row .satis { font-size: 17px; }
+  .price-row .kk { font-size: 15px; }
 
   .update-bar { padding: 12px 24px; }
   .bottom-nav { display: none; }
@@ -90,9 +92,8 @@ body {
 }
 
 @media (min-width: 1200px) {
-  .desktop-side { width: 380px; }
-  .price-row .birim { font-size: 21px; }
-  .price-row .alis, .price-row .satis { font-size: 21px; }
+  .price-row .birim { font-size: 18px; }
+  .price-row .alis, .price-row .satis { font-size: 18px; }
 }
 .header { text-align: center; padding: 16px 16px 10px; position: relative; background: #111; border-bottom: 2px solid #b8960c; }
 .header .logo { width: 90px; height: 90px; border-radius: 50%; margin-bottom: 8px; }
@@ -450,7 +451,6 @@ if (window.location.search.indexOf('admin') === -1) {
   var mb = document.getElementById('modBtn');
   mb.style.display = 'flex';
   document.getElementById('adminEkstra').style.display = 'block';
-  renderDesktopPanel();
 }
 updateModBtn();
 
@@ -933,6 +933,7 @@ if ('serviceWorker' in navigator) {
 // ── BAŞLAT ────────────────────────────────────────────────────────────────────
 settings = loadSettings();
 renderTable();
+renderDesktopPanel();
 // XAU endpoint hem altın hem kuru veriyor; döviz bandı için fetchDoviz ayrıca çalışır
 fetchPrices();
 setInterval(fetchPrices, 5000);
