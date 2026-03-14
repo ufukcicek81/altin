@@ -396,6 +396,18 @@ if (!Array.prototype.find) {
   };
 }
 // ── ÜRÜNLER ──────────────────────────────────────────────────────────────────
+var DOVIZLER = [
+  { id:'usd', label:'USD', flag:'🇺🇸' },
+  { id:'eur', label:'EUR', flag:'🇪🇺' },
+  { id:'gbp', label:'GBP', flag:'🇬🇧' },
+  { id:'sar', label:'SAR', flag:'🇸🇦' },
+  { id:'chf', label:'CHF', flag:'🇨🇭' },
+];
+var HURDALAR = [
+  { id:'hurda22', label:'22 Ayar Hurda', oran: 22/24 },
+  { id:'hurda14', label:'14 Ayar Hurda', oran: 14/24 },
+  { id:'hurda8',  label:'8 Ayar Hurda',  oran: 8/24  },
+];
 var ITEMS = [
   { id:'has24',    label:'24 Ayar',     defA:1.0000, defS:1.0030 },
   { id:'ayar22',   label:'22 Ayar',     defA:0.9100, defS:0.9220 },
@@ -1051,20 +1063,6 @@ function updateDovizBant(rates) {
 }
 
 // ── ADMİN DÖVİZ & HURDA TABLOSU ──────────────────────────────────────────────
-var DOVIZLER = [
-  { id:'usd', label:'USD', flag:'🇺🇸' },
-  { id:'eur', label:'EUR', flag:'🇪🇺' },
-  { id:'gbp', label:'GBP', flag:'🇬🇧' },
-  { id:'sar', label:'SAR', flag:'🇸🇦' },
-  { id:'chf', label:'CHF', flag:'🇨🇭' },
-];
-
-var HURDALAR = [
-  { id:'hurda22', label:'22 Ayar Hurda', oran: 22/24 },
-  { id:'hurda14', label:'14 Ayar Hurda', oran: 14/24 },
-  { id:'hurda8',  label:'8 Ayar Hurda',  oran: 8/24  },
-];
-
 function renderAdminDoviz() {
   var html = '';
   DOVIZLER.forEach(function(d) {
