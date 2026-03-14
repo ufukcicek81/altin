@@ -543,6 +543,7 @@ function fetchPrices() {
         if (!applyPrices(a, s)) throw new Error('applyPrices hata');
         // Döviz verilerini sakla
         liveDoviz = data;
+        updateDovizBant({});
         if (!document.getElementById('overlay').classList.contains('open')) {
           if (document.getElementById('adminDovizRows')) renderAdminDoviz();
           if (document.getElementById('adminHurdaRows')) renderAdminHurda();
@@ -891,22 +892,38 @@ function fetchDovizFallback() {
 }
 
 function updateDovizBant(rates) {
-  var items = [
-    { sym: '🇺🇸 USD', kod: 'USD', val: rates.USD },
-    { sym: '🇪🇺 EUR', kod: 'EUR', val: rates.EUR },
-    { sym: '🇬🇧 GBP', kod: 'GBP', val: rates.GBP },
-  ];
+  // Önce worker'dan gelen liveDoviz varsa onu kullan, yoksa exchangerate'den gelenle devam et
+  var bantItems = [];
+  if (liveDoviz && liveDoviz.usdAlis) {
+    var dovizListesi = [
+      { sym:'🇺🇸 USD', id:'usd' },
+      { sym:'🇪🇺 EUR', id:'eur' },
+      { sym:'🇬🇧 GBP', id:'gbp' },
+      { sym:'🇸🇦 SAR', id:'sar' },
+      { sym:'🇨🇭 CHF', id:'chf' },
+    ];
+    dovizListesi.forEach(function(d) {
+      var duzA = parseFloat((settings.dovizDuz && settings.dovizDuz[d.id+'A']) || 0);
+      var duzS = parseFloat((settings.dovizDuz && settings.dovizDuz[d.id+'S']) || 0);
+      var alis  = liveDoviz[d.id+'Alis']  ? (liveDoviz[d.id+'Alis']  + duzA).toFixed(2) : null;
+      var satis = liveDoviz[d.id+'Satis'] ? (liveDoviz[d.id+'Satis'] + duzS).toFixed(2) : null;
+      if (alis && satis) bantItems.push({ sym: d.sym, alis: alis, satis: satis });
+    });
+  } else {
+    bantItems = [
+      { sym:'🇺🇸 USD', alis: rates.USD ? rates.USD.toFixed(2) : null, satis: rates.USD ? rates.USD.toFixed(2) : null },
+      { sym:'🇪🇺 EUR', alis: rates.EUR ? rates.EUR.toFixed(2) : null, satis: rates.EUR ? rates.EUR.toFixed(2) : null },
+      { sym:'🇬🇧 GBP', alis: rates.GBP ? rates.GBP.toFixed(2) : null, satis: rates.GBP ? rates.GBP.toFixed(2) : null },
+    ];
+  }
   var html = '';
-  items.forEach(function(it) {
-    var prev = dovizCache[it.kod];
-    var cls = '';
-    if (prev && it.val > prev) cls = 'd-up';
-    else if (prev && it.val < prev) cls = 'd-dn';
-    dovizCache[it.kod] = it.val;
-    var valStr = it.val.toFixed(2);
-    var arrow = cls === 'd-up' ? ' ▲' : cls === 'd-dn' ? ' ▼' : '';
+  bantItems.forEach(function(it) {
+    if (!it.alis) return;
     html += '<span class="doviz-item">' + it.sym
-      + ' <span class="d-kur' + (cls ? ' ' + cls : '') + '">' + valStr + ' ₺' + arrow + '</span></span>';
+      + ' <span class="d-kur" style="color:#5dba6a">' + it.alis + '</span>'
+      + '<span style="color:#888;margin:0 2px">/</span>'
+      + '<span class="d-kur" style="color:#e07050">' + it.satis + '</span>'
+      + ' ₺</span>';
   });
   var bantEl = document.getElementById('dovizBant');
   bantEl.innerHTML = html + html;
