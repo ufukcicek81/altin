@@ -474,9 +474,9 @@ function setStatus(ok) {
 }
 
 // ── API ──────────────────────────────────────────────────────────────────────
-// Altın fiyatı: exchangerate-api XAU bazlı (Safari uyumlu, aynı servis döviz bandında da var)
-var XAU_URL      = 'https://api.exchangerate-api.com/v4/latest/XAU';
-var XAU_PROXY    = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://api.exchangerate-api.com/v4/latest/XAU');
+var GOLD_API_URL = 'https://api.gold-api.com/price/XAU';
+var USD_URL      = 'https://api.exchangerate-api.com/v4/latest/USD';
+var USD_PROXY    = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://api.exchangerate-api.com/v4/latest/USD');
 var activeXHR = null;
 var cachedUsdTry = 0;
 
@@ -494,17 +494,65 @@ function applyPrices(a, s) {
 
 function fetchPrices() {
   if (activeXHR) { try { activeXHR.abort(); } catch(e){} activeXHR = null; }
-  fetchPricesXAU(XAU_URL, function(ok) {
-    if (!ok) fetchPricesXAU(XAU_PROXY, function(ok2) {
-      if (!ok2) { setStatus(false); if (hasAlis) renderTable(); }
-    });
+  fetchUsdTry(function(usdTry) {
+    if (usdTry > 0) cachedUsdTry = usdTry;
+    fetchGoldPrice(cachedUsdTry);
   });
 }
 
-function fetchPricesXAU(url, cb) {
+function fetchUsdTry(cb) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', USD_URL, true);
+  xhr.timeout = 7000;
+  xhr.onload = function() {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      try {
+        var data = JSON.parse(xhr.responseText);
+        var rate = parseFloat(data.rates && data.rates.TRY);
+        if (rate > 1) { cb(rate); return; }
+      } catch(e) {}
+    }
+    var xhr2 = new XMLHttpRequest();
+    xhr2.open('GET', USD_PROXY, true);
+    xhr2.timeout = 7000;
+    xhr2.onload = function() {
+      try {
+        var data = JSON.parse(xhr2.responseText);
+        var rate = parseFloat(data.rates && data.rates.TRY);
+        if (rate > 1) { cb(rate); return; }
+      } catch(e) {}
+      cb(0);
+    };
+    xhr2.onerror = xhr2.ontimeout = function() { cb(0); };
+    xhr2.send();
+  };
+  xhr.onerror = xhr.ontimeout = function() {
+    var xhr2 = new XMLHttpRequest();
+    xhr2.open('GET', USD_PROXY, true);
+    xhr2.timeout = 7000;
+    xhr2.onload = function() {
+      try {
+        var data = JSON.parse(xhr2.responseText);
+        var rate = parseFloat(data.rates && data.rates.TRY);
+        if (rate > 1) { cb(rate); return; }
+      } catch(e) {}
+      cb(0);
+    };
+    xhr2.onerror = xhr2.ontimeout = function() { cb(0); };
+    xhr2.send();
+  };
+  xhr.send();
+}
+
+function fetchGoldPrice(usdTry) {
+  if (!usdTry || usdTry < 1) {
+    setStatus(false);
+    if (hasAlis) renderTable();
+    return;
+  }
   var xhr = new XMLHttpRequest();
   activeXHR = xhr;
-  xhr.open('GET', url, true);
+  xhr.open('GET', GOLD_API_URL, true);
   xhr.timeout = 7000;
   xhr.onload = function() {
     if (activeXHR !== xhr) return;
@@ -512,23 +560,27 @@ function fetchPricesXAU(url, cb) {
     if (xhr.status >= 200 && xhr.status < 300) {
       try {
         var data = JSON.parse(xhr.responseText);
-        // XAU bazlı: rates.TRY = 1 ons altının TRY değeri
-        var onsTry = parseFloat(data.rates && data.rates.TRY);
-        if (!onsTry || onsTry < 1000) throw new Error();
+        var onsUsd = parseFloat(data.price);
+        if (!onsUsd || onsUsd < 100) throw new Error('Geçersiz altın fiyatı');
+        var onsTry = onsUsd * usdTry;
         var gramTl = onsTry / 31.1035;
         var a = gramTl * 0.9995;
         var s = gramTl * 1.0005;
         if (!applyPrices(a, s)) throw new Error();
-        // USD/TRY kurunu da güncelle (döviz bandı için)
-        if (data.rates.USD) cachedUsdTry = data.rates.TRY / data.rates.USD;
-        if(cb) cb(true);
-      } catch(e) { if(cb) cb(false); }
-    } else { if(cb) cb(false); }
+      } catch(e) {
+        setStatus(false);
+        if (hasAlis) renderTable();
+      }
+    } else {
+      setStatus(false);
+      if (hasAlis) renderTable();
+    }
   };
   xhr.onerror = xhr.ontimeout = function() {
     if (activeXHR !== xhr) return;
     activeXHR = null;
-    if(cb) cb(false);
+    setStatus(false);
+    if (hasAlis) renderTable();
   };
   xhr.send();
 }
