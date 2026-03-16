@@ -498,9 +498,11 @@ function checkAdminSession() {
 }
 
 function openAdminLogin() {
+  var currentPass = (settings && settings.adminPass ? String(settings.adminPass).trim() : String(ADMIN_PASS).trim());
   var pass = prompt('Yönetici şifresi:');
   if (pass === null) return;
-  if (pass === ADMIN_PASS) {
+  pass = String(pass).trim();
+  if (pass === currentPass) {
     sessionStorage.setItem('gp10_admin', '1');
     IS_ADMIN = true;
     openAdmin();
@@ -992,10 +994,12 @@ jsonbinLoad(function(cloud) {
   clearTimeout(cloudTimeout);
   if (cloud && cloud.shopName) {
     settings = cloud;
-    if (settings.adminPass) ADMIN_PASS = settings.adminPass;
+    if (settings.adminPass) ADMIN_PASS = String(settings.adminPass).trim();
     localStorage.setItem('gp10', JSON.stringify(settings));
     document.getElementById('priceRows').innerHTML = '';
     renderTable();
+    try { renderAdminDoviz(); } catch(e){}
+    try { renderAdminHurda(); } catch(e){}
   }
 });
 
@@ -1430,6 +1434,49 @@ window.addEventListener('DOMContentLoaded', function () {
     }
   });
 })();
+</script>
+
+
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  try {
+    var adminBtn = document.getElementById('adminBtn');
+    if (adminBtn) {
+      adminBtn.onclick = function () {
+        if (checkAdminSession()) {
+          IS_ADMIN = true;
+          openAdmin();
+        } else {
+          openAdminLogin();
+        }
+      };
+    }
+
+    var navItems = document.querySelectorAll('.nav-item');
+    if (navItems && navItems.length) {
+      var lastItem = navItems[navItems.length - 1];
+      if (lastItem) {
+        lastItem.onclick = function () {
+          if (checkAdminSession()) {
+            IS_ADMIN = true;
+            openAdmin();
+          } else {
+            openAdminLogin();
+          }
+        };
+      }
+    }
+
+    // URL contains ?admin or #admin ise buton görünür olsun
+    if (window.location.search.indexOf('admin') !== -1 || window.location.hash.indexOf('admin') !== -1) {
+      var mb = document.getElementById('modBtn');
+      if (mb) mb.style.display = 'flex';
+      var ex = document.getElementById('adminEkstra');
+      if (ex) ex.style.display = 'block';
+      if (adminBtn) adminBtn.style.display = 'flex';
+    }
+  } catch(e){}
+});
 </script>
 
 </body>
