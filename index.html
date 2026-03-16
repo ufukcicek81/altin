@@ -6,12 +6,9 @@
 <title>Asil Kuyumcum</title>
 <link rel="manifest" id="manifestLink" href="manifest.json">
 <script>
-window.addEventListener('DOMContentLoaded', function () {
-  if (window.location.search.indexOf('admin') !== -1) {
-    var manifestLink = document.getElementById('manifestLink');
-    if (manifestLink) manifestLink.href = 'manifest-admin.json';
-  }
-});
+if (window.location.search.indexOf('admin') !== -1) {
+  document.getElementById('manifestLink').href = 'manifest-admin.json';
+}
 </script>
 <meta name="theme-color" content="#b8960c">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -662,30 +659,27 @@ function fetchPrices() {
     if (xhr.status >= 200 && xhr.status < 300) {
       try {
         var data = JSON.parse(xhr.responseText);
-        var a = parseFloat(data.hasAlis || data.HasAlis || data.hasalis || data.HASALIS);
-        var s = parseFloat(data.hasSatis || data.HasSatis || data.hassatis || data.HASSATIS);
+        var a = parseFloat(data.hasAlis);
+        var s = parseFloat(data.hasSatis);
         if (!a || a < 100) throw new Error('Geçersiz fiyat');
         if (!applyPrices(a, s)) throw new Error('applyPrices hata');
-        liveDoviz = data || {};
+        // Döviz verilerini sakla
+        liveDoviz = data;
         updateDovizBant({});
-        if (document.getElementById('adminDovizRows')) renderAdminDoviz();
-        if (document.getElementById('adminHurdaRows')) renderAdminHurda();
+        if (!document.getElementById('overlay').classList.contains('open')) {
+          if (document.getElementById('adminDovizRows')) renderAdminDoviz();
+          if (document.getElementById('adminHurdaRows')) renderAdminHurda();
+        }
         renderEkstraDoviz();
         renderEkstraHurda();
         renderDesktopPanel();
       } catch(e) {
         setStatus(false);
         if (hasAlis) renderTable();
-        try { renderEkstraDoviz(); } catch(err){}
-        try { renderEkstraHurda(); } catch(err){}
-        try { renderDesktopPanel(); } catch(err){}
       }
     } else {
       setStatus(false);
       if (hasAlis) renderTable();
-      try { renderEkstraDoviz(); } catch(err){}
-      try { renderEkstraHurda(); } catch(err){}
-      try { renderDesktopPanel(); } catch(err){}
     }
   };
   xhr.onerror = xhr.ontimeout = function() {
@@ -693,9 +687,6 @@ function fetchPrices() {
     activeXHR = null;
     setStatus(false);
     if (hasAlis) renderTable();
-    try { renderEkstraDoviz(); } catch(err){}
-    try { renderEkstraHurda(); } catch(err){}
-    try { renderDesktopPanel(); } catch(err){}
   };
   xhr.send();
 }
@@ -821,13 +812,10 @@ function addUrun() {
   if (!label) { showToast('Urun adi girin!'); return; }
   if (!settings.customItems) settings.customItems = [];
   if (!settings.labor) settings.labor = {};
-  if (!settings.laborH) settings.laborH = {};
   var id = 'c_' + Date.now();
   settings.customItems.push({ id:id, label:label, defA:alisX, defS:satisX });
   settings.labor[id] = { a:alisX, s:satisX };
-  settings.laborH[id] = { a:alisX, s:satisX };
   document.getElementById('newLabel').value = '';
-  localStorage.setItem('gp10', JSON.stringify(settings));
   document.getElementById('priceRows').innerHTML = '';
   renderTable();
   renderUrunList();
@@ -904,12 +892,6 @@ function saveAdmin() {
   });
   localStorage.setItem('gp10', JSON.stringify(settings));
   renderTable();
-  try { renderUrunList(); } catch(e){}
-  try { renderAdminDoviz(); } catch(e){}
-  try { renderAdminHurda(); } catch(e){}
-  try { renderEkstraDoviz(); } catch(e){}
-  try { renderEkstraHurda(); } catch(e){}
-  try { renderDesktopPanel(); } catch(e){}
   closeAdmin();
   showToast('⏳ Buluta kaydediliyor...');
   jsonbinSave(settings, function(ok) {
@@ -922,14 +904,7 @@ function resetAdmin() {
   settings = makeDefaults();
   localStorage.removeItem('gp10');
   document.getElementById('priceRows').innerHTML = '';
-  renderTable();
-  try { renderUrunList(); } catch(e){}
-  try { renderAdminDoviz(); } catch(e){}
-  try { renderAdminHurda(); } catch(e){}
-  try { renderEkstraDoviz(); } catch(e){}
-  try { renderEkstraHurda(); } catch(e){}
-  try { renderDesktopPanel(); } catch(e){}
-  closeAdmin();
+  renderTable(); closeAdmin();
   showToast('↺ Sıfırlandı');
   jsonbinSave(settings, function(){});
 }
@@ -992,50 +967,16 @@ jsonbinLoad(function(cloud) {
   clearTimeout(cloudTimeout);
   if (cloud && cloud.shopName) {
     settings = cloud;
-    if (!settings.customItems) settings.customItems = [];
-    if (!settings.labor) settings.labor = {};
-    if (!settings.laborH) settings.laborH = {};
     if (settings.adminPass) ADMIN_PASS = settings.adminPass;
     localStorage.setItem('gp10', JSON.stringify(settings));
     document.getElementById('priceRows').innerHTML = '';
     renderTable();
-    try { renderUrunList(); } catch(e){}
-    try { renderAdminDoviz(); } catch(e){}
-    try { renderAdminHurda(); } catch(e){}
-    try { renderEkstraDoviz(); } catch(e){}
-    try { renderEkstraHurda(); } catch(e){}
-    try { renderDesktopPanel(); } catch(e){}
   }
 });
 
 // ── DÖVİZ BANT ───────────────────────────────────────────────────────────────
 var dovizCache = {};
 var liveDoviz = {}; // worker'dan gelen canlı döviz verileri
-
-function getLiveValueById(id, tip) {
-  if (!liveDoviz) return 0;
-  var anahtarlar = [
-    id + tip,
-    id.toUpperCase() + tip,
-    id + tip.charAt(0).toUpperCase() + tip.slice(1),
-    id.toLowerCase() + tip,
-    id.toUpperCase() + tip.charAt(0).toUpperCase() + tip.slice(1)
-  ];
-  if (id === 'usd') anahtarlar = anahtarlar.concat(['USD' + tip, 'dolar' + tip, 'Dolar' + tip]);
-  if (id === 'eur') anahtarlar = anahtarlar.concat(['EUR' + tip, 'euro' + tip, 'Euro' + tip]);
-  if (id === 'gbp') anahtarlar = anahtarlar.concat(['GBP' + tip, 'sterlin' + tip, 'Sterlin' + tip]);
-  if (id === 'sar') anahtarlar = anahtarlar.concat(['SAR' + tip, 'riyal' + tip, 'Riyal' + tip]);
-  if (id === 'chf') anahtarlar = anahtarlar.concat(['CHF' + tip, 'frank' + tip, 'Frank' + tip]);
-
-  for (var i = 0; i < anahtarlar.length; i++) {
-    var v = liveDoviz[anahtarlar[i]];
-    if (v !== undefined && v !== null && v !== '') {
-      v = parseFloat(v);
-      if (!isNaN(v)) return v;
-    }
-  }
-  return 0;
-}
 
 function fetchDoviz() {
   // Worker'dan döviz verilerini çek (zaten fetchPrices ile geliyor, cachedDoviz kullan)
@@ -1086,7 +1027,7 @@ function fetchDovizFallback() {
 function updateDovizBant(rates) {
   // Önce worker'dan gelen liveDoviz varsa onu kullan, yoksa exchangerate'den gelenle devam et
   var bantItems = [];
-  if (liveDoviz && (getLiveValueById('usd','Alis') || getLiveValueById('usd','Satis'))) {
+  if (liveDoviz && liveDoviz.usdAlis) {
     var dovizListesi = [
       { sym:'🇺🇸 USD', id:'usd' },
       { sym:'🇪🇺 EUR', id:'eur' },
@@ -1097,8 +1038,8 @@ function updateDovizBant(rates) {
     dovizListesi.forEach(function(d) {
       var duzA = parseFloat((settings.dovizDuz && settings.dovizDuz[d.id+'A']) || 0);
       var duzS = parseFloat((settings.dovizDuz && settings.dovizDuz[d.id+'S']) || 0);
-      var alRaw = getLiveValueById(d.id,'Alis'); var alis  = alRaw ? (alRaw + duzA).toFixed(2) : null;
-      var saRaw = getLiveValueById(d.id,'Satis'); var satis = saRaw ? (saRaw + duzS).toFixed(2) : null;
+      var alis  = liveDoviz[d.id+'Alis']  ? (liveDoviz[d.id+'Alis']  + duzA).toFixed(2) : null;
+      var satis = liveDoviz[d.id+'Satis'] ? (liveDoviz[d.id+'Satis'] + duzS).toFixed(2) : null;
       if (alis && satis) bantItems.push({ sym: d.sym, alis: alis, satis: satis });
     });
   } else {
@@ -1125,8 +1066,8 @@ function updateDovizBant(rates) {
 function renderAdminDoviz() {
   var html = '';
   DOVIZLER.forEach(function(d) {
-    var alis  = getLiveValueById(d.id, 'Alis') || 0;
-    var satis = getLiveValueById(d.id, 'Satis') || 0;
+    var alis  = liveDoviz[d.id+'Alis']  || 0;
+    var satis = liveDoviz[d.id+'Satis'] || 0;
     var duzA  = parseFloat((settings.dovizDuz && settings.dovizDuz[d.id+'A']) || 0);
     var duzS  = parseFloat((settings.dovizDuz && settings.dovizDuz[d.id+'S']) || 0);
     var gosterA = alis  ? (alis  + duzA).toFixed(2) : '—';
@@ -1172,7 +1113,7 @@ function renderDesktopPanel() {
   var side = document.getElementById('desktopSide');
   if (!side) return;
   // Sadece admin modunda ve geniş ekranda göster
-  var isAdmin = window.location.search.indexOf('admin') !== -1 || window.location.hash.indexOf('admin') !== -1;
+  var isAdmin = window.location.search.indexOf('admin') !== -1;
   var isDesktop = window.innerWidth >= 768;
   side.style.display = (isAdmin && isDesktop) ? 'flex' : 'none';
   if (!isAdmin || !isDesktop) return;
@@ -1214,8 +1155,8 @@ function renderEkstraDoviz() {
   if (!el) return;
   var html = '';
   DOVIZLER.forEach(function(d) {
-    var alis  = getLiveValueById(d.id, 'Alis') || 0;
-    var satis = getLiveValueById(d.id, 'Satis') || 0;
+    var alis  = liveDoviz[d.id+'Alis']  || 0;
+    var satis = liveDoviz[d.id+'Satis'] || 0;
     var duzA  = parseFloat((settings.dovizDuz && settings.dovizDuz[d.id+'A']) || 0);
     var duzS  = parseFloat((settings.dovizDuz && settings.dovizDuz[d.id+'S']) || 0);
     var gosterA = alis  ? (alis  + duzA).toFixed(2) : '—';
@@ -1249,12 +1190,5 @@ function renderEkstraHurda() {
   el.innerHTML = html;
 }
 </script>
-
-<script>
-window.addEventListener('resize', function () {
-  try { renderDesktopPanel(); } catch(e){}
-});
-</script>
-
 </body>
 </html>
