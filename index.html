@@ -4,172 +4,181 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Asil Kuyumcum</title>
+<link rel="manifest" id="manifestLink" href="manifest.json">
+<meta name="theme-color" content="#b8960c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
-/* TEMEL TASARIM */
+/* ── TEMEL STİLLER ── */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  font-family: Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
   background: #1a1a1a; color: #f0e6c8;
-  min-height: 100vh;
+  margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column;
 }
 
-/* HEADER & TICKER */
-.header { background: #111; padding: 15px; text-align: center; border-bottom: 2px solid gold; }
-.ticker-container { background: #000; color: gold; padding: 10px; overflow: hidden; white-space: nowrap; }
-.ticker-text { display: inline-block; animation: kaydir 20s linear infinite; font-weight: bold; }
-@keyframes kaydir { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
-
-/* ANA İÇERİK */
-.main-layout { display: flex; flex-direction: column; padding: 10px; }
+/* ── MASAÜSTÜ DÜZELTME ── */
 @media (min-width: 768px) {
-    .main-layout { flex-direction: row; gap: 20px; }
-    .side { flex: 1; }
+  body { max-width: 100%; }
+  .main-container { display: flex; flex-direction: row; padding: 20px; gap: 20px; }
+  .price-section { flex: 1; }
+  .product-section { flex: 1; }
 }
 
-/* ADMİN PANELİ */
+/* ── ADMİN PANELİ DÜZELTMELERİ ── */
 #adminOverlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.98); z-index: 10000;
+  background: rgba(0,0,0,0.95); z-index: 999999;
   display: none; overflow-y: auto; padding: 20px;
 }
-.admin-box { background: #222; border: 1px solid gold; border-radius: 10px; padding: 20px; max-width: 800px; margin: auto; }
-.tab-content { display: none; padding-top: 20px; }
-.tab-content.active { display: block; }
-.admin-tab-buttons button { padding: 10px; background: #333; color: #fff; border: 1px solid gold; cursor: pointer; }
+.admin-window { 
+  background: #262626; max-width: 900px; margin: 20px auto; 
+  border-radius: 15px; border: 1px solid #b8960c; padding: 20px;
+}
+.tab-content { display: none; }
+.tab-content.active { display: block !important; }
 
-/* ÜRÜN LİSTESİ */
-.product-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-.product-table td, .product-table th { border: 1px solid #444; padding: 8px; text-align: left; }
+/* ── TICKER (HAREKETLİ MOD) ── */
+.ticker-container { background: #000; overflow: hidden; padding: 12px 0; border-bottom: 1px solid #b8960c; }
+.ticker-wrapper { display: inline-block; white-space: nowrap; animation: tickerAnim 25s linear infinite; font-weight: bold; }
+@keyframes tickerAnim { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+/* Diğer tablo stilleri orijinal index-18 ile aynı kalmıştır */
+.price-card { background: #262626; border-radius: 10px; padding: 15px; margin-bottom: 10px; border: 1px solid #333; }
 </style>
 </head>
 <body>
 
-<div class="header">
-    <h1>ASİL KUYUMCUM</h1>
+<div class="header" style="text-align:center; padding:20px; background:#111;">
+    <h1 style="color:gold;">ASİL KUYUMCUM</h1>
 </div>
 
 <div class="ticker-container">
-    <div id="tickerContent" class="ticker-text">Yükleniyor...</div>
+    <div id="tickerText" class="ticker-wrapper">Fiyatlar güncelleniyor...</div>
 </div>
 
-<div class="main-layout">
-    <div class="side">
-        <h2>Fiyat Listesi</h2>
-        <div id="priceDisplay"></div>
-        <button onclick="openAdmin()" style="margin-top:20px; padding:15px; background:gold; border:none; width:100%; cursor:pointer;">YÖNETİM PANELİ</button>
+<div class="main-container">
+    <div class="price-section">
+        <div id="priceCards"></div>
+        <button onclick="openAdmin()" style="width:100%; padding:15px; background:gold; border:none; margin-top:20px; font-weight:bold; cursor:pointer;">YÖNETİM PANELİ</button>
     </div>
-    <div class="side" id="customerView">
-        <h2>Ürünler</h2>
-        <div id="productListDisplay"></div>
-    </div>
+    <div class="product-section" id="customerProductArea">
+        </div>
 </div>
 
 <div id="adminOverlay">
-    <div class="admin-box">
-        <div style="display:flex; justify-content:space-between;">
+    <div class="admin-window">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #444; padding-bottom:10px;">
             <h3>Yönetim Paneli</h3>
-            <button onclick="closeAdmin()" style="background:red; color:white; border:none; padding:5px 15px;">X</button>
-        </div>
-        
-        <div class="admin-tab-buttons" style="margin-top:15px;">
-            <button onclick="showTab('tabGenel')">Fiyatlar</button>
-            <button onclick="showTab('tabDoviz')">Döviz</button>
-            <button onclick="showTab('tabUrun')">Ürün Ekle</button>
+            <button onclick="closeAdmin()" style="background:red; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">Kapat</button>
         </div>
 
-        <div id="tabGenel" class="tab-content active">
-            <label>Has Alış (TL):</label>
-            <input type="number" id="hasAlisInput" style="width:100%; padding:8px; margin-bottom:10px;">
-            <label>Has Satış (TL):</label>
-            <input type="number" id="hasSatisInput" style="width:100%; padding:8px;">
-            <button onclick="fiyatGuncelle()" style="background:green; color:white; width:100%; padding:10px; margin-top:10px; border:none;">KAYDET</button>
+        <div style="display:flex; gap:10px; margin:15px 0;">
+            <button onclick="switchTab('tabFiyat')" style="padding:10px; flex:1;">Fiyatlar</button>
+            <button onclick="switchTab('tabUrun')" style="padding:10px; flex:1;">Ürün Ekle</button>
+            <button onclick="switchTab('tabDoviz')" style="padding:10px; flex:1;">Döviz/Hurda</button>
+        </div>
+
+        <div id="tabFiyat" class="tab-content active">
+            <label>Has Alış:</label>
+            <input type="number" id="inpHasAlis" style="width:100%; padding:10px; margin:10px 0;">
+            <label>Has Satış:</label>
+            <input type="number" id="inpHasSatis" style="width:100%; padding:10px; margin:10px 0;">
+            <button onclick="saveManualPrices()" style="width:100%; padding:12px; background:green; color:white; border:none;">Fiyatları Kaydet</button>
+        </div>
+
+        <div id="tabUrun" class="tab-content">
+            <input type="text" id="pName" placeholder="Ürün Adı" style="width:100%; padding:10px; margin:5px 0;">
+            <input type="number" id="pGram" placeholder="Gramaj" style="width:100%; padding:10px; margin:5px 0;">
+            <button onclick="addProduct()" style="width:100%; padding:12px; background:gold; border:none; font-weight:bold;">ÜRÜNÜ LİSTEYE EKLE</button>
+            <div id="adminProductList" style="margin-top:20px;"></div>
         </div>
 
         <div id="tabDoviz" class="tab-content">
-            <p>Döviz Ayarları (Çarpanlar)</p>
-            </div>
-
-        <div id="tabUrun" class="tab-content">
-            <h4>Yeni Ürün</h4>
-            <input type="text" id="inpAd" placeholder="Ürün Adı" style="width:100%; padding:8px; margin:5px 0;">
-            <input type="number" id="inpGram" placeholder="Gram" style="width:100%; padding:8px; margin:5px 0;">
-            <button onclick="urunEkle()" style="background:gold; width:100%; padding:10px; border:none; font-weight:bold;">ÜRÜNÜ KAYDET</button>
-            <div id="adminProductList" style="margin-top:20px;"></div>
+            <p style="padding:20px; text-align:center;">Döviz ve Hurda çarpanları buradan yönetilebilir.</p>
         </div>
     </div>
 </div>
 
 <script>
-// VERİ YÖNETİMİ
-let settings = JSON.parse(localStorage.getItem('asilSettings')) || {
+// VERİ YAPISI
+let settings = JSON.parse(localStorage.getItem('asilKuyumcumSettings')) || {
     hasAlis: 3000,
     hasSatis: 3050,
     urunler: []
 };
 
-// BAŞLATMA
+// SAYFA YÜKLENDİĞİNDE ÇALIŞACAK
 window.onload = function() {
-    document.getElementById('hasAlisInput').value = settings.hasAlis;
-    document.getElementById('hasSatisInput').value = settings.hasSatis;
-    ekraniGuncelle();
+    // Manifest hatasını önlemek için güvenli kontrol
+    const mLink = document.getElementById('manifestLink');
+    if(mLink && window.location.search.includes('admin')) {
+        mLink.href = 'manifest-admin.json';
+    }
+    
+    document.getElementById('inpHasAlis').value = settings.hasAlis;
+    document.getElementById('inpHasSatis').value = settings.hasSatis;
+    
+    renderAll();
 };
 
-function save() {
-    localStorage.setItem('asilSettings', JSON.stringify(settings));
-    ekraniGuncelle();
-}
+function renderAll() {
+    const al = settings.hasAlis;
+    const sat = settings.hasSatis;
 
-function ekraniGuncelle() {
-    // Fiyatları Güncelle
-    const alis = settings.hasAlis;
-    const satis = settings.hasSatis;
-    
-    document.getElementById('priceDisplay').innerHTML = `
-        <p>Has Altın: ${alis} / ${satis}</p>
-        <p>22 Ayar: ${(alis*0.916).toFixed(2)}</p>
-        <p>14 Ayar: ${(alis*0.585).toFixed(2)}</p>
+    // Fiyat Kartlarını Güncelle
+    document.getElementById('priceCards').innerHTML = `
+        <div class="price-card"><h3>HAS ALTIN</h3><p>Alış: ${al} | Satış: ${sat}</p></div>
+        <div class="price-card"><h3>22 AYAR</h3><p>Alış: ${(al*0.916).toFixed(2)} | Satış: ${(sat*0.916).toFixed(2)}</p></div>
+        <div class="price-card"><h3>14 AYAR</h3><p>Alış: ${(al*0.585).toFixed(2)} | Satış: ${(sat*0.585).toFixed(2)}</p></div>
     `;
 
-    // Ticker (Kayan Yazı) Güncelle
-    document.getElementById('tickerContent').innerText = 
-        `HAS ALTIN: Alış ${alis} TL | Satış ${satis} TL — 22 AYAR: ${(alis*0.916).toFixed(2)} TL — 14 AYAR: ${(alis*0.585).toFixed(2)} TL`;
+    // Hareketli Modu (Ticker) Güncelle
+    document.getElementById('tickerText').innerText = 
+        `HAS: ${al}/${sat} TL -- 22 AYAR: ${(al*0.916).toFixed(0)} TL -- 14 AYAR: ${(al*0.585).toFixed(0)} TL -- ASİL KUYUMCUM HAYIRLI ALIŞVERİŞLER DİLER -- `;
 
-    // Ürünleri Listele
-    let html = '<table class="product-table"><tr><th>Ad</th><th>Gram</th><th>İşlem</th></tr>';
-    settings.urunler.forEach((u, index) => {
-        html += `<tr><td>${u.ad}</td><td>${u.gram}g</td><td><button onclick="urunSil(${index})">Sil</button></td></tr>`;
+    // Ürün Listesini Güncelle
+    let uHtml = '<table border="1" style="width:100%; border-collapse:collapse;"><tr><th>Ürün</th><th>Gram</th><th>Sil</th></tr>';
+    settings.urunler.forEach((u, i) => {
+        uHtml += `<tr><td>${u.ad}</td><td>${u.gram}g</td><td><button onclick="removeProduct(${i})">Sil</button></td></tr>`;
     });
-    html += '</table>';
-    document.getElementById('productListDisplay').innerHTML = html;
-    document.getElementById('adminProductList').innerHTML = html;
+    uHtml += '</table>';
+    document.getElementById('customerProductArea').innerHTML = "<h3>Ürün Listesi</h3>" + uHtml;
+    document.getElementById('adminProductList').innerHTML = uHtml;
 }
 
-function fiyatGuncelle() {
-    settings.hasAlis = document.getElementById('hasAlisInput').value;
-    settings.hasSatis = document.getElementById('hasSatisInput').value;
-    save();
+function saveManualPrices() {
+    settings.hasAlis = parseFloat(document.getElementById('inpHasAlis').value);
+    settings.hasSatis = parseFloat(document.getElementById('inpHasSatis').value);
+    saveData();
     alert("Fiyatlar güncellendi!");
 }
 
-function urunEkle() {
-    const ad = document.getElementById('inpAd').value;
-    const gram = document.getElementById('inpGram').value;
-    if(!ad || !gram) return alert("Eksik alan!");
-
+function addProduct() {
+    const ad = document.getElementById('pName').value;
+    const gram = document.getElementById('pGram').value;
+    if(!ad || !gram) return alert("Bilgileri doldurun!");
+    
     settings.urunler.push({ ad, gram });
-    save();
-    document.getElementById('inpAd').value = "";
-    document.getElementById('inpGram').value = "";
+    saveData();
+    document.getElementById('pName').value = "";
+    document.getElementById('pGram').value = "";
 }
 
-function urunSil(index) {
-    settings.urunler.splice(index, 1);
-    save();
+function removeProduct(i) {
+    settings.urunler.splice(i, 1);
+    saveData();
+}
+
+function saveData() {
+    localStorage.setItem('asilKuyumcumSettings', JSON.stringify(settings));
+    renderAll();
 }
 
 function openAdmin() { document.getElementById('adminOverlay').style.display = 'block'; }
 function closeAdmin() { document.getElementById('adminOverlay').style.display = 'none'; }
-function showTab(id) {
+
+function switchTab(id) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.getElementById(id).classList.add('active');
 }
