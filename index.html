@@ -483,7 +483,7 @@ var ADMIN_PASS = '1234';
 var IS_ADMIN = false;
 
 // ?admin yoksa buton gizli
-if (window.location.search.indexOf('admin') === -1) {
+if (window.location.search.indexOf('admin') === -1 && window.location.hash.indexOf('admin') === -1) {
   document.getElementById('adminBtn').style.display = 'none';
   document.getElementById('bottomNav').style.display = 'none';
 } else {
@@ -693,10 +693,8 @@ function fetchPrices() {
         // Döviz verilerini sakla
         liveDoviz = data;
         updateDovizBant({});
-        if (!document.getElementById('overlay').classList.contains('open')) {
-          if (document.getElementById('adminDovizRows')) renderAdminDoviz();
-          if (document.getElementById('adminHurdaRows')) renderAdminHurda();
-        }
+        if (document.getElementById('adminDovizRows')) renderAdminDoviz();
+        if (document.getElementById('adminHurdaRows')) renderAdminHurda();
         renderEkstraDoviz();
         renderEkstraHurda();
         renderDesktopPanel();
@@ -1140,7 +1138,7 @@ function renderDesktopPanel() {
   var side = document.getElementById('desktopSide');
   if (!side) return;
   // Sadece admin modunda ve geniş ekranda göster
-  var isAdmin = window.location.search.indexOf('admin') !== -1;
+  var isAdmin = window.location.search.indexOf('admin') !== -1 || window.location.hash.indexOf('admin') !== -1;
   var isDesktop = window.innerWidth >= 768;
   side.style.display = (isAdmin && isDesktop) ? 'flex' : 'none';
   if (!isAdmin || !isDesktop) return;
@@ -1299,6 +1297,23 @@ var url="https://wa.me/?text="+encodeURIComponent(text);
 window.open(url,"_blank");
 
 }
+</script>
+
+
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  try {
+    var originalOpenAdmin = window.openAdmin;
+    if (typeof originalOpenAdmin === 'function') {
+      window.openAdmin = function () {
+        originalOpenAdmin();
+        try { if (typeof renderAdminDoviz === 'function') renderAdminDoviz(); } catch(e){}
+        try { if (typeof renderAdminHurda === 'function') renderAdminHurda(); } catch(e){}
+        try { if (typeof renderDesktopPanel === 'function') renderDesktopPanel(); } catch(e){}
+      };
+    }
+  } catch(e){}
+});
 </script>
 
 </body>
