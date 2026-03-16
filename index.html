@@ -4,176 +4,175 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Asil Kuyumcum</title>
-<link rel="manifest" id="manifestLink" href="manifest.json">
-<meta name="theme-color" content="#b8960c">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Asil Kuyumcum">
-<link rel="apple-touch-icon" href="icon-192.png">
-
 <style>
-/* GENEL STİLLER */
+/* TEMEL TASARIM */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  font-family: Arial, sans-serif;
   background: #1a1a1a; color: #f0e6c8;
-  max-width: 480px; margin: 0 auto;
-  min-height: 100vh; display: flex; flex-direction: column;
+  min-height: 100vh;
 }
 
-/* MASAÜSTÜ DÜZELTME */
+/* HEADER & TICKER */
+.header { background: #111; padding: 15px; text-align: center; border-bottom: 2px solid gold; }
+.ticker-container { background: #000; color: gold; padding: 10px; overflow: hidden; white-space: nowrap; }
+.ticker-text { display: inline-block; animation: kaydir 20s linear infinite; font-weight: bold; }
+@keyframes kaydir { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+
+/* ANA İÇERİK */
+.main-layout { display: flex; flex-direction: column; padding: 10px; }
 @media (min-width: 768px) {
-  body { max-width: 100%; flex-direction: row; flex-wrap: wrap; }
-  .header, .ticker-container { width: 100%; }
-  .main-content { display: flex; width: 100%; gap: 20px; padding: 20px; }
-  .price-section { flex: 1; }
-  .customer-section { flex: 1; display: block !important; }
+    .main-layout { flex-direction: row; gap: 20px; }
+    .side { flex: 1; }
 }
 
-/* ADMİN OVERLAY DÜZELTME */
+/* ADMİN PANELİ */
 #adminOverlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.95); z-index: 99999; /* En üstte olması için */
+  background: rgba(0,0,0,0.98); z-index: 10000;
   display: none; overflow-y: auto; padding: 20px;
 }
-.admin-content { max-width: 800px; margin: 0 auto; background: #2a2a2a; padding: 20px; border-radius: 15px; }
+.admin-box { background: #222; border: 1px solid gold; border-radius: 10px; padding: 20px; max-width: 800px; margin: auto; }
+.tab-content { display: none; padding-top: 20px; }
+.tab-content.active { display: block; }
+.admin-tab-buttons button { padding: 10px; background: #333; color: #fff; border: 1px solid gold; cursor: pointer; }
 
-/* DİĞER STİLLER (Önceki kodunuzdan korunmuştur) */
-.ticker-container { background: #000; overflow: hidden; white-space: nowrap; padding: 10px 0; border-bottom: 1px solid #b8960c; }
-.ticker-wrapper { display: inline-block; animation: ticker 30s linear infinite; }
-@keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-.price-card { background: #262626; border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid #333; }
-.admin-tab-content { display: none; margin-top: 20px; }
-.active-tab { display: block !important; }
+/* ÜRÜN LİSTESİ */
+.product-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+.product-table td, .product-table th { border: 1px solid #444; padding: 8px; text-align: left; }
 </style>
 </head>
 <body>
 
-<div id="adminOverlay">
-  <div class="admin-content">
-    <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-        <h2>Yönetim Paneli</h2>
-        <button onclick="closeAdmin()" style="background:red; color:white; border:none; padding:10px; border-radius:5px;">Kapat</button>
-    </div>
-    
-    <div class="admin-tabs" style="display:flex; gap:10px; margin-bottom:20px;">
-        <button onclick="showAdminTab('genelTab')">Genel</button>
-        <button onclick="showAdminTab('dovizTab')">Döviz</button>
-        <button onclick="showAdminTab('hurdaTab')">Hurda</button>
-        <button onclick="showAdminTab('urunTab')">Ürün Ekle</button>
-    </div>
+<div class="header">
+    <h1>ASİL KUYUMCUM</h1>
+</div>
 
-    <div id="genelTab" class="admin-tab-content active-tab">
+<div class="ticker-container">
+    <div id="tickerContent" class="ticker-text">Yükleniyor...</div>
+</div>
+
+<div class="main-layout">
+    <div class="side">
+        <h2>Fiyat Listesi</h2>
+        <div id="priceDisplay"></div>
+        <button onclick="openAdmin()" style="margin-top:20px; padding:15px; background:gold; border:none; width:100%; cursor:pointer;">YÖNETİM PANELİ</button>
+    </div>
+    <div class="side" id="customerView">
+        <h2>Ürünler</h2>
+        <div id="productListDisplay"></div>
+    </div>
+</div>
+
+<div id="adminOverlay">
+    <div class="admin-box">
+        <div style="display:flex; justify-content:space-between;">
+            <h3>Yönetim Paneli</h3>
+            <button onclick="closeAdmin()" style="background:red; color:white; border:none; padding:5px 15px;">X</button>
+        </div>
+        
+        <div class="admin-tab-buttons" style="margin-top:15px;">
+            <button onclick="showTab('tabGenel')">Fiyatlar</button>
+            <button onclick="showTab('tabDoviz')">Döviz</button>
+            <button onclick="showTab('tabUrun')">Ürün Ekle</button>
         </div>
 
-    <div id="dovizTab" class="admin-tab-content">
-        <div id="dovizRows"></div>
-    </div>
+        <div id="tabGenel" class="tab-content active">
+            <label>Has Alış (TL):</label>
+            <input type="number" id="hasAlisInput" style="width:100%; padding:8px; margin-bottom:10px;">
+            <label>Has Satış (TL):</label>
+            <input type="number" id="hasSatisInput" style="width:100%; padding:8px;">
+            <button onclick="fiyatGuncelle()" style="background:green; color:white; width:100%; padding:10px; margin-top:10px; border:none;">KAYDET</button>
+        </div>
 
-    <div id="hurdaTab" class="admin-tab-content">
-        <div id="ekstraHurdaRows"></div>
-    </div>
+        <div id="tabDoviz" class="tab-content">
+            <p>Döviz Ayarları (Çarpanlar)</p>
+            </div>
 
-    <div id="urunTab" class="admin-tab-content">
-        <h3>Yeni Ürün Ekle</h3>
-        <input type="text" id="urunAd" placeholder="Ürün Adı" style="width:100%; padding:10px; margin:5px 0;">
-        <input type="number" id="urunGram" placeholder="Gramaj" style="width:100%; padding:10px; margin:5px 0;">
-        <select id="urunAyar" style="width:100%; padding:10px; margin:5px 0;">
-            <option value="14">14 Ayar</option>
-            <option value="18">18 Ayar</option>
-            <option value="22">22 Ayar</option>
-        </select>
-        <button onclick="urunKaydet()" style="width:100%; padding:15px; background:gold; color:black; font-weight:bold; border:none; margin-top:10px;">KAYDET</button>
-        <hr style="margin:20px 0;">
-        <div id="urunListesiAdmin"></div>
+        <div id="tabUrun" class="tab-content">
+            <h4>Yeni Ürün</h4>
+            <input type="text" id="inpAd" placeholder="Ürün Adı" style="width:100%; padding:8px; margin:5px 0;">
+            <input type="number" id="inpGram" placeholder="Gram" style="width:100%; padding:8px; margin:5px 0;">
+            <button onclick="urunEkle()" style="background:gold; width:100%; padding:10px; border:none; font-weight:bold;">ÜRÜNÜ KAYDET</button>
+            <div id="adminProductList" style="margin-top:20px;"></div>
+        </div>
     </div>
-  </div>
 </div>
 
 <script>
-// AYARLAR VE BAŞLANGIÇ
-let settings = JSON.parse(localStorage.getItem('asilKuyumcumSettings')) || {
-    urunler: [],
-    dovizCarp: {},
-    hurdaCarp: {},
-    hasAlisManual: 3000,
-    hasSatisManual: 3050
+// VERİ YÖNETİMİ
+let settings = JSON.parse(localStorage.getItem('asilSettings')) || {
+    hasAlis: 3000,
+    hasSatis: 3050,
+    urunler: []
 };
 
-// Sayfa yüklendiğinde manifest hatasını önle
-window.addEventListener('load', () => {
-    const manifestLink = document.getElementById('manifestLink');
-    if (manifestLink && window.location.search.indexOf('admin') !== -1) {
-        manifestLink.href = 'manifest-admin.json';
-    }
-    renderEverything();
-});
+// BAŞLATMA
+window.onload = function() {
+    document.getElementById('hasAlisInput').value = settings.hasAlis;
+    document.getElementById('hasSatisInput').value = settings.hasSatis;
+    ekraniGuncelle();
+};
 
-function saveSettings() {
-    localStorage.setItem('asilKuyumcumSettings', JSON.stringify(settings));
-    renderEverything();
+function save() {
+    localStorage.setItem('asilSettings', JSON.stringify(settings));
+    ekraniGuncelle();
 }
 
-// ÜRÜN KAYDETME FONKSİYONU
-function urunKaydet() {
-    const ad = document.getElementById('urunAd').value;
-    const gram = document.getElementById('urunGram').value;
-    const ayar = document.getElementById('urunAyar').value;
-
-    if(!ad || !gram) {
-        alert("Lütfen ürün adı ve gramaj giriniz!");
-        return;
-    }
-
-    const yeniUrun = {
-        id: Date.now(),
-        ad: ad,
-        gram: parseFloat(gram),
-        ayar: ayar
-    };
-
-    settings.urunler.push(yeniUrun);
-    saveSettings();
+function ekraniGuncelle() {
+    // Fiyatları Güncelle
+    const alis = settings.hasAlis;
+    const satis = settings.hasSatis;
     
-    // Formu temizle
-    document.getElementById('urunAd').value = '';
-    document.getElementById('urunGram').value = '';
-    alert("Ürün eklendi!");
-}
-
-// TAB YÖNETİMİ (MASAÜSTÜ İÇİN DÜZELTİLDİ)
-function showAdminTab(tabId) {
-    document.querySelectorAll('.admin-tab-content').forEach(tab => {
-        tab.classList.remove('active-tab');
-    });
-    document.getElementById(tabId).classList.add('active-tab');
-}
-
-// FİYATLARI VE TICKER'I GÜNCELLE
-function renderEverything() {
-    updatePrices(); // Ana fiyatlar
-    renderProductList(); // Ürün listesi
-    updateTicker(); // Kayan yazı - Artık Manuel fiyatları da kapsıyor
-}
-
-function updateTicker() {
-    const tickerWrapper = document.querySelector('.ticker-wrapper');
-    if(!tickerWrapper) return;
-    
-    // Kayan yazı içeriğini admin panelindeki manuel fiyatlara göre oluştur
-    const hasAlis = settings.hasAlisManual || 0;
-    const hasSatis = settings.hasSatisManual || 0;
-    
-    tickerWrapper.innerHTML = `
-        <span> HAS ALTIN: Alış ${hasAlis} TL | Satış ${hasSatis} TL </span>
-        <span> &nbsp;&nbsp; | &nbsp;&nbsp; </span>
-        <span> 22 AYAR: ${(hasAlis * 0.916).toFixed(2)} TL </span>
+    document.getElementById('priceDisplay').innerHTML = `
+        <p>Has Altın: ${alis} / ${satis}</p>
+        <p>22 Ayar: ${(alis*0.916).toFixed(2)}</p>
+        <p>14 Ayar: ${(alis*0.585).toFixed(2)}</p>
     `;
+
+    // Ticker (Kayan Yazı) Güncelle
+    document.getElementById('tickerContent').innerText = 
+        `HAS ALTIN: Alış ${alis} TL | Satış ${satis} TL — 22 AYAR: ${(alis*0.916).toFixed(2)} TL — 14 AYAR: ${(alis*0.585).toFixed(2)} TL`;
+
+    // Ürünleri Listele
+    let html = '<table class="product-table"><tr><th>Ad</th><th>Gram</th><th>İşlem</th></tr>';
+    settings.urunler.forEach((u, index) => {
+        html += `<tr><td>${u.ad}</td><td>${u.gram}g</td><td><button onclick="urunSil(${index})">Sil</button></td></tr>`;
+    });
+    html += '</table>';
+    document.getElementById('productListDisplay').innerHTML = html;
+    document.getElementById('adminProductList').innerHTML = html;
+}
+
+function fiyatGuncelle() {
+    settings.hasAlis = document.getElementById('hasAlisInput').value;
+    settings.hasSatis = document.getElementById('hasSatisInput').value;
+    save();
+    alert("Fiyatlar güncellendi!");
+}
+
+function urunEkle() {
+    const ad = document.getElementById('inpAd').value;
+    const gram = document.getElementById('inpGram').value;
+    if(!ad || !gram) return alert("Eksik alan!");
+
+    settings.urunler.push({ ad, gram });
+    save();
+    document.getElementById('inpAd').value = "";
+    document.getElementById('inpGram').value = "";
+}
+
+function urunSil(index) {
+    settings.urunler.splice(index, 1);
+    save();
 }
 
 function openAdmin() { document.getElementById('adminOverlay').style.display = 'block'; }
 function closeAdmin() { document.getElementById('adminOverlay').style.display = 'none'; }
+function showTab(id) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
 </script>
-
 </body>
 </html>
