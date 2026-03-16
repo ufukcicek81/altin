@@ -6,9 +6,12 @@
 <title>Asil Kuyumcum</title>
 <link rel="manifest" id="manifestLink" href="manifest.json">
 <script>
-if (window.location.search.indexOf('admin') !== -1) {
-  document.getElementById('manifestLink').href = 'manifest-admin.json';
-}
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.location.search.indexOf('admin') !== -1) {
+    var m=document.getElementById('manifestLink');
+    if(m){m.href='manifest-admin.json';}
+  }
+});
 </script>
 <meta name="theme-color" content="#b8960c">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -188,6 +191,30 @@ body {
 .toast { position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%) translateY(8px); background: #b8960c; color: #fff; padding: 9px 18px; border-radius: 20px; font-size: 13px; opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 200; white-space: nowrap; font-weight: 600; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
+
+<style>
+/* TV MODE */
+.tv-mode body{
+  background:#000;
+}
+.tv-mode .row, .tv-mode .admin-row{
+  font-size:28px !important;
+}
+.tv-btn{
+position:fixed;
+bottom:20px;
+right:20px;
+background:#b8960c;
+color:#000;
+border:none;
+padding:12px 18px;
+border-radius:8px;
+font-size:16px;
+z-index:9999;
+cursor:pointer;
+}
+</style>
+
 </head>
 <body>
 
@@ -456,7 +483,7 @@ var ADMIN_PASS = '1234';
 var IS_ADMIN = false;
 
 // ?admin yoksa buton gizli
-if (window.location.search.indexOf('admin') === -1) {
+if (window.location.search.indexOf('admin') === -1 && window.location.hash.indexOf('admin') === -1) {
   document.getElementById('adminBtn').style.display = 'none';
   document.getElementById('bottomNav').style.display = 'none';
 } else {
@@ -471,14 +498,21 @@ function checkAdminSession() {
 }
 
 function openAdminLogin() {
-  var pass = prompt('Yönetici şifresi:');
-  if (pass === null) return;
-  if (pass === ADMIN_PASS) {
-    sessionStorage.setItem('gp10_admin', '1');
-    IS_ADMIN = true;
-    openAdmin();
-  } else {
-    alert('Hatalı şifre!');
+  try {
+    var currentPass = (settings && settings.adminPass ? String(settings.adminPass).trim() : String(ADMIN_PASS).trim());
+    var pass = prompt('Yönetici şifresi:');
+    if (pass === null) return;
+    pass = String(pass).trim();
+    if (pass === currentPass) {
+      sessionStorage.setItem('gp10_admin', '1');
+      IS_ADMIN = true;
+      openAdmin();
+    } else {
+      alert('Hatalı şifre!');
+    }
+  } catch (e) {
+    console.error('openAdminLogin error:', e);
+    alert('Admin girişinde hata oluştu');
   }
 }
 
@@ -666,10 +700,8 @@ function fetchPrices() {
         // Döviz verilerini sakla
         liveDoviz = data;
         updateDovizBant({});
-        if (!document.getElementById('overlay').classList.contains('open')) {
-          if (document.getElementById('adminDovizRows')) renderAdminDoviz();
-          if (document.getElementById('adminHurdaRows')) renderAdminHurda();
-        }
+        if (document.getElementById('adminDovizRows')) renderAdminDoviz();
+        if (document.getElementById('adminHurdaRows')) renderAdminHurda();
         renderEkstraDoviz();
         renderEkstraHurda();
         renderDesktopPanel();
@@ -693,18 +725,27 @@ function fetchPrices() {
 
 // ── YÖNETİCİ ─────────────────────────────────────────────────────────────────
 function openAdmin() {
-  document.getElementById('aName').value  = settings.shopName;
-  document.getElementById('aPhone').value = settings.shopPhone;
-  document.getElementById('aKK').value    = (settings.kkOran || 0).toFixed(2);
-  document.getElementById('aHasDuzA').value = settings.hasDuzA || 0;
-  document.getElementById('aHasDuzS').value = settings.hasDuzS || 0;
-  document.getElementById('adminHasA').textContent = hasAlis  ? fmt(Math.round(hasAlis))  + ' ₺' : '—';
-  document.getElementById('adminHasS').textContent = hasSatis ? fmt(Math.round(hasSatis)) + ' ₺' : '—';
-  updateCustomerLink();
-  renderAdminRows();
-  renderAdminDoviz();
-  renderAdminHurda();
-  document.getElementById('overlay').classList.add('open');
+  try {
+    var el;
+    el = document.getElementById('aName'); if (el) el.value = settings.shopName || '';
+    el = document.getElementById('aPhone'); if (el) el.value = settings.shopPhone || '';
+    el = document.getElementById('aKK'); if (el) el.value = ((settings.kkOran || 0).toFixed ? (settings.kkOran || 0).toFixed(2) : (settings.kkOran || 0));
+    el = document.getElementById('aHasDuzA'); if (el) el.value = settings.hasDuzA || 0;
+    el = document.getElementById('aHasDuzS'); if (el) el.value = settings.hasDuzS || 0;
+    el = document.getElementById('adminHasA'); if (el) el.textContent = hasAlis ? fmt(Math.round(hasAlis)) + ' ₺' : '—';
+    el = document.getElementById('adminHasS'); if (el) el.textContent = hasSatis ? fmt(Math.round(hasSatis)) + ' ₺' : '—';
+
+    try { if (typeof updateCustomerLink === 'function') updateCustomerLink(); } catch(e){}
+    try { if (typeof renderAdminRows === 'function') renderAdminRows(); } catch(e){}
+    try { if (typeof renderAdminDoviz === 'function') renderAdminDoviz(); } catch(e){}
+    try { if (typeof renderAdminHurda === 'function') renderAdminHurda(); } catch(e){}
+
+    el = document.getElementById('overlay');
+    if (el) el.classList.add('open');
+  } catch (e) {
+    console.error('openAdmin error:', e);
+    alert('Admin panel açılırken hata oluştu');
+  }
 }
 function closeAdmin() { document.getElementById('overlay').classList.remove('open'); }
 
@@ -967,10 +1008,12 @@ jsonbinLoad(function(cloud) {
   clearTimeout(cloudTimeout);
   if (cloud && cloud.shopName) {
     settings = cloud;
-    if (settings.adminPass) ADMIN_PASS = settings.adminPass;
+    if (settings.adminPass) ADMIN_PASS = String(settings.adminPass).trim();
     localStorage.setItem('gp10', JSON.stringify(settings));
     document.getElementById('priceRows').innerHTML = '';
     renderTable();
+    try { if (typeof renderAdminDoviz === 'function') renderAdminDoviz(); } catch(e){}
+    try { if (typeof renderAdminHurda === 'function') renderAdminHurda(); } catch(e){}
   }
 });
 
@@ -1113,7 +1156,7 @@ function renderDesktopPanel() {
   var side = document.getElementById('desktopSide');
   if (!side) return;
   // Sadece admin modunda ve geniş ekranda göster
-  var isAdmin = window.location.search.indexOf('admin') !== -1;
+  var isAdmin = window.location.search.indexOf('admin') !== -1 || window.location.hash.indexOf('admin') !== -1;
   var isDesktop = window.innerWidth >= 768;
   side.style.display = (isAdmin && isDesktop) ? 'flex' : 'none';
   if (!isAdmin || !isDesktop) return;
@@ -1190,5 +1233,292 @@ function renderEkstraHurda() {
   el.innerHTML = html;
 }
 </script>
+
+<script>
+/* ===== CHATGPT FIX PACK ===== */
+
+window.addEventListener("DOMContentLoaded", function(){
+
+  if(typeof settings!=="undefined"){
+    if(!settings.laborH) settings.laborH={};
+  }
+
+  window.saveSettings=function(){
+    try{
+      localStorage.setItem("gp10",JSON.stringify(settings));
+      if(typeof jsonbinSave==="function") jsonbinSave(settings);
+    }catch(e){}
+  };
+
+  if(typeof addUrun==="function"){
+    window.addUrun=function(){
+
+      var label=document.getElementById('newLabel')?.value?.trim();
+      var alisX=parseFloat(document.getElementById('newAlis')?.value);
+      var satisX=parseFloat(document.getElementById('newSatis')?.value);
+
+      if(!label){alert("Ürün adı gir");return;}
+
+      var id="u"+Date.now();
+
+      if(!settings.customItems) settings.customItems=[];
+      if(!settings.labor) settings.labor={};
+
+      settings.customItems.push({
+        id:id,
+        label:label,
+        defA:alisX,
+        defS:satisX
+      });
+
+      settings.labor[id]={a:alisX,s:satisX};
+
+      saveSettings();
+
+      if(typeof renderAdmin==="function") renderAdmin();
+      if(typeof renderPublic==="function") renderPublic();
+
+      document.getElementById('newLabel').value="";
+      document.getElementById('newAlis').value="";
+      document.getElementById('newSatis').value="";
+    }
+  }
+
+  var adminBtn=document.getElementById("adminBtn");
+  if(adminBtn){
+    if(
+      window.location.search.indexOf("admin")==-1 &&
+      window.location.hash.indexOf("admin")==-1
+    ){
+      adminBtn.style.display="none";
+    }
+  }
+
+});
+</script>
+
+
+<button class="tv-btn" onclick="toggleTV()">TV MODU</button>
+<script>
+function toggleTV(){
+document.documentElement.classList.toggle("tv-mode");
+if(!document.fullscreenElement){
+document.documentElement.requestFullscreen().catch(()=>{});
+}else{
+document.exitFullscreen().catch(()=>{});
+}
+}
+
+);
+
+var url="https://wa.me/?text="+encodeURIComponent(text);
+window.open(url,"_blank");
+
+}
+</script>
+
+
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  try {
+    var originalOpenAdmin = window.openAdmin;
+    if (typeof originalOpenAdmin === 'function') {
+      window.openAdmin = function () {
+        originalOpenAdmin();
+        try { if (typeof renderAdminDoviz === 'function') renderAdminDoviz(); } catch(e){}
+        try { if (typeof renderAdminHurda === 'function') renderAdminHurda(); } catch(e){}
+        try { if (typeof renderDesktopPanel === 'function') renderDesktopPanel(); } catch(e){}
+      };
+    }
+  } catch(e){}
+});
+</script>
+
+
+<script>
+(function(){
+  function forceDesktopAdminRefresh(){
+    try{
+      if (typeof liveDoviz === 'undefined') window.liveDoviz = {};
+      var dd = document.getElementById('desktopDovizRows');
+      var dh = document.getElementById('desktopHurdaRows');
+      var ad = document.getElementById('adminDovizRows');
+      var ah = document.getElementById('adminHurdaRows');
+      var isAdmin = location.search.indexOf('admin') !== -1 || location.hash.indexOf('admin') !== -1;
+
+      if (document.getElementById('desktopSide')) {
+        document.getElementById('desktopSide').style.display =
+          (window.innerWidth >= 768 && isAdmin) ? 'flex' : 'none';
+      }
+
+      var dovizList = [
+        { id:'usd', label:'USD', flag:'🇺🇸' },
+        { id:'eur', label:'EUR', flag:'🇪🇺' },
+        { id:'gbp', label:'GBP', flag:'🇬🇧' },
+        { id:'sar', label:'SAR', flag:'🇸🇦' },
+        { id:'chf', label:'CHF', flag:'🇨🇭' }
+      ];
+      var hurdaList = [
+        { id:'hurda22', label:'22 Ayar Hurda', oran:22/24 },
+        { id:'hurda14', label:'14 Ayar Hurda', oran:14/24 },
+        { id:'hurda8',  label:'8 Ayar Hurda',  oran:8/24 }
+      ];
+
+      function fmt2(n){ return (typeof n === 'number' && !isNaN(n)) ? n.toFixed(2) : '—'; }
+      function fmtInt(n){
+        try { return new Intl.NumberFormat('tr-TR').format(Math.round(n)); }
+        catch(e){ return String(Math.round(n)); }
+      }
+
+      if (dd){
+        var h = '';
+        dovizList.forEach(function(d){
+          var duzA = parseFloat((window.settings && settings.dovizDuz && settings.dovizDuz[d.id+'A']) || 0) || 0;
+          var duzS = parseFloat((window.settings && settings.dovizDuz && settings.dovizDuz[d.id+'S']) || 0) || 0;
+          var rawA = parseFloat(window.liveDoviz && liveDoviz[d.id+'Alis']);
+          var rawS = parseFloat(window.liveDoviz && liveDoviz[d.id+'Satis']);
+          var alis = !isNaN(rawA) ? fmt2(rawA + duzA) : '—';
+          var satis = !isNaN(rawS) ? fmt2(rawS + duzS) : '—';
+          h += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;padding:11px 18px;border-bottom:1px solid #2e2e2e;background:#1a1a1a">'
+            + '<span style="font-size:17px;font-weight:600;color:#e8d9b0">' + d.flag + ' ' + d.label + '</span>'
+            + '<span style="font-size:17px;font-weight:600;color:#5dba6a;text-align:right">' + alis + '</span>'
+            + '<span style="font-size:17px;font-weight:600;color:#e07050;text-align:right">' + satis + '</span>'
+            + '</div>';
+        });
+        dd.innerHTML = h;
+      }
+
+      if (dh){
+        var h2 = '';
+        hurdaList.forEach(function(hd){
+          var carpA = parseFloat((window.settings && settings.hurdaCarp && settings.hurdaCarp[hd.id+'A']) || (hd.oran * 0.99));
+          var carpS = parseFloat((window.settings && settings.hurdaCarp && settings.hurdaCarp[hd.id+'S']) || (hd.oran * 1.00));
+          var alis = (typeof window.hasAlis === 'number' && hasAlis) ? fmtInt(hasAlis * carpA) : '—';
+          var satis = (typeof window.hasSatis === 'number' && hasSatis) ? fmtInt(hasSatis * carpS) : '—';
+          h2 += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;padding:11px 18px;border-bottom:1px solid #2e2e2e;background:#1a1a1a">'
+            + '<span style="font-size:15px;font-weight:600;color:#e8d9b0">' + hd.label + '</span>'
+            + '<span style="font-size:15px;font-weight:600;color:#5dba6a;text-align:right">' + alis + '</span>'
+            + '<span style="font-size:15px;font-weight:600;color:#e07050;text-align:right">' + satis + '</span>'
+            + '</div>';
+        });
+        dh.innerHTML = h2;
+      }
+
+      if (ad && typeof renderAdminDoviz === 'function') renderAdminDoviz();
+      if (ah && typeof renderAdminHurda === 'function') renderAdminHurda();
+    }catch(e){
+      console.log('forceDesktopAdminRefresh error', e);
+    }
+  }
+
+  window.forceDesktopAdminRefresh = forceDesktopAdminRefresh;
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(forceDesktopAdminRefresh, 300);
+    setTimeout(forceDesktopAdminRefresh, 1200);
+    setTimeout(forceDesktopAdminRefresh, 3000);
+    window.addEventListener('resize', forceDesktopAdminRefresh);
+
+    var _fetchPrices = window.fetchPrices;
+    if (typeof _fetchPrices === 'function') {
+      window.fetchPrices = function(){
+        var r = _fetchPrices.apply(this, arguments);
+        setTimeout(forceDesktopAdminRefresh, 500);
+        setTimeout(forceDesktopAdminRefresh, 1500);
+        return r;
+      };
+    }
+
+    var _applyPrices = window.applyPrices;
+    if (typeof _applyPrices === 'function') {
+      window.applyPrices = function(a, s){
+        var r = _applyPrices.apply(this, arguments);
+        setTimeout(forceDesktopAdminRefresh, 50);
+        return r;
+      };
+    }
+
+    var _openAdmin = window.openAdmin;
+    if (typeof _openAdmin === 'function') {
+      window.openAdmin = function(){
+        var r = _openAdmin.apply(this, arguments);
+        setTimeout(forceDesktopAdminRefresh, 50);
+        return r;
+      };
+    }
+  });
+})();
+</script>
+
+
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  try {
+    function bindAdmin() {
+      var adminBtn = document.getElementById('adminBtn');
+      if (adminBtn) {
+        adminBtn.onclick = function (e) {
+          if (e) e.preventDefault();
+          if (checkAdminSession()) {
+            IS_ADMIN = true;
+            openAdmin();
+          } else {
+            openAdminLogin();
+          }
+          return false;
+        };
+      }
+
+      var navItems = document.querySelectorAll('.nav-item');
+      if (navItems && navItems.length) {
+        var lastItem = navItems[navItems.length - 1];
+        if (lastItem) {
+          lastItem.onclick = function (e) {
+            if (e) e.preventDefault();
+            if (checkAdminSession()) {
+              IS_ADMIN = true;
+              openAdmin();
+            } else {
+              openAdminLogin();
+            }
+            return false;
+          };
+        }
+      }
+
+      var closeBtn = document.querySelector('.close-btn');
+      if (closeBtn) {
+        closeBtn.onclick = function () {
+          var ov = document.getElementById('overlay');
+          if (ov) ov.classList.remove('open');
+        };
+      }
+
+      var ov = document.getElementById('overlay');
+      if (ov) {
+        ov.addEventListener('click', function (e) {
+          if (e.target === ov) ov.classList.remove('open');
+        });
+      }
+
+      if (window.location.search.indexOf('admin') !== -1 || window.location.hash.indexOf('admin') !== -1) {
+        var mb = document.getElementById('modBtn');
+        if (mb) mb.style.display = 'flex';
+        var ex = document.getElementById('adminEkstra');
+        if (ex) ex.style.display = 'block';
+        var ab = document.getElementById('adminBtn');
+        if (ab) ab.style.display = 'flex';
+      }
+    }
+
+    bindAdmin();
+    setTimeout(bindAdmin, 500);
+    setTimeout(bindAdmin, 1500);
+  } catch (e) {
+    console.error('admin bind error:', e);
+  }
+});
+</script>
+
 </body>
 </html>
