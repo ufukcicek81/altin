@@ -6,9 +6,12 @@
 <title>Asil Kuyumcum</title>
 <link rel="manifest" id="manifestLink" href="manifest.json">
 <script>
-if (window.location.search.indexOf('admin') !== -1) {
-  document.getElementById('manifestLink').href = 'manifest-admin.json';
-}
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.location.search.indexOf('admin') !== -1) {
+    var m=document.getElementById('manifestLink');
+    if(m){m.href='manifest-admin.json';}
+  }
+});
 </script>
 <meta name="theme-color" content="#b8960c">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -188,6 +191,43 @@ body {
 .toast { position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%) translateY(8px); background: #b8960c; color: #fff; padding: 9px 18px; border-radius: 20px; font-size: 13px; opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 200; white-space: nowrap; font-weight: 600; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
+
+<style>
+/* TV MODE */
+.tv-mode body{
+  background:#000;
+}
+.tv-mode .row, .tv-mode .admin-row{
+  font-size:28px !important;
+}
+.tv-btn{
+position:fixed;
+bottom:20px;
+right:20px;
+background:#b8960c;
+color:#000;
+border:none;
+padding:12px 18px;
+border-radius:8px;
+font-size:16px;
+z-index:9999;
+cursor:pointer;
+}
+.wp-btn{
+position:fixed;
+bottom:20px;
+left:20px;
+background:#25D366;
+color:#fff;
+border:none;
+padding:12px 18px;
+border-radius:8px;
+font-size:16px;
+z-index:9999;
+cursor:pointer;
+}
+</style>
+
 </head>
 <body>
 
@@ -1190,5 +1230,99 @@ function renderEkstraHurda() {
   el.innerHTML = html;
 }
 </script>
+
+<script>
+/* ===== CHATGPT FIX PACK ===== */
+
+window.addEventListener("DOMContentLoaded", function(){
+
+  if(typeof settings!=="undefined"){
+    if(!settings.laborH) settings.laborH={};
+  }
+
+  window.saveSettings=function(){
+    try{
+      localStorage.setItem("gp10",JSON.stringify(settings));
+      if(typeof jsonbinSave==="function") jsonbinSave(settings);
+    }catch(e){}
+  };
+
+  if(typeof addUrun==="function"){
+    window.addUrun=function(){
+
+      var label=document.getElementById('newLabel')?.value?.trim();
+      var alisX=parseFloat(document.getElementById('newAlis')?.value);
+      var satisX=parseFloat(document.getElementById('newSatis')?.value);
+
+      if(!label){alert("Ürün adı gir");return;}
+
+      var id="u"+Date.now();
+
+      if(!settings.customItems) settings.customItems=[];
+      if(!settings.labor) settings.labor={};
+
+      settings.customItems.push({
+        id:id,
+        label:label,
+        defA:alisX,
+        defS:satisX
+      });
+
+      settings.labor[id]={a:alisX,s:satisX};
+
+      saveSettings();
+
+      if(typeof renderAdmin==="function") renderAdmin();
+      if(typeof renderPublic==="function") renderPublic();
+
+      document.getElementById('newLabel').value="";
+      document.getElementById('newAlis').value="";
+      document.getElementById('newSatis').value="";
+    }
+  }
+
+  var adminBtn=document.getElementById("adminBtn");
+  if(adminBtn){
+    if(
+      window.location.search.indexOf("admin")==-1 &&
+      window.location.hash.indexOf("admin")==-1
+    ){
+      adminBtn.style.display="none";
+    }
+  }
+
+});
+</script>
+
+
+<button class="tv-btn" onclick="toggleTV()">TV MODU</button>
+<button class="wp-btn" onclick="shareWP()">WhatsApp</button>
+
+<script>
+function toggleTV(){
+document.documentElement.classList.toggle("tv-mode");
+if(!document.fullscreenElement){
+document.documentElement.requestFullscreen().catch(()=>{});
+}else{
+document.exitFullscreen().catch(()=>{});
+}
+}
+
+function shareWP(){
+
+var rows=document.querySelectorAll(".row");
+var text="GÜNCEL ALTIN FİYATLARI\n";
+
+rows.forEach(r=>{
+var t=r.innerText.replace(/\s+/g," ").trim();
+if(t) text+=t+"\n";
+});
+
+var url="https://wa.me/?text="+encodeURIComponent(text);
+window.open(url,"_blank");
+
+}
+</script>
+
 </body>
 </html>
