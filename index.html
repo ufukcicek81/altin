@@ -505,7 +505,12 @@ function openAdminLogin() {
   if (pass === currentPass) {
     sessionStorage.setItem('gp10_admin', '1');
     IS_ADMIN = true;
-    openAdmin();
+    try {
+      openAdmin();
+    } catch (e) {
+      console.error('openAdmin error:', e);
+      alert('Admin paneli açılırken hata oluştu. Sayfayı yenileyip tekrar deneyin.');
+    }
   } else {
     alert('Hatalı şifre!');
   }
@@ -720,18 +725,24 @@ function fetchPrices() {
 
 // ── YÖNETİCİ ─────────────────────────────────────────────────────────────────
 function openAdmin() {
-  document.getElementById('aName').value  = settings.shopName;
-  document.getElementById('aPhone').value = settings.shopPhone;
-  document.getElementById('aKK').value    = (settings.kkOran || 0).toFixed(2);
-  document.getElementById('aHasDuzA').value = settings.hasDuzA || 0;
-  document.getElementById('aHasDuzS').value = settings.hasDuzS || 0;
-  document.getElementById('adminHasA').textContent = hasAlis  ? fmt(Math.round(hasAlis))  + ' ₺' : '—';
-  document.getElementById('adminHasS').textContent = hasSatis ? fmt(Math.round(hasSatis)) + ' ₺' : '—';
-  updateCustomerLink();
-  renderAdminRows();
-  renderAdminDoviz();
-  renderAdminHurda();
-  document.getElementById('overlay').classList.add('open');
+  try {
+    if (document.getElementById('aName')) document.getElementById('aName').value  = settings.shopName || '';
+    if (document.getElementById('aPhone')) document.getElementById('aPhone').value = settings.shopPhone || '';
+    if (document.getElementById('aKK')) document.getElementById('aKK').value    = ((settings.kkOran || 0)).toFixed ? (settings.kkOran || 0).toFixed(2) : (settings.kkOran || 0);
+    if (document.getElementById('aHasDuzA')) document.getElementById('aHasDuzA').value = settings.hasDuzA || 0;
+    if (document.getElementById('aHasDuzS')) document.getElementById('aHasDuzS').value = settings.hasDuzS || 0;
+    if (document.getElementById('adminHasA')) document.getElementById('adminHasA').textContent = hasAlis  ? fmt(Math.round(hasAlis))  + ' ₺' : '—';
+    if (document.getElementById('adminHasS')) document.getElementById('adminHasS').textContent = hasSatis ? fmt(Math.round(hasSatis)) + ' ₺' : '—';
+    try { updateCustomerLink(); } catch(e){}
+    try { renderAdminRows(); } catch(e){}
+    try { renderAdminDoviz(); } catch(e){}
+    try { renderAdminHurda(); } catch(e){}
+    var ov = document.getElementById('overlay');
+    if (ov) ov.classList.add('open');
+  } catch(e) {
+    console.error('openAdmin fatal:', e);
+    throw e;
+  }
 }
 function closeAdmin() { document.getElementById('overlay').classList.remove('open'); }
 
@@ -1476,6 +1487,67 @@ window.addEventListener('DOMContentLoaded', function () {
       if (adminBtn) adminBtn.style.display = 'flex';
     }
   } catch(e){}
+});
+</script>
+
+
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  try {
+    function bindAdminButtons() {
+      var adminBtn = document.getElementById('adminBtn');
+      if (adminBtn) {
+        adminBtn.onclick = function (ev) {
+          if (ev) ev.preventDefault();
+          if (checkAdminSession()) {
+            IS_ADMIN = true;
+            openAdmin();
+          } else {
+            openAdminLogin();
+          }
+          return false;
+        };
+      }
+      var navItems = document.querySelectorAll('.nav-item');
+      if (navItems && navItems.length) {
+        var lastItem = navItems[navItems.length - 1];
+        if (lastItem) {
+          lastItem.onclick = function (ev) {
+            if (ev) ev.preventDefault();
+            if (checkAdminSession()) {
+              IS_ADMIN = true;
+              openAdmin();
+            } else {
+              openAdminLogin();
+            }
+            return false;
+          };
+        }
+      }
+    }
+
+    bindAdminButtons();
+
+    var closeBtn = document.querySelector('.close-btn');
+    if (closeBtn) {
+      closeBtn.onclick = function(){
+        var ov = document.getElementById('overlay');
+        if (ov) ov.classList.remove('open');
+      };
+    }
+
+    var ov = document.getElementById('overlay');
+    if (ov) {
+      ov.addEventListener('click', function(e){
+        if (e.target === ov) ov.classList.remove('open');
+      });
+    }
+
+    setTimeout(bindAdminButtons, 500);
+    setTimeout(bindAdminButtons, 1500);
+  } catch(e) {
+    console.error('admin bind error', e);
+  }
 });
 </script>
 
