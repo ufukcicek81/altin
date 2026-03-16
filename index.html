@@ -1316,5 +1316,121 @@ window.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
+
+<script>
+(function(){
+  function forceDesktopAdminRefresh(){
+    try{
+      if (typeof liveDoviz === 'undefined') window.liveDoviz = {};
+      var dd = document.getElementById('desktopDovizRows');
+      var dh = document.getElementById('desktopHurdaRows');
+      var ad = document.getElementById('adminDovizRows');
+      var ah = document.getElementById('adminHurdaRows');
+      var isAdmin = location.search.indexOf('admin') !== -1 || location.hash.indexOf('admin') !== -1;
+
+      if (document.getElementById('desktopSide')) {
+        document.getElementById('desktopSide').style.display =
+          (window.innerWidth >= 768 && isAdmin) ? 'flex' : 'none';
+      }
+
+      var dovizList = [
+        { id:'usd', label:'USD', flag:'🇺🇸' },
+        { id:'eur', label:'EUR', flag:'🇪🇺' },
+        { id:'gbp', label:'GBP', flag:'🇬🇧' },
+        { id:'sar', label:'SAR', flag:'🇸🇦' },
+        { id:'chf', label:'CHF', flag:'🇨🇭' }
+      ];
+      var hurdaList = [
+        { id:'hurda22', label:'22 Ayar Hurda', oran:22/24 },
+        { id:'hurda14', label:'14 Ayar Hurda', oran:14/24 },
+        { id:'hurda8',  label:'8 Ayar Hurda',  oran:8/24 }
+      ];
+
+      function fmt2(n){ return (typeof n === 'number' && !isNaN(n)) ? n.toFixed(2) : '—'; }
+      function fmtInt(n){
+        try { return new Intl.NumberFormat('tr-TR').format(Math.round(n)); }
+        catch(e){ return String(Math.round(n)); }
+      }
+
+      if (dd){
+        var h = '';
+        dovizList.forEach(function(d){
+          var duzA = parseFloat((window.settings && settings.dovizDuz && settings.dovizDuz[d.id+'A']) || 0) || 0;
+          var duzS = parseFloat((window.settings && settings.dovizDuz && settings.dovizDuz[d.id+'S']) || 0) || 0;
+          var rawA = parseFloat(window.liveDoviz && liveDoviz[d.id+'Alis']);
+          var rawS = parseFloat(window.liveDoviz && liveDoviz[d.id+'Satis']);
+          var alis = !isNaN(rawA) ? fmt2(rawA + duzA) : '—';
+          var satis = !isNaN(rawS) ? fmt2(rawS + duzS) : '—';
+          h += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;padding:11px 18px;border-bottom:1px solid #2e2e2e;background:#1a1a1a">'
+            + '<span style="font-size:17px;font-weight:600;color:#e8d9b0">' + d.flag + ' ' + d.label + '</span>'
+            + '<span style="font-size:17px;font-weight:600;color:#5dba6a;text-align:right">' + alis + '</span>'
+            + '<span style="font-size:17px;font-weight:600;color:#e07050;text-align:right">' + satis + '</span>'
+            + '</div>';
+        });
+        dd.innerHTML = h;
+      }
+
+      if (dh){
+        var h2 = '';
+        hurdaList.forEach(function(hd){
+          var carpA = parseFloat((window.settings && settings.hurdaCarp && settings.hurdaCarp[hd.id+'A']) || (hd.oran * 0.99));
+          var carpS = parseFloat((window.settings && settings.hurdaCarp && settings.hurdaCarp[hd.id+'S']) || (hd.oran * 1.00));
+          var alis = (typeof window.hasAlis === 'number' && hasAlis) ? fmtInt(hasAlis * carpA) : '—';
+          var satis = (typeof window.hasSatis === 'number' && hasSatis) ? fmtInt(hasSatis * carpS) : '—';
+          h2 += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;padding:11px 18px;border-bottom:1px solid #2e2e2e;background:#1a1a1a">'
+            + '<span style="font-size:15px;font-weight:600;color:#e8d9b0">' + hd.label + '</span>'
+            + '<span style="font-size:15px;font-weight:600;color:#5dba6a;text-align:right">' + alis + '</span>'
+            + '<span style="font-size:15px;font-weight:600;color:#e07050;text-align:right">' + satis + '</span>'
+            + '</div>';
+        });
+        dh.innerHTML = h2;
+      }
+
+      if (ad && typeof renderAdminDoviz === 'function') renderAdminDoviz();
+      if (ah && typeof renderAdminHurda === 'function') renderAdminHurda();
+    }catch(e){
+      console.log('forceDesktopAdminRefresh error', e);
+    }
+  }
+
+  window.forceDesktopAdminRefresh = forceDesktopAdminRefresh;
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(forceDesktopAdminRefresh, 300);
+    setTimeout(forceDesktopAdminRefresh, 1200);
+    setTimeout(forceDesktopAdminRefresh, 3000);
+    window.addEventListener('resize', forceDesktopAdminRefresh);
+
+    var _fetchPrices = window.fetchPrices;
+    if (typeof _fetchPrices === 'function') {
+      window.fetchPrices = function(){
+        var r = _fetchPrices.apply(this, arguments);
+        setTimeout(forceDesktopAdminRefresh, 500);
+        setTimeout(forceDesktopAdminRefresh, 1500);
+        return r;
+      };
+    }
+
+    var _applyPrices = window.applyPrices;
+    if (typeof _applyPrices === 'function') {
+      window.applyPrices = function(a, s){
+        var r = _applyPrices.apply(this, arguments);
+        setTimeout(forceDesktopAdminRefresh, 50);
+        return r;
+      };
+    }
+
+    var _openAdmin = window.openAdmin;
+    if (typeof _openAdmin === 'function') {
+      window.openAdmin = function(){
+        var r = _openAdmin.apply(this, arguments);
+        setTimeout(forceDesktopAdminRefresh, 50);
+        return r;
+      };
+    }
+  });
+})();
+</script>
+
 </body>
 </html>
