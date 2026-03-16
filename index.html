@@ -213,19 +213,6 @@ font-size:16px;
 z-index:9999;
 cursor:pointer;
 }
-.wp-btn{
-position:fixed;
-bottom:20px;
-left:20px;
-background:#25D366;
-color:#fff;
-border:none;
-padding:12px 18px;
-border-radius:8px;
-font-size:16px;
-z-index:9999;
-cursor:pointer;
-}
 </style>
 
 </head>
@@ -1296,8 +1283,6 @@ window.addEventListener("DOMContentLoaded", function(){
 
 
 <button class="tv-btn" onclick="toggleTV()">TV MODU</button>
-<button class="wp-btn" onclick="shareWP()">WhatsApp</button>
-
 <script>
 function toggleTV(){
 document.documentElement.classList.toggle("tv-mode");
@@ -1308,15 +1293,7 @@ document.exitFullscreen().catch(()=>{});
 }
 }
 
-function shareWP(){
-
-var rows=document.querySelectorAll(".row");
-var text="GÜNCEL ALTIN FİYATLARI\n";
-
-rows.forEach(r=>{
-var t=r.innerText.replace(/\s+/g," ").trim();
-if(t) text+=t+"\n";
-});
+);
 
 var url="https://wa.me/?text="+encodeURIComponent(text);
 window.open(url,"_blank");
