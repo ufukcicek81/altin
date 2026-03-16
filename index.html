@@ -6,9 +6,12 @@
 <title>Asil Kuyumcum</title>
 <link rel="manifest" id="manifestLink" href="manifest.json">
 <script>
-if (window.location.search.indexOf('admin') !== -1) {
-  document.getElementById('manifestLink').href = 'manifest-admin.json';
-}
+window.addEventListener('DOMContentLoaded', function () {
+  if (window.location.search.indexOf('admin') !== -1) {
+    var ml = document.getElementById('manifestLink');
+    if (ml) ml.href = 'manifest-admin.json';
+  }
+});
 </script>
 <meta name="theme-color" content="#b8960c">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -452,7 +455,7 @@ function parseHash() {
 var FIREBASE_URL = 'https://asil-kuyumculuk-2feb6-default-rtdb.firebaseio.com/ayarlar.json';
 
 // Admin şifresi — Firebase'den yüklenir
-var ADMIN_PASS = '1234';
+var ADMIN_PASS = '';
 var IS_ADMIN = false;
 
 // ?admin yoksa buton gizli
@@ -471,15 +474,9 @@ function checkAdminSession() {
 }
 
 function openAdminLogin() {
-  var pass = prompt('Yönetici şifresi:');
-  if (pass === null) return;
-  if (pass === ADMIN_PASS) {
-    sessionStorage.setItem('gp10_admin', '1');
-    IS_ADMIN = true;
-    openAdmin();
-  } else {
-    alert('Hatalı şifre!');
-  }
+  sessionStorage.setItem('gp10_admin', '1');
+  IS_ADMIN = true;
+  openAdmin();
 }
 
 function jsonbinSave(data, cb) {
@@ -856,16 +853,8 @@ function saveAdmin() {
   settings.kkOran    = parseFloat(document.getElementById('aKK').value) || 0;
   settings.hasDuzA   = parseFloat(document.getElementById('aHasDuzA').value) || 0;
   settings.hasDuzS   = parseFloat(document.getElementById('aHasDuzS').value) || 0;
-  // Şifre değiştir
-  var p1 = document.getElementById('aNewPass').value;
-  var p2 = document.getElementById('aNewPass2').value;
-  if (p1 || p2) {
-    if (p1 !== p2) { showToast('⚠ Şifreler eşleşmiyor!'); return; }
-    if (p1.length < 4) { showToast('⚠ Şifre en az 4 karakter olmalı!'); return; }
-    settings.adminPass = p1;
-    ADMIN_PASS = p1;
-  }
-  getActiveItems().forEach(function(item) {
+  // Şifre kapatıldı: admin panel şifresiz açılır.
+getActiveItems().forEach(function(item) {
     settings.labor[item.id] = {
       a: parseFloat(document.getElementById('a_' + item.id).value) || item.defA,
       s: parseFloat(document.getElementById('s_' + item.id).value) || item.defS,
@@ -1190,5 +1179,42 @@ function renderEkstraHurda() {
   el.innerHTML = html;
 }
 </script>
+
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  try {
+    var adminBtn = document.getElementById('adminBtn');
+    if (adminBtn) {
+      adminBtn.onclick = function (e) {
+        if (e) e.preventDefault();
+        if (window.location.search.indexOf('admin') !== -1 || window.location.hash.indexOf('admin') !== -1) {
+          sessionStorage.setItem('gp10_admin', '1');
+          IS_ADMIN = true;
+          openAdmin();
+          return false;
+        }
+        openAdmin();
+        return false;
+      };
+    }
+    var navItems = document.querySelectorAll('.nav-item');
+    if (navItems && navItems.length) {
+      var lastItem = navItems[navItems.length - 1];
+      if (lastItem) {
+        lastItem.onclick = function (e) {
+          if (e) e.preventDefault();
+          sessionStorage.setItem('gp10_admin', '1');
+          IS_ADMIN = true;
+          openAdmin();
+          return false;
+        };
+      }
+    }
+  } catch (e) {
+    console.error('admin patch error', e);
+  }
+});
+</script>
+
 </body>
 </html>
