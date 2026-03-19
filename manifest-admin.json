@@ -1,0 +1,16 @@
+{
+  "name": "Asil Admin",
+  "short_name": "Admin",
+  "start_url": "/altin/admin.html",
+  "scope": "/altin/",
+  "display": "standalone",
+  "background_color": "#000",
+  "theme_color": "#000",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

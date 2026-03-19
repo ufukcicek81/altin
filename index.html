@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asil Kuyumculuk</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#b8960c">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Asil Kuyumculuk">
+<link rel="apple-touch-icon" href="icon-192.png">
+</head>
+
+<body style="background:#1a1a1a;color:#f0e6c8;">
+<h1 style="text-align:center;color:#d4af37;margin-top:50px;">
+ASİL KUYUMCULUK
+</h1>
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+</script>
+</body>
+</html>
