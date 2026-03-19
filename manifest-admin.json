@@ -1,8 +1,0 @@
-{
-  "name": "Asil Admin",
-  "short_name": "ADMIN",
-  "start_url": "/admin.html",
-  "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#b8960c"
-}
