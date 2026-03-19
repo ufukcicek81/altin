@@ -1,16 +1,26 @@
 {
-  "name": "Asil Admin",
-  "short_name": "Admin",
-  "start_url": "/altin/admin.html",
+  "name": "Asil Kuyumcum Admin",
+  "short_name": "Asil Admin",
+  "description": "Asil Kuyumcum Yönetici Paneli",
+  "id": "/altin/?admin=1",
+  "start_url": "/altin/?admin=1",
   "scope": "/altin/",
   "display": "standalone",
-  "background_color": "#000",
-  "theme_color": "#000",
+  "orientation": "portrait",
+  "background_color": "#1a1a1a",
+  "theme_color": "#b8960c",
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
