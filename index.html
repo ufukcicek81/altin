@@ -427,6 +427,17 @@ body.tv-mode .desktop-layout { display: block !important; }
       </div>
     </div>
 
+    <div class="sec-title">TV Ekranı Linki</div>
+    <div class="share-box" style="background:#101826;border-color:#203a5a">
+      <p>📺 TV'de bu adresi açın</p>
+      <span class="share-link" id="tvLink">Yükleniyor...</span>
+      <small>Bu bağlantı müşteri ekranını TV modunda açar. Admin kaydettikçe TV ekranı otomatik güncellenir.</small>
+      <div class="btn-row">
+        <button class="copy-btn" onclick="copyTVLink()">📋 TV Linki</button>
+        <button class="wa-btn" onclick="openTVScreen()" style="background:#3456d1">Aç</button>
+      </div>
+    </div>
+
     <div class="sec-title">Yönetici Şifresi</div>
     <div class="field-row">
       <label class="field-label">Yeni Şifre</label>
@@ -516,11 +527,15 @@ var FIREBASE_URL = 'https://asil-kuyumculuk-2feb6-default-rtdb.firebaseio.com/ay
 // Admin şifresi — Firebase'den yüklenir
 var ADMIN_PASS = '1234';
 var IS_ADMIN = false;
+var FORCE_TV = window.location.search.indexOf('tv=1') !== -1;
 
 // ?admin yoksa buton gizli
-if (window.location.search.indexOf('admin') === -1) {
+if (window.location.search.indexOf('admin') === -1 || FORCE_TV) {
   document.getElementById('adminBtn').style.display = 'none';
   document.getElementById('bottomNav').style.display = 'none';
+  if (FORCE_TV) {
+    document.getElementById('tvBtn').style.display = 'none';
+  }
 } else {
   var mb = document.getElementById('modBtn');
   mb.style.display = 'flex';
@@ -576,7 +591,7 @@ var hasAlis  = parseFloat(localStorage.getItem('gp10_ha') || '0') || null;
 var hasSatis = parseFloat(localStorage.getItem('gp10_hs') || '0') || null;
 var prevPrices = {};
 var aktifMod = 'normal';
-var tvMode = false;
+var tvMode = FORCE_TV;
 
 function toggleMod() {
   aktifMod = aktifMod === 'normal' ? 'hareketli' : 'normal';
@@ -604,8 +619,10 @@ function updateModBtn() {
 
 function applyTVMode() {
   var isAdmin = window.location.search.indexOf('admin') !== -1;
-
-  if (!isAdmin) {
+  if (FORCE_TV) {
+    tvMode = true;
+    document.body.classList.add('tv-mode');
+  } else if (!isAdmin) {
     tvMode = false;
     try { localStorage.removeItem('gp10_tv'); } catch(e) {}
     try { sessionStorage.removeItem('gp10_tv'); } catch(e) {}
@@ -613,16 +630,18 @@ function applyTVMode() {
   } else {
     document.body.classList.remove('tv-mode');
   }
-
   var btn = document.getElementById('tvBtn');
   if (btn) {
-    btn.classList.toggle('active', isAdmin ? tvMode : false);
+    btn.classList.toggle('active', FORCE_TV ? true : (isAdmin ? tvMode : false));
     btn.textContent = '📺';
-    btn.title = isAdmin && tvMode ? 'TV modu açık' : 'TV modu kapalı';
+    btn.title = FORCE_TV ? 'TV ekranı açık' : ((isAdmin && tvMode) ? 'TV modu açık' : 'TV modu kapalı');
   }
 }
 
 function toggleTVMode() {
+  if (FORCE_TV) return;
+  var isAdmin = window.location.search.indexOf('admin') !== -1;
+  if (!isAdmin) return;
   tvMode = !tvMode;
   applyTVMode();
   if (tvMode && document.documentElement.requestFullscreen) {
@@ -805,6 +824,12 @@ function updateCustomerLink() {
   var base = window.location.href.split('?')[0].split('#')[0];
   document.getElementById('customerLink').textContent = base;
   document.getElementById('customerLink').dataset.url = base;
+  var tvUrl = base + '?tv=1';
+  var tvEl = document.getElementById('tvLink');
+  if (tvEl) {
+    tvEl.textContent = tvUrl;
+    tvEl.dataset.url = tvUrl;
+  }
 }
 
 function renderAdminRows() {
@@ -1027,6 +1052,26 @@ function shareWA() {
   var msg  = settings.shopName + ' güncel altın fiyatları:\n' + link;
   window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
 }
+
+function copyTVLink() {
+  var el = document.getElementById('tvLink');
+  var link = (el && (el.dataset.url || el.textContent)) || (window.location.href.split('?')[0].split('#')[0] + '?tv=1');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(link).then(function(){ showToast('✓ TV linki kopyalandı'); });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = link; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('✓ TV linki kopyalandı');
+  }
+}
+
+function openTVScreen() {
+  var el = document.getElementById('tvLink');
+  var link = (el && (el.dataset.url || el.textContent)) || (window.location.href.split('?')[0].split('#')[0] + '?tv=1');
+  window.open(link, '_blank');
+}
+
 
 function showToast(m) {
   var t = document.getElementById('toast');
