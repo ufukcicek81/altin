@@ -3,15 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Asil Admin</title>
 
 <link rel="manifest" href="manifest-admin.json">
 <meta name="theme-color" content="#000">
 
-</head>
-<body style="background:#111;color:#fff;text-align:center;margin-top:50px;">
+<style>
+html,body{
+  margin:0;
+  padding:0;
+  height:100%;
+}
+iframe{
+  width:100%;
+  height:100%;
+  border:none;
+}
+</style>
 
-<h1>ASİL ADMIN PANEL</h1>
+</head>
+
+<body>
+
+<iframe src="/altin/?admin=1"></iframe>
 
 <script>
 if ("serviceWorker" in navigator) {
