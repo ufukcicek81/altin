@@ -6,10 +6,23 @@
 <title>Asil Kuyumcum</title>
 <link rel="manifest" id="manifestLink" href="manifest.json">
 <script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.location.search.indexOf('admin') !== -1) {
+    var mf = document.getElementById('manifestLink');
+    if (mf) mf.href = 'manifest-admin.json';
+  }
+});
+</script>
+<script>
 if (window.location.search.indexOf('admin') !== -1) {
-  document.getElementById('manifestLink').href = 'manifest-admin.json';
+  try { localStorage.removeItem('gp10_tv'); } catch(e) {}
+  try { sessionStorage.removeItem('gp10_tv'); } catch(e) {}
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.classList.remove('tv-mode');
+  });
 }
 </script>
+
 <meta name="theme-color" content="#b8960c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -187,6 +200,62 @@ body {
 
 .toast { position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%) translateY(8px); background: #b8960c; color: #fff; padding: 9px 18px; border-radius: 20px; font-size: 13px; opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 200; white-space: nowrap; font-weight: 600; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.tv-btn { position: absolute; right: 58px; top: 20px; width: 38px; height: 38px; border-radius: 50%; border: 1px solid #555; background: #2a2a2a; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #c8b88a; }
+.tv-btn.active { background: #0f2a3a; border-color: #3da7ff; color: #7fc6ff; }
+@media (min-width: 768px) {
+  .tv-btn { right: 76px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; }
+}
+body.tv-mode {
+  max-width: 100% !important;
+  background: #000;
+}
+body.tv-mode .header {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+body.tv-mode .header .logo {
+  width: 72px;
+  height: 72px;
+  margin-bottom: 4px;
+}
+body.tv-mode .header h1 { font-size: 28px; }
+body.tv-mode .header .phone { font-size: 18px; }
+body.tv-mode .has-info { font-size: 14px; }
+body.tv-mode .table-header { padding: 14px 22px; }
+body.tv-mode .table-header span { font-size: 18px; }
+body.tv-mode .price-row { padding: 18px 22px; }
+body.tv-mode .price-row .birim,
+body.tv-mode .price-row .alis,
+body.tv-mode .price-row .satis,
+body.tv-mode .price-row .kk { font-size: 28px !important; }
+body.tv-mode .upd-bar,
+body.tv-mode .update-bar { font-size: 14px; }
+body.tv-mode .bottom-nav,
+body.tv-mode .overlay { display: none !important; }
+body.tv-mode .admin-btn,
+body.tv-mode .mod-btn,
+body.tv-mode .tv-btn { opacity: .45; }
+body.tv-mode .doviz-bant-inner { animation-duration: 18s; }
+/* TV modu sadece müşteri ekranı gibi çalışsın */
+body.tv-mode #adminEkstra,
+body.tv-mode #desktopSide,
+body.tv-mode .desktop-side,
+body.tv-mode #ekstraDovizRows,
+body.tv-mode #ekstraHurdaRows { display: none !important; }
+body.tv-mode .desktop-main { flex: 1 1 100% !important; width: 100% !important; }
+body.tv-mode .desktop-layout { display: block !important; }
+@media (min-width: 768px) {
+  body.tv-mode .header { padding: 16px 36px; }
+  body.tv-mode .header h1 { font-size: 34px; }
+  body.tv-mode .header .phone { font-size: 22px; }
+  body.tv-mode .table-header span { font-size: 20px; }
+  body.tv-mode .price-row .birim,
+  body.tv-mode .price-row .alis,
+  body.tv-mode .price-row .satis,
+  body.tv-mode .price-row .kk { font-size: 34px !important; }
+}
+
 </style>
 </head>
 <body>
@@ -197,6 +266,7 @@ body {
   <span class="has-info" id="hasInfo"></span>
   <button class="admin-btn" id="adminBtn" onclick="openAdmin()">⋯</button>
   <button class="mod-btn" id="modBtn" onclick="toggleMod()">⚡ Normal</button>
+  <button class="tv-btn" id="tvBtn" onclick="toggleTVMode()">📺</button>
 </div>
 
 <div class="doviz-bant"><div class="doviz-bant-inner" id="dovizBant">⏳ Döviz yükleniyor...</div></div>
@@ -464,6 +534,7 @@ if (window.location.search.indexOf('admin') === -1) {
   mb.style.display = 'flex';
   document.getElementById('adminEkstra').style.display = 'block';
 }
+applyTVMode();
 updateModBtn();
 
 function checkAdminSession() {
@@ -512,11 +583,16 @@ var settings = loadSettings();
 var hasAlis  = parseFloat(localStorage.getItem('gp10_ha') || '0') || null;
 var hasSatis = parseFloat(localStorage.getItem('gp10_hs') || '0') || null;
 var prevPrices = {};
-var aktifMod = localStorage.getItem('gp10_mod') || 'normal';
+var aktifMod = 'normal';
+var tvMode = false;
 
 function toggleMod() {
   aktifMod = aktifMod === 'normal' ? 'hareketli' : 'normal';
   localStorage.setItem('gp10_mod', aktifMod);
+  try { settings.aktifMod = aktifMod; } catch(e) {}
+  try {
+    jsonbinSave(settings, function(){});
+  } catch(e) {}
   updateModBtn();
   document.getElementById('priceRows').innerHTML = '';
   renderTable();
@@ -532,6 +608,28 @@ function updateModBtn() {
     btn.textContent = '⚡ Normal';
     btn.classList.remove('hareketli');
   }
+}
+
+function applyTVMode() {
+  try { localStorage.removeItem('gp10_tv'); } catch(e) {}
+  document.body.classList.toggle('tv-mode', tvMode && window.location.search.indexOf('admin') === -1);
+  var btn = document.getElementById('tvBtn');
+  if (btn) {
+    btn.classList.toggle('active', tvMode);
+    btn.textContent = tvMode ? '📺' : '📺';
+    btn.title = tvMode ? 'TV modu açık' : 'TV modu kapalı';
+  }
+}
+
+function toggleTVMode() {
+  tvMode = !tvMode;
+  applyTVMode();
+  if (tvMode && document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen().catch(function(){});
+  } else if (!tvMode && document.fullscreenElement && document.exitFullscreen) {
+    document.exitFullscreen().catch(function(){});
+  }
+  showToast(tvMode ? '📺 TV Modu Aktif' : '📺 TV Modu Kapandı');
 }
 
 // Admin butonuna tıklandığında şifre sor
@@ -664,15 +762,9 @@ function fetchPrices() {
         if (!a || a < 100) throw new Error('Geçersiz fiyat');
         if (!applyPrices(a, s)) throw new Error('applyPrices hata');
         // Döviz verilerini sakla
-        liveDoviz = data;
+        liveDoviz = data || {};
         updateDovizBant({});
-        if (!document.getElementById('overlay').classList.contains('open')) {
-          if (document.getElementById('adminDovizRows')) renderAdminDoviz();
-          if (document.getElementById('adminHurdaRows')) renderAdminHurda();
-        }
-        renderEkstraDoviz();
-        renderEkstraHurda();
-        renderDesktopPanel();
+        refreshAdminDataViews();
       } catch(e) {
         setStatus(false);
         if (hasAlis) renderTable();
@@ -805,6 +897,14 @@ function toggleUrun(id) {
   renderUrunList();
 }
 
+
+function persistQuickSettings(msg) {
+  try { localStorage.setItem('gp10', JSON.stringify(settings)); } catch(e) {}
+  jsonbinSave(settings, function(ok) {
+    if (msg) showToast(ok ? msg : (msg + ' (yerel kaydedildi)'));
+  });
+}
+
 function addUrun() {
   var label = document.getElementById('newLabel').value.trim();
   var alisX = parseFloat(document.getElementById('newAlisX').value) || 0.9930;
@@ -819,7 +919,7 @@ function addUrun() {
   document.getElementById('priceRows').innerHTML = '';
   renderTable();
   renderUrunList();
-  showToast(label + ' eklendi');
+  persistQuickSettings(label + ' eklendi');
 }
 
 function restoreDefault(id) {
@@ -827,7 +927,7 @@ function restoreDefault(id) {
   document.getElementById('priceRows').innerHTML = '';
   renderTable();
   renderUrunList();
-  showToast('Geri getirildi!');
+  persistQuickSettings('Geri getirildi!');
 }
 
 function deleteDefault(id) {
@@ -837,7 +937,7 @@ function deleteDefault(id) {
   document.getElementById('priceRows').innerHTML = '';
   renderTable();
   renderUrunList();
-  showToast('Silindi');
+  persistQuickSettings('Silindi');
 }
 
 function deleteUrun(id) {
@@ -847,7 +947,7 @@ function deleteUrun(id) {
   document.getElementById('priceRows').innerHTML = '';
   renderTable();
   renderUrunList();
-  showToast('Silindi');
+  persistQuickSettings('Silindi');
 }
 
 function saveAdmin() {
@@ -968,15 +1068,39 @@ jsonbinLoad(function(cloud) {
   if (cloud && cloud.shopName) {
     settings = cloud;
     if (settings.adminPass) ADMIN_PASS = settings.adminPass;
+    if (settings.aktifMod) aktifMod = settings.aktifMod;
+    updateModBtn();
     localStorage.setItem('gp10', JSON.stringify(settings));
     document.getElementById('priceRows').innerHTML = '';
     renderTable();
+    refreshAdminDataViews();
   }
 });
 
 // ── DÖVİZ BANT ───────────────────────────────────────────────────────────────
 var dovizCache = {};
 var liveDoviz = {}; // worker'dan gelen canlı döviz verileri
+
+
+function isAdminEditing() {
+  try {
+    var el = document.activeElement;
+    if (!el) return false;
+    if (el.classList && (el.classList.contains('admin-inp') || el.classList.contains('add-item-inp'))) return true;
+    var ov = document.getElementById('overlay');
+    if (ov && ov.classList.contains('open') && el.tagName && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')) return true;
+  } catch(e) {}
+  return false;
+}
+
+function refreshAdminDataViews() {
+  if (isAdminEditing()) return;
+  try { if (document.getElementById('adminDovizRows')) renderAdminDoviz(); } catch(e) {}
+  try { if (document.getElementById('adminHurdaRows')) renderAdminHurda(); } catch(e) {}
+  try { if (document.getElementById('ekstraDovizRows')) renderEkstraDoviz(); } catch(e) {}
+  try { if (document.getElementById('ekstraHurdaRows')) renderEkstraHurda(); } catch(e) {}
+  try { if (document.getElementById('desktopDovizRows') || document.getElementById('desktopHurdaRows')) renderDesktopPanel(); } catch(e) {}
+}
 
 function fetchDoviz() {
   // Worker'dan döviz verilerini çek (zaten fetchPrices ile geliyor, cachedDoviz kullan)
@@ -1065,6 +1189,7 @@ function updateDovizBant(rates) {
 // ── ADMİN DÖVİZ & HURDA TABLOSU ──────────────────────────────────────────────
 function renderAdminDoviz() {
   var html = '';
+  if (!liveDoviz) liveDoviz = {};
   DOVIZLER.forEach(function(d) {
     var alis  = liveDoviz[d.id+'Alis']  || 0;
     var satis = liveDoviz[d.id+'Satis'] || 0;
@@ -1118,6 +1243,7 @@ function renderDesktopPanel() {
   side.style.display = (isAdmin && isDesktop) ? 'flex' : 'none';
   if (!isAdmin || !isDesktop) return;
   side.style.flexDirection = 'column';
+  if (!liveDoviz) liveDoviz = {};
 
   // Döviz
   var dovizHtml = '';
@@ -1189,6 +1315,66 @@ function renderEkstraHurda() {
   });
   el.innerHTML = html;
 }
+
+// hareketli/normal mod canlı senkron
+setInterval(function() {
+  try {
+    if (typeof jsonbinLoad === 'function') {
+      jsonbinLoad(function(data) {
+        if (!data) return;
+        if (isAdminEditing()) return;
+        if (data.aktifMod && data.aktifMod !== aktifMod) {
+          aktifMod = data.aktifMod;
+          try { localStorage.setItem('gp10_mod', aktifMod); } catch(e) {}
+          updateModBtn();
+          try { document.getElementById('priceRows').innerHTML = ''; } catch(e) {}
+          try { renderTable(); } catch(e) {}
+        }
+      });
+    }
+  } catch(e) {}
+}, 2000);
+
 </script>
+
+<script>
+(function(){
+  try {
+    var aktifMod = localStorage.getItem('gp10_mod') || 'normal';
+
+    window.updateModBtn = function() {
+      var btn = document.getElementById('modBtn');
+      if (!btn) return;
+      if (aktifMod === 'hareketli') {
+        btn.classList.add('hareketli');
+        btn.textContent = '⚡ Hareketli';
+      } else {
+        btn.classList.remove('hareketli');
+        btn.textContent = '✅ Normal';
+      }
+    };
+
+    window.toggleMod = function() {
+      aktifMod = aktifMod === 'normal' ? 'hareketli' : 'normal';
+      localStorage.setItem('gp10_mod', aktifMod);
+      if (typeof settings !== 'undefined') {
+        settings.aktifMod = aktifMod;
+        try { jsonbinSave(settings, function(){}); } catch(e){}
+      }
+      updateModBtn();
+      try {
+        document.getElementById('priceRows').innerHTML = '';
+        if (typeof renderTable === 'function') renderTable();
+      } catch(e){}
+    };
+
+    document.addEventListener("DOMContentLoaded", function(){
+      updateModBtn();
+    });
+
+  } catch(e){}
+})();
+</script>
+
 </body>
 </html>
