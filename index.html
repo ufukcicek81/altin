@@ -5,23 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Asil Kuyumculuk</title>
 <link rel="manifest" href="manifest.json">
-
-<!-- TV MODE FIX -->
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  try {
-    const tv = localStorage.getItem("gp10_tv");
-    if (!window.location.search.includes("admin")) {
-      if (tv === "1") {
-        localStorage.removeItem("gp10_tv");
-        sessionStorage.removeItem("gp10_tv");
-        document.body.classList.remove("tv-mode");
-      }
-    }
-  } catch(e){}
-});
-</script>
-
 <script>
 if (window.location.search.indexOf('admin') !== -1) {
   try { localStorage.removeItem('gp10_tv'); } catch(e) {}
@@ -620,13 +603,22 @@ function updateModBtn() {
 }
 
 function applyTVMode() {
-  try { localStorage.removeItem('gp10_tv'); } catch(e) {}
-  document.body.classList.toggle('tv-mode', tvMode && window.location.search.indexOf('admin') === -1);
+  var isAdmin = window.location.search.indexOf('admin') !== -1;
+
+  if (!isAdmin) {
+    tvMode = false;
+    try { localStorage.removeItem('gp10_tv'); } catch(e) {}
+    try { sessionStorage.removeItem('gp10_tv'); } catch(e) {}
+    document.body.classList.remove('tv-mode');
+  } else {
+    document.body.classList.remove('tv-mode');
+  }
+
   var btn = document.getElementById('tvBtn');
   if (btn) {
-    btn.classList.toggle('active', tvMode);
-    btn.textContent = tvMode ? '📺' : '📺';
-    btn.title = tvMode ? 'TV modu açık' : 'TV modu kapalı';
+    btn.classList.toggle('active', isAdmin ? tvMode : false);
+    btn.textContent = '📺';
+    btn.title = isAdmin && tvMode ? 'TV modu açık' : 'TV modu kapalı';
   }
 }
 
