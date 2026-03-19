@@ -1,7 +1,6 @@
 {
   "name": "Asil Kuyumcu",
   "short_name": "ASİL",
-  "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#b8960c"
