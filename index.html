@@ -1422,5 +1422,70 @@ setInterval(function() {
 })();
 </script>
 
+
+<script>
+/* CANLI BULUT SENKRON - müşteri ekranı için */
+(function () {
+  var lastRemoteText = "";
+
+  function applyRemoteSettings(data) {
+    if (!data) return;
+
+    try {
+      var newText = JSON.stringify(data);
+      if (newText === lastRemoteText) return;
+      lastRemoteText = newText;
+    } catch (e) {}
+
+    try {
+      if (typeof settings !== "undefined" && data) {
+        settings = data;
+      }
+
+      if (typeof aktifMod !== "undefined" && data.aktifMod) {
+        aktifMod = data.aktifMod;
+        try { localStorage.setItem("gp10_mod", aktifMod); } catch(e) {}
+        if (typeof updateModBtn === "function") updateModBtn();
+      }
+
+      try {
+        var rows = document.getElementById("priceRows");
+        if (rows) rows.innerHTML = "";
+      } catch(e) {}
+
+      if (typeof renderTable === "function") renderTable();
+      if (typeof renderEkstraDoviz === "function") renderEkstraDoviz();
+      if (typeof renderEkstraHurda === "function") renderEkstraHurda();
+      if (typeof updateCustomerLink === "function") updateCustomerLink();
+
+      if (typeof updateHasInfo === "function") {
+        updateHasInfo("Canlı", true);
+      }
+    } catch (e) {
+      console.log("Canlı senkron uygulama hatası:", e);
+    }
+  }
+
+  function pollRemote() {
+    try {
+      if (typeof jsonbinLoad !== "function") return;
+      if (window.location.search.indexOf("admin") !== -1) return;
+
+      jsonbinLoad(function (data) {
+        if (!data) return;
+        applyRemoteSettings(data);
+      });
+    } catch (e) {
+      console.log("Canlı senkron okuma hatası:", e);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    setTimeout(pollRemote, 800);
+    setInterval(pollRemote, 2000);
+  });
+})();
+</script>
+
 </body>
 </html>
