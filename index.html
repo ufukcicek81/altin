@@ -193,11 +193,6 @@ body {
 .toast { position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%) translateY(8px); background: #b8960c; color: #fff; padding: 9px 18px; border-radius: 20px; font-size: 13px; opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 200; white-space: nowrap; font-weight: 600; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-.tv-btn { position: absolute; right: 58px; top: 20px; width: 38px; height: 38px; border-radius: 50%; border: 1px solid #555; background: #2a2a2a; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #c8b88a; }
-.tv-btn.active { background: #0f2a3a; border-color: #3da7ff; color: #7fc6ff; }
-@media (min-width: 768px) {
-  .tv-btn { right: 76px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; }
-}
 body.tv-mode {
   max-width: 100% !important;
   background: #000;
@@ -258,7 +253,6 @@ body.tv-mode .desktop-layout { display: block !important; }
   <span class="has-info" id="hasInfo"></span>
   <button class="admin-btn" id="adminBtn" onclick="openAdmin()">⋯</button>
   <button class="mod-btn" id="modBtn" onclick="toggleMod()">⚡ Normal</button>
-  <button class="tv-btn" id="tvBtn" onclick="toggleTVMode()">📺</button>
 </div>
 
 <div class="doviz-bant"><div class="doviz-bant-inner" id="dovizBant">⏳ Döviz yükleniyor...</div></div>
@@ -505,7 +499,18 @@ function getActiveItems() {
   var custom = (settings.customItems || []);
   var hidden = settings.hiddenItems || [];
   var deleted = settings.deletedItems || [];
-  return ITEMS.concat(custom).filter(function(i){ return hidden.indexOf(i.id) === -1 && deleted.indexOf(i.id) === -1; });
+  var all = ITEMS.concat(custom);
+  var order = settings.itemOrder || [];
+  var map = {};
+  all.forEach(function(i){ map[i.id] = i; });
+  var ordered = [];
+  order.forEach(function(id){
+    if (map[id]) { ordered.push(map[id]); delete map[id]; }
+  });
+  all.forEach(function(i){
+    if (map[i.id]) ordered.push(i);
+  });
+  return ordered.filter(function(i){ return hidden.indexOf(i.id) === -1 && deleted.indexOf(i.id) === -1; });
 }
 
 // ── AYARLARI URL HASH'TEN OKU ─────────────────────────────────────────────
@@ -543,14 +548,6 @@ if (window.location.search.indexOf('admin') === -1 || FORCE_TV) {
 }
 applyTVMode();
 updateModBtn();
-if (FORCE_TV) {
-  setTimeout(function(){
-    try { document.getElementById('priceRows').innerHTML = ''; } catch(e) {}
-    try { renderTable(); } catch(e) {}
-    try { fetchPrices(true); } catch(e) {}
-    try { fetchDoviz(); } catch(e) {}
-  }, 250);
-}
 
 function checkAdminSession() {
   return sessionStorage.getItem('gp10_admin') === '1';
@@ -747,7 +744,7 @@ function setStatus(ok) {
   var src = document.getElementById('updSrc');
   var hi  = document.getElementById('hasInfo');
   if (ok) {
-    src.textContent = '● Canlı — canlidoviz.com'; src.className = 'upd-src ok';
+    src.textContent = ''; src.className = 'upd-src';
     hi.textContent  = 'Has Alış: ' + fmt(Math.round(hasAlis)) + '  |  Has Satış: ' + fmt(Math.round(hasSatis));
     hi.className = 'has-info';
   } else {
@@ -769,26 +766,15 @@ function applyPrices(a, s) {
   localStorage.setItem('gp10_ha', a);
   localStorage.setItem('gp10_hs', s);
   setStatus(true);
-  try { document.getElementById('priceRows').innerHTML = ''; } catch(e) {}
   renderTable();
-  if (FORCE_TV) {
-    setTimeout(function(){
-      try { document.getElementById('priceRows').innerHTML = ''; } catch(e) {}
-      try { renderTable(); } catch(e) {}
-    }, 120);
-  }
   return true;
 }
 
-function fetchPrices(forceFresh) {
+function fetchPrices() {
   if (activeXHR) { try { activeXHR.abort(); } catch(e){} activeXHR = null; }
   var xhr = new XMLHttpRequest();
   activeXHR = xhr;
-  var reqUrl = WORKER_URL;
-  if (FORCE_TV || forceFresh) {
-    reqUrl += (WORKER_URL.indexOf('?') === -1 ? '?' : '&') + '_tvts=' + Date.now();
-  }
-  xhr.open('GET', reqUrl, true);
+  xhr.open('GET', WORKER_URL, true);
   xhr.timeout = 10000;
   xhr.onload = function() {
     if (activeXHR !== xhr) return;
@@ -843,7 +829,7 @@ function updateCustomerLink() {
   var base = window.location.href.split('?')[0].split('#')[0];
   document.getElementById('customerLink').textContent = base;
   document.getElementById('customerLink').dataset.url = base;
-  var tvUrl = base + '?tv=1&v=tv';
+  var tvUrl = base + '?tv=1';
   var tvEl = document.getElementById('tvLink');
   if (tvEl) {
     tvEl.textContent = tvUrl;
@@ -893,38 +879,66 @@ function renderAdminRows() {
 function renderUrunList() {
   var hidden = settings.hiddenItems || [];
   var custom = settings.customItems || [];
-  var html = '';
   var deleted = settings.deletedItems || [];
-  // Varsayilan urunler - goster/gizle + sil
-  ITEMS.forEach(function(item) {
+  var order = settings.itemOrder || [];
+  var all = ITEMS.concat(custom);
+  var map = {};
+  all.forEach(function(i){ map[i.id] = i; });
+  var ordered = [];
+  order.forEach(function(id){
+    if (map[id]) { ordered.push(map[id]); delete map[id]; }
+  });
+  all.forEach(function(i){
+    if (map[i.id]) ordered.push(i);
+  });
+
+  var html = '';
+  ordered.forEach(function(item, index) {
+    var isCustom = custom.some(function(c){ return c.id === item.id; });
     var isDeleted = deleted.indexOf(item.id) !== -1;
     var isHidden = hidden.indexOf(item.id) !== -1;
-    if (isDeleted) {
+
+    if (!isCustom && isDeleted) {
       html += '<div class="urun-item hidden-urun">'
         + '<span class="urun-name" style="text-decoration:line-through;color:#666">' + item.label + ' <small style="color:#555;font-size:11px">(silindi)</small></span>'
         + '<button class="urun-add-btn" style="font-size:11px;padding:4px 8px" onclick="restoreDefault(\'' + item.id + '\')">Geri Getir</button>'
         + '</div>';
       return;
     }
-    if (false) { var isHidden = null; } // dummy
+
     html += '<div class="urun-item' + (isHidden ? ' hidden-urun' : '') + '">'
-      + '<span class="urun-name">' + item.label + (isHidden ? ' <small style="color:#666;font-size:11px">(gizli)</small>' : '') + '</span>'
+      + '<span class="urun-name"' + (isCustom ? ' style="color:#d4af37"' : '') + '>' + item.label + (isHidden ? ' <small style="color:#666;font-size:11px">(gizli)</small>' : '') + '</span>'
+      + '<button class="urun-vis-btn" onclick="moveItem(\'' + item.id + '\', -1)" title="Yukarı">↑</button>'
+      + '<button class="urun-vis-btn" onclick="moveItem(\'' + item.id + '\', 1)" title="Aşağı">↓</button>'
       + '<button class="urun-vis-btn" onclick="toggleUrun(\'' + item.id + '\')" title="' + (isHidden ? 'Goster' : 'Gizle') + '">'
-      + (isHidden ? '\u{1F441}' : '\u{1F648}') + '</button>'
-      + '<button class="urun-del-btn" onclick="deleteDefault(\'' + item.id + '\')" title="Sil">x</button>'
-      + '</div>';
-  });
-  // Ozel urunler - goster/gizle + sil
-  custom.forEach(function(item) {
-    var isHidden = hidden.indexOf(item.id) !== -1;
-    html += '<div class="urun-item' + (isHidden ? ' hidden-urun' : '') + '">'
-      + '<span class="urun-name" style="color:#d4af37">' + item.label + (isHidden ? ' <small style="color:#666;font-size:11px">(gizli)</small>' : '') + '</span>'
-      + '<button class="urun-vis-btn" onclick="toggleUrun(\'' + item.id + '\')" title="' + (isHidden ? 'Goster' : 'Gizle') + '">'
-      + (isHidden ? '\u{1F441}' : '\u{1F648}') + '</button>'
-      + '<button class="urun-del-btn" onclick="deleteUrun(\'' + item.id + '\')" title="Sil">x</button>'
+      + (isHidden ? '👁' : '🙈') + '</button>'
+      + (isCustom
+          ? '<button class="urun-del-btn" onclick="deleteUrun(\'' + item.id + '\')" title="Sil">x</button>'
+          : '<button class="urun-del-btn" onclick="deleteDefault(\'' + item.id + '\')" title="Sil">x</button>')
       + '</div>';
   });
   document.getElementById('urunList').innerHTML = html;
+}
+
+function moveItem(id, direction) {
+  if (!settings.itemOrder) {
+    settings.itemOrder = ITEMS.concat(settings.customItems || []).map(function(i){ return i.id; });
+  }
+  var list = settings.itemOrder.slice();
+  var idx = list.indexOf(id);
+  if (idx === -1) return;
+  var newIdx = idx + direction;
+  if (newIdx < 0 || newIdx >= list.length) return;
+  var tmp = list[idx];
+  list[idx] = list[newIdx];
+  list[newIdx] = tmp;
+  settings.itemOrder = list;
+  try { localStorage.setItem('gp10', JSON.stringify(settings)); } catch(e) {}
+  try { jsonbinSave(settings, function(){}); } catch(e) {}
+  renderUrunList();
+  document.getElementById('priceRows').innerHTML = '';
+  renderTable();
+  showToast('Sıralama güncellendi');
 }
 
 function toggleUrun(id) {
@@ -959,6 +973,8 @@ function addUrun() {
   if (!settings.labor) settings.labor = {};
   var id = 'c_' + Date.now();
   settings.customItems.push({ id:id, label:label, defA:alisX, defS:satisX });
+  if (!settings.itemOrder) settings.itemOrder = ITEMS.concat(settings.customItems || []).map(function(i){ return i.id; });
+  if (settings.itemOrder.indexOf(id) === -1) settings.itemOrder.push(id);
   settings.labor[id] = { a:alisX, s:satisX };
   document.getElementById('newLabel').value = '';
   document.getElementById('priceRows').innerHTML = '';
@@ -969,6 +985,8 @@ function addUrun() {
 
 function restoreDefault(id) {
   settings.deletedItems = (settings.deletedItems || []).filter(function(x){ return x !== id; });
+  if (!settings.itemOrder) settings.itemOrder = ITEMS.concat(settings.customItems || []).map(function(i){ return i.id; });
+  if (settings.itemOrder.indexOf(id) === -1) settings.itemOrder.push(id);
   document.getElementById('priceRows').innerHTML = '';
   renderTable();
   renderUrunList();
@@ -1074,7 +1092,7 @@ function shareWA() {
 
 function copyTVLink() {
   var el = document.getElementById('tvLink');
-  var link = (el && (el.dataset.url || el.textContent)) || (window.location.href.split('?')[0].split('#')[0] + '?tv=1&v=tv');
+  var link = (el && (el.dataset.url || el.textContent)) || (window.location.href.split('?')[0].split('#')[0] + '?tv=1');
   if (navigator.clipboard) {
     navigator.clipboard.writeText(link).then(function(){ showToast('✓ TV linki kopyalandı'); });
   } else {
@@ -1087,7 +1105,7 @@ function copyTVLink() {
 
 function openTVScreen() {
   var el = document.getElementById('tvLink');
-  var link = (el && (el.dataset.url || el.textContent)) || (window.location.href.split('?')[0].split('#')[0] + '?tv=1&v=tv');
+  var link = (el && (el.dataset.url || el.textContent)) || (window.location.href.split('?')[0].split('#')[0] + '?tv=1');
   window.open(link, '_blank');
 }
 
@@ -1101,15 +1119,9 @@ function showToast(m) {
 // ── SERVICE WORKER ───────────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    if (FORCE_TV) {
-      navigator.serviceWorker.getRegistrations().then(function(regs){
-        regs.forEach(function(reg){ reg.unregister(); });
-      }).catch(function(){});
-    } else {
-      navigator.serviceWorker.register('sw.js').catch(function(e) {
-        console.log('SW kayıt hatası:', e);
-      });
-    }
+    navigator.serviceWorker.register('sw.js').catch(function(e) {
+      console.log('SW kayıt hatası:', e);
+    });
   });
 }
 
@@ -1145,12 +1157,6 @@ jsonbinLoad(function(cloud) {
     document.getElementById('priceRows').innerHTML = '';
     renderTable();
     refreshAdminDataViews();
-    if (FORCE_TV) {
-      setTimeout(function(){
-        try { fetchPrices(true); } catch(e) {}
-        try { fetchDoviz(); } catch(e) {}
-      }, 250);
-    }
   }
 });
 
