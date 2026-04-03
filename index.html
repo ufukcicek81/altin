@@ -244,6 +244,25 @@ body.tv-mode .desktop-layout { display: block !important; }
 }
 
 </style>
+
+<script>
+const THEME_KEY = "asil_theme";
+function setTheme(mode){
+  document.body.setAttribute("data-theme", mode);
+  localStorage.setItem(THEME_KEY, mode);
+}
+function initTheme(){
+  const saved = localStorage.getItem(THEME_KEY) || "dark";
+  setTheme(saved);
+}
+document.addEventListener("DOMContentLoaded", initTheme);
+</script>
+
+<style>
+body[data-theme="dark"]{background:#000;color:#fff;}
+body[data-theme="light"]{background:#fff;color:#000;}
+</style>
+
 </head>
 <body>
 
@@ -1522,6 +1541,17 @@ setInterval(function() {
     setInterval(pollRemote, 2000);
   });
 })();
+</script>
+
+
+<button onclick="toggleTheme()" style="position:fixed;top:10px;right:10px;z-index:9999;padding:10px;border-radius:8px;background:#b8960c;color:#000;">
+🌗 Tema
+</button>
+<script>
+function toggleTheme(){
+  const current = localStorage.getItem("asil_theme") || "dark";
+  setTheme(current === "dark" ? "light" : "dark");
+}
 </script>
 
 </body>
