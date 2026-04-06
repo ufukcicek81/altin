@@ -536,15 +536,19 @@ var FORCE_TV = window.location.search.indexOf('tv=1') !== -1;
 
 // ?admin yoksa buton gizli
 if (window.location.search.indexOf('admin') === -1 || FORCE_TV) {
-  document.getElementById('adminBtn').style.display = 'none';
-  document.getElementById('bottomNav').style.display = 'none';
-  if (FORCE_TV) {
-    document.getElementById('tvBtn').style.display = 'none';
+  var adminBtnEl = document.getElementById('adminBtn');
+  var bottomNavEl = document.getElementById('bottomNav');
+  var tvBtnEl = document.getElementById('tvBtn');
+  if (adminBtnEl) adminBtnEl.style.display = 'none';
+  if (bottomNavEl) bottomNavEl.style.display = 'none';
+  if (FORCE_TV && tvBtnEl) {
+    tvBtnEl.style.display = 'none';
   }
 } else {
   var mb = document.getElementById('modBtn');
-  mb.style.display = 'flex';
-  document.getElementById('adminEkstra').style.display = 'block';
+  var adminEkstraEl = document.getElementById('adminEkstra');
+  if (mb) mb.style.display = 'flex';
+  if (adminEkstraEl) adminEkstraEl.style.display = 'block';
 }
 applyTVMode();
 updateModBtn();
@@ -658,7 +662,8 @@ function toggleTVMode() {
 }
 
 // Admin butonuna tıklandığında şifre sor
-document.getElementById('adminBtn').onclick = function() {
+var adminBtnBind = document.getElementById('adminBtn');
+if (adminBtnBind) adminBtnBind.onclick = function() {
   if (checkAdminSession()) {
     IS_ADMIN = true;
     openAdmin();
@@ -666,7 +671,8 @@ document.getElementById('adminBtn').onclick = function() {
     openAdminLogin();
   }
 };
-document.querySelector('.nav-item:last-child').onclick = function() {
+var lastNavItem = document.querySelector('.nav-item:last-child');
+if (lastNavItem) lastNavItem.onclick = function() {
   if (checkAdminSession()) {
     IS_ADMIN = true;
     openAdmin();
