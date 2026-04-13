@@ -1141,21 +1141,16 @@ setInterval(fetchPrices, 5000);
 fetchDoviz();
 setInterval(fetchDoviz, 60000);
 
-// Buluttan güncel ayarları çek — max 3 saniye bekle
-var cloudLoaded = false;
-var cloudTimeout = setTimeout(function() {
-  if (!cloudLoaded) {
-    // Firebase gelmediyse localStorage ile devam et, sorun yok
-    cloudLoaded = true;
-  }
-}, 3000);
-
+// Buluttan güncel ayarları çek
 jsonbinLoad(function(cloud) {
-  if (cloudLoaded) return; // zaten timeout oldu
-  cloudLoaded = true;
-  clearTimeout(cloudTimeout);
   if (cloud && cloud.shopName) {
     settings = cloud;
+    if (!settings.customItems) settings.customItems = [];
+    if (!settings.labor) settings.labor = {};
+    if (!settings.hiddenItems) settings.hiddenItems = [];
+    if (!settings.deletedItems) settings.deletedItems = [];
+    if (!settings.dovizDuz) settings.dovizDuz = {};
+    if (!settings.hurdaCarp) settings.hurdaCarp = {};
     if (settings.adminPass) ADMIN_PASS = settings.adminPass;
     if (settings.aktifMod) aktifMod = settings.aktifMod;
     updateModBtn();
