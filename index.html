@@ -243,6 +243,74 @@ body.tv-mode .desktop-layout { display: block !important; }
   body.tv-mode .price-row .kk { font-size: 34px !important; }
 }
 
+
+/* --- yüzde + varlıklarım eklentisi --- */
+.change-rate{display:block;font-size:11px;line-height:1.1;margin-top:3px;font-weight:700}
+.change-up{color:#2ecc71}
+.change-down{color:#e74c3c}
+.change-same{color:#aaa}
+
+body.portfolio-mode .table-header,
+body.portfolio-mode #priceRows,
+body.portfolio-mode #adminEkstra,
+body.portfolio-mode .update-bar,
+body.portfolio-mode #desktopSide{display:none !important}
+body.portfolio-mode #portfolioWrap{display:block !important}
+
+#portfolioWrap{display:none;padding:12px}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.summary-card{background:#1e1e1e;border:1px solid #333;border-radius:12px;padding:12px}
+.summary-card .label{font-size:12px;color:#c8b88a;margin-bottom:6px}
+.summary-card .value{font-size:18px;font-weight:700;color:#f0d060}
+.summary-card .value.kar{color:#2ecc71}
+.summary-card .value.zarar{color:#e74c3c}
+.portfolio-card{background:#1e1e1e;border:1px solid #333;border-radius:12px;padding:12px;margin-bottom:12px}
+.portfolio-title{font-size:13px;font-weight:700;color:#d4af37;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.portfolio-form-grid{display:grid;grid-template-columns:1fr;gap:10px}
+.portfolio-label{display:block;font-size:12px;color:#c8b88a;margin-bottom:5px}
+.portfolio-inp,.portfolio-select{width:100%;padding:10px 12px;border:1px solid #444;border-radius:10px;font-size:14px;background:#2a2a2a;color:#f0e6c8}
+.portfolio-inp:focus,.portfolio-select:focus{outline:none;border-color:#d4af37;background:#333}
+.portfolio-btn-row{display:flex;gap:8px;margin-top:10px}
+.portfolio-btn-primary,.portfolio-btn-secondary,.portfolio-btn-danger{border:none;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer}
+.portfolio-btn-primary{background:#b8960c;color:#fff;flex:1}
+.portfolio-btn-secondary{background:#1a4a8a;color:#fff}
+.portfolio-btn-danger{background:#6b1a1a;color:#fff}
+.holding-card{background:#202020;border:1px solid #2e2e2e;border-radius:12px;padding:12px;margin-bottom:10px}
+.holding-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
+.holding-name{font-size:16px;font-weight:700;color:#f0d060}
+.holding-pct{font-size:12px;font-weight:700}
+.holding-pct.up{color:#2ecc71}
+.holding-pct.down{color:#e74c3c}
+.holding-pct.same{color:#aaa}
+.holding-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+.holding-grid div{font-size:12px;color:#c8b88a}
+.holding-grid strong{display:block;color:#f0e6c8;font-size:14px;margin-top:2px}
+.holding-note{margin-top:8px;font-size:12px;color:#aaa}
+.empty-portfolio{color:#888;font-size:13px;text-align:center;padding:14px 0}
+@media (min-width:768px){
+  #portfolioWrap{padding:18px 24px}
+  .summary-grid{grid-template-columns:repeat(4,1fr)}
+  .portfolio-form-grid{grid-template-columns:1.2fr .8fr .9fr 1.1fr}
+}
+
+
+.top-switcher{display:flex;justify-content:center;gap:8px;padding:8px 12px 12px;background:#111;border-bottom:1px solid #2a2a2a}
+.top-switch-btn{border:1px solid #555;background:#2a2a2a;color:#c8b88a;border-radius:18px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer}
+.top-switch-btn.active{background:#3a2d00;border-color:#b8960c;color:#f0d060}
+body.portfolio-mode .top-switch-btn[data-view="portfolio"],
+body:not(.portfolio-mode) .top-switch-btn[data-view="prices"]{background:#3a2d00;border-color:#b8960c;color:#f0d060}
+body.portfolio-mode .doviz-bant,
+body.portfolio-mode .table-header,
+body.portfolio-mode #priceRows,
+body.portfolio-mode .update-bar,
+body.portfolio-mode .bottom-nav,
+body.portfolio-mode #desktopSide,
+body.portfolio-mode #adminEkstra{display:none !important}
+body.portfolio-mode #portfolioWrap{display:block !important}
+
+
+body.tv-mode .top-switcher{display:none !important}
+
 </style>
 </head>
 <body>
@@ -253,6 +321,11 @@ body.tv-mode .desktop-layout { display: block !important; }
   <span class="has-info" id="hasInfo"></span>
   <button class="admin-btn" id="adminBtn" onclick="openAdmin()">⋯</button>
   <button class="mod-btn" id="modBtn" onclick="toggleMod()">⚡ Normal</button>
+</div>
+
+<div class="top-switcher" id="topSwitcher">
+  <button class="top-switch-btn active" data-view="prices" id="btnPricesTop">Fiyatlar</button>
+  <button class="top-switch-btn" data-view="portfolio" id="btnPortfolioTop">Varlıklarım</button>
 </div>
 
 <div class="doviz-bant"><div class="doviz-bant-inner" id="dovizBant">⏳ Döviz yükleniyor...</div></div>
@@ -285,6 +358,51 @@ body.tv-mode .desktop-layout { display: block !important; }
     <span style="font-size:11px;color:#e07050;text-align:right">Satış</span>
   </div>
   <div id="ekstraHurdaRows"></div>
+</div>
+
+
+<div id="portfolioWrap">
+  <div class="summary-grid">
+    <div class="summary-card"><div class="label">Toplam Güncel Değer</div><div class="value" id="pfTotalCurrent">0 TL</div></div>
+    <div class="summary-card"><div class="label">Toplam Maliyet</div><div class="value" id="pfTotalCost">0 TL</div></div>
+    <div class="summary-card"><div class="label">Kâr / Zarar</div><div class="value" id="pfProfitLoss">0 TL</div></div>
+    <div class="summary-card"><div class="label">USD / EUR Karşılığı</div><div class="value" id="pfUsdEur">0 $ / 0 €</div></div>
+  </div>
+
+  <div class="portfolio-card">
+    <div class="portfolio-title">Yeni Varlık Ekle</div>
+    <div class="portfolio-form-grid">
+      <div><label class="portfolio-label">Varlık Türü</label>
+        <select class="portfolio-select" id="pfType">
+          <option value="gram_altin">Gram Altın</option>
+          <option value="has_altin">Has Altın</option>
+          <option value="22ayar">22 Ayar</option>
+          <option value="24ayar">24 Ayar</option>
+          <option value="ceyrek">Çeyrek</option>
+          <option value="yarim">Yarım</option>
+          <option value="tam">Tam</option>
+          <option value="gremise">Gremise</option>
+          <option value="resat">Reşat</option>
+          <option value="ata">Ata</option>
+          <option value="hurda_altin">Hurda Altın</option>
+          <option value="usd">Dolar</option>
+          <option value="eur">Euro</option>
+        </select>
+      </div>
+      <div><label class="portfolio-label">Miktar / Adet / Gram</label><input class="portfolio-inp" id="pfQty" type="number" step="0.001" placeholder="0"></div>
+      <div><label class="portfolio-label">Toplam Alış Maliyeti (TL)</label><input class="portfolio-inp" id="pfCost" type="number" step="0.01" placeholder="0"></div>
+      <div><label class="portfolio-label">Not</label><input class="portfolio-inp" id="pfNote" type="text" placeholder="İsteğe bağlı"></div>
+    </div>
+    <div class="portfolio-btn-row">
+      <button class="portfolio-btn-primary" id="pfSaveBtn">Varlık Ekle</button>
+      <button class="portfolio-btn-secondary" id="pfCancelEditBtn" style="display:none">İptal</button>
+    </div>
+  </div>
+
+  <div class="portfolio-card">
+    <div class="portfolio-title">Kayıtlı Varlıklar</div>
+    <div id="pfList"></div>
+  </div>
 </div>
 
 <div class="update-bar">
@@ -320,7 +438,8 @@ body.tv-mode .desktop-layout { display: block !important; }
 <div class="bottom-nav" id="bottomNav">
   <button class="nav-item active"><span class="nav-icon">📊</span>Fiyat Panosu</button>
   <button class="nav-item" onclick="openAdmin()"><span class="nav-icon">⚙️</span>Yönetici</button>
-</div>
+
+  </div>
 
 <div class="overlay" id="overlay" onclick="if(event.target===this)closeAdmin()">
   <div class="admin-panel">
@@ -1526,6 +1645,322 @@ setInterval(function() {
   document.addEventListener("DOMContentLoaded", function () {
     setTimeout(pollRemote, 800);
     setInterval(pollRemote, 2000);
+  });
+})();
+</script>
+
+
+<script>
+(function(){
+  function getTradingDayKey() {
+    var d = new Date();
+    var resetHour = 9;
+    if (d.getHours() < resetHour) d.setDate(d.getDate() - 1);
+    var y = d.getFullYear();
+    var m = String(d.getMonth()+1).padStart(2,'0');
+    var day = String(d.getDate()).padStart(2,'0');
+    return y + '-' + m + '-' + day;
+  }
+  function getBaseStorageKey(priceKey){ return 'gp10_pct_base_' + getTradingDayKey() + '_' + priceKey; }
+  function getDailyBase(priceKey, currentValue){
+    var key = getBaseStorageKey(priceKey);
+    var saved = Number(localStorage.getItem(key) || 0);
+    if (!saved && currentValue) {
+      saved = Number(currentValue);
+      try { localStorage.setItem(key, String(saved)); } catch(e){}
+    }
+    return saved;
+  }
+  function getPercentChange(baseValue, newValue){
+    baseValue = Number(baseValue); newValue = Number(newValue);
+    if (!baseValue || !newValue) return {text:'', cls:'change-same'};
+    var diff = ((newValue - baseValue) / baseValue) * 100;
+    var rounded = Math.abs(diff).toFixed(2);
+    if (diff > 0) return {text:'+%' + rounded, cls:'change-up'};
+    if (diff < 0) return {text:'-%' + rounded, cls:'change-down'};
+    return {text:'%0.00', cls:'change-same'};
+  }
+  function formatPriceWithChange(newVal, priceKey){
+    if (!newVal) return '—';
+    var baseVal = getDailyBase(priceKey, newVal);
+    var ch = getPercentChange(baseVal, newVal);
+    if (!ch.text) return fmt(newVal);
+    return fmt(newVal) + '<span class="change-rate ' + ch.cls + '">' + ch.text + '</span>';
+  }
+  function updatePriceWithChange(el, row, newVal, priceKey, cls, isAlis){
+    if (!el) return;
+    if (!newVal) { el.textContent = '—'; el.className = cls; return; }
+    var visualPrev = Number(el.getAttribute('data-last') || 0);
+    el.innerHTML = formatPriceWithChange(newVal, priceKey);
+    el.className = cls;
+    el.setAttribute('data-last', String(newVal));
+    if (!visualPrev) return;
+    if (newVal > visualPrev) {
+      el.classList.add('price-up');
+      if (row && isAlis) { row.classList.remove('flash-down'); row.classList.add('flash-up'); }
+      if (row && !isAlis) { row.classList.remove('flash-up'); row.classList.add('flash-down'); }
+    } else if (newVal < visualPrev) {
+      el.classList.add('price-down');
+      if (row && isAlis) { row.classList.remove('flash-up'); row.classList.add('flash-down'); }
+      if (row && !isAlis) { row.classList.remove('flash-down'); row.classList.add('flash-up'); }
+    } else {
+      el.classList.add('price-same');
+    }
+    if (row && isAlis) setTimeout(function(){ row.classList.remove('flash-up','flash-down'); }, 900);
+  }
+
+  // renderTable override
+  var _oldRenderTable = renderTable;
+  renderTable = function() {
+    document.getElementById('shopName').textContent  = settings.shopName;
+    document.getElementById('shopPhone').textContent = settings.shopPhone;
+
+    var container = document.getElementById('priceRows');
+    var isFirst   = !container.innerHTML;
+
+    getActiveItems().forEach(function(item) {
+      var lab  = getLabor(item);
+      var newA = hasAlis  ? Math.round(hasAlis  * lab.a) : null;
+      var newS = hasSatis ? Math.round(hasSatis * lab.s) : null;
+      var kkOran = parseFloat(settings.kkOran) || 0;
+      var newKK = newS ? Math.round(newS * (1 + kkOran / 100)) : null;
+      var aId  = 'av_' + item.id;
+      var sId  = 'sv_' + item.id;
+      var kId  = 'kv_' + item.id;
+      var rId  = 'rv_' + item.id;
+
+      if (isFirst) {
+        var div = document.createElement('div');
+        div.className = 'price-row'; div.id = rId;
+        div.innerHTML = '<span class="birim">' + item.label + '</span>'
+          + '<span class="alis"  id="' + aId + '">' + formatPriceWithChange(newA, item.id + '_a') + '</span>'
+          + '<span class="satis" id="' + sId + '">' + formatPriceWithChange(newS, item.id + '_s') + '</span>'
+          + '<span class="kk"    id="' + kId + '">' + (newKK ? fmt(newKK) : '—') + '</span>';
+        container.appendChild(div);
+      } else {
+        updatePriceWithChange(document.getElementById(aId), document.getElementById(rId), newA, item.id + '_a', 'alis', true);
+        updatePriceWithChange(document.getElementById(sId), document.getElementById(rId), newS, item.id + '_s', 'satis', false);
+        var kkEl = document.getElementById(kId);
+        if (kkEl) kkEl.textContent = newKK ? fmt(newKK) : '—';
+      }
+      prevPrices[item.id + '_a'] = newA;
+      prevPrices[item.id + '_s'] = newS;
+    });
+
+    try { renderPortfolio(); } catch(e){}
+  };
+
+  updateCell = function(el, row, newVal, oldVal, cls, isAlis) {
+    var key = '';
+    if (el && el.id && el.id.indexOf('av_') === 0) key = el.id.slice(3) + '_a';
+    else if (el && el.id && el.id.indexOf('sv_') === 0) key = el.id.slice(3) + '_s';
+    updatePriceWithChange(el, row, newVal, key, cls, isAlis);
+  };
+
+  // portfolio
+  var portfolioEditId = null;
+  function pfFmtTl(v){ return fmt(Math.round(Number(v || 0))) + ' TL'; }
+  function pfFmtNum(v){
+    v = Number(v || 0);
+    return v.toLocaleString('tr-TR', {maximumFractionDigits:3});
+  }
+  function getPortfolioStorage(){
+    try { return JSON.parse(localStorage.getItem('gp10_portfolio') || '[]'); } catch(e){ return []; }
+  }
+  function setPortfolioStorage(items){
+    try { localStorage.setItem('gp10_portfolio', JSON.stringify(items)); } catch(e){}
+  }
+  function pfTypeLabel(type){
+    var map = {gram_altin:'Gram Altın', has_altin:'Has Altın', '22ayar':'22 Ayar', '24ayar':'24 Ayar', ceyrek:'Çeyrek', yarim:'Yarım', tam:'Tam', gremise:'Gremise', resat:'Reşat', ata:'Ata', hurda_altin:'Hurda Altın', usd:'Dolar', eur:'Euro'};
+    return map[type] || type;
+  }
+  function pfParseMoney(val){
+    if (val == null) return 0;
+    var s = String(val).trim().replace(/₺|TL|\$/gi,'').trim();
+    // If both comma and dot exist, decide decimal separator by last occurrence
+    if (s.indexOf(',') !== -1 && s.indexOf('.') !== -1) {
+      if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
+        s = s.replace(/\./g, '').replace(',', '.');
+      } else {
+        s = s.replace(/,/g, '');
+      }
+    } else if (s.indexOf(',') !== -1) {
+      s = s.replace(',', '.');
+    }
+    var n = Number(s);
+    return isNaN(n) ? 0 : n;
+  }
+  function pfFindCurrencyFromBand(code){
+    try {
+      var txt = document.getElementById('dovizBant').textContent || '';
+      // Match like USD 44.24 / 45.10 ₺ or USD 44,24 / 45,10 ₺
+      var re = new RegExp(code + '\\s+([\\d.,]+)\\s*\\/\\s*([\\d.,]+)', 'i');
+      var m = txt.match(re);
+      if (m) {
+        var buy = pfParseMoney(m[1]);
+        if (buy) return buy;
+      }
+    } catch(e){}
+    return 0;
+  }
+  function pfFindPriceByType(type){
+    var aliases = {
+      gram_altin:['gram'],
+      has_altin:['has'],
+      '22ayar':['22 ayar','22ayar','22'],
+      '24ayar':['24 ayar','24ayar','24'],
+      ceyrek:['çeyrek','ceyrek'],
+      yarim:['yarım','yarim'],
+      tam:['tam'],
+      gremise:['gremise'],
+      resat:['reşat','resat'],
+      ata:['ata'],
+      hurda_altin:['hurda']
+    };
+    if (type === 'usd') {
+      var usd = pfFindCurrencyFromBand('USD');
+      return usd || 0;
+    }
+    if (type === 'eur') {
+      var eur = pfFindCurrencyFromBand('EUR');
+      return eur || 0;
+    }
+    var keys = aliases[type] || [];
+    var items = getActiveItems();
+    for (var i=0;i<items.length;i++) {
+      var lbl = String(items[i].label || '').toLowerCase();
+      for (var j=0;j<keys.length;j++) {
+        if (lbl.indexOf(keys[j]) !== -1) {
+          var lab = getLabor(items[i]);
+          var v = hasAlis ? Math.round(hasAlis * lab.a) : (hasSatis ? Math.round(hasSatis * lab.s) : 0);
+          if (v) return Number(v);
+        }
+      }
+    }
+    return 0;
+  }
+  function pfCompute(item){
+    var qty = Number(item.qty || 0);
+    var cost = Number(item.cost || 0);
+    var unit = pfFindPriceByType(item.type);
+    var current = qty * unit;
+    var diff = current - cost;
+    var pct = cost > 0 ? (diff / cost) * 100 : 0;
+    return {unit:unit, current:current, diff:diff, pct:pct};
+  }
+  window.renderPortfolio = function(){
+    var listEl = document.getElementById('pfList');
+    if (!listEl) return;
+    var items = getPortfolioStorage();
+    var totalCurrent = 0, totalCost = 0, html = '';
+    items.forEach(function(item){
+      var calc = pfCompute(item);
+      totalCurrent += calc.current;
+      totalCost += Number(item.cost || 0);
+      var pctCls = calc.pct > 0 ? 'up' : (calc.pct < 0 ? 'down' : 'same');
+      var pctText = (calc.pct > 0 ? '+%' : (calc.pct < 0 ? '-%' : '%')) + Math.abs(calc.pct).toFixed(2);
+      html += '<div class="holding-card">'
+        + '<div class="holding-head"><div class="holding-name">' + pfTypeLabel(item.type) + '</div><div class="holding-pct ' + pctCls + '">' + pctText + '</div></div>'
+        + '<div class="holding-grid">'
+        + '<div>Miktar<strong>' + pfFmtNum(item.qty) + '</strong></div>'
+        + '<div>Güncel Birim<strong>' + pfFmtTl(calc.unit) + '</strong></div>'
+        + '<div>Güncel Değer<strong>' + pfFmtTl(calc.current) + '</strong></div>'
+        + '<div>Maliyet<strong>' + pfFmtTl(item.cost) + '</strong></div>'
+        + '<div>Kâr / Zarar<strong style="color:' + (calc.diff >= 0 ? '#2ecc71' : '#e74c3c') + '">' + (calc.diff >= 0 ? '+' : '') + pfFmtTl(calc.diff) + '</strong></div>'
+        + '<div>Tür<strong>' + pfTypeLabel(item.type) + '</strong></div>'
+        + '</div>'
+        + (item.note ? '<div class="holding-note">Not: ' + item.note + '</div>' : '')
+        + '<div class="portfolio-btn-row"><button class="portfolio-btn-secondary" onclick="editPortfolioItem(\'' + item.id + '\')">Düzenle</button><button class="portfolio-btn-danger" onclick="deletePortfolioItem(\'' + item.id + '\')">Sil</button></div>'
+        + '</div>';
+    });
+    if (!html) html = '<div class="empty-portfolio">Henüz kayıtlı varlık yok.</div>';
+    listEl.innerHTML = html;
+
+    var totalDiff = totalCurrent - totalCost;
+    var usdRate = pfFindPriceByType('usd') || 0;
+    var eurRate = pfFindPriceByType('eur') || 0;
+    document.getElementById('pfTotalCurrent').textContent = pfFmtTl(totalCurrent);
+    document.getElementById('pfTotalCost').textContent = pfFmtTl(totalCost);
+    var profitEl = document.getElementById('pfProfitLoss');
+    profitEl.textContent = (totalDiff >= 0 ? '+' : '') + pfFmtTl(totalDiff);
+    profitEl.className = 'value ' + (totalDiff >= 0 ? 'kar' : 'zarar');
+    document.getElementById('pfUsdEur').textContent = pfFmtNum(usdRate ? totalCurrent / usdRate : 0) + ' $ / ' + pfFmtNum(eurRate ? totalCurrent / eurRate : 0) + ' €';
+  };
+  window.editPortfolioItem = function(id){
+    var item = getPortfolioStorage().find(function(x){ return x.id === id; });
+    if (!item) return;
+    portfolioEditId = id;
+    document.getElementById('pfType').value = item.type;
+    document.getElementById('pfQty').value = item.qty;
+    document.getElementById('pfCost').value = item.cost;
+    document.getElementById('pfNote').value = item.note || '';
+    document.getElementById('pfSaveBtn').textContent = 'Güncelle';
+    document.getElementById('pfCancelEditBtn').style.display = 'inline-block';
+  };
+  window.deletePortfolioItem = function(id){
+    setPortfolioStorage(getPortfolioStorage().filter(function(x){ return x.id !== id; }));
+    if (portfolioEditId === id) {
+      portfolioEditId = null;
+      document.getElementById('pfSaveBtn').textContent = 'Varlık Ekle';
+      document.getElementById('pfCancelEditBtn').style.display = 'none';
+    }
+    renderPortfolio();
+    try { showToast('Varlık silindi'); } catch(e){}
+  };
+  function clearPortfolioForm(){
+    portfolioEditId = null;
+    document.getElementById('pfType').value = 'gram_altin';
+    document.getElementById('pfQty').value = '';
+    document.getElementById('pfCost').value = '';
+    document.getElementById('pfNote').value = '';
+    document.getElementById('pfSaveBtn').textContent = 'Varlık Ekle';
+    document.getElementById('pfCancelEditBtn').style.display = 'none';
+  }
+  function savePortfolioItem(){
+    var type = document.getElementById('pfType').value;
+    var qty = Number(document.getElementById('pfQty').value || 0);
+    var cost = Number(document.getElementById('pfCost').value || 0);
+    var note = (document.getElementById('pfNote').value || '').trim();
+    if (!qty || qty <= 0) { try { showToast('Miktar girin'); } catch(e){} return; }
+    if (!cost && cost !== 0) { try { showToast('Maliyet girin'); } catch(e){} return; }
+    var items = getPortfolioStorage();
+    if (portfolioEditId) {
+      items = items.map(function(x){ if (x.id === portfolioEditId) { x.type = type; x.qty = qty; x.cost = cost; x.note = note; } return x; });
+      try { showToast('Varlık güncellendi'); } catch(e){}
+    } else {
+      items.push({id:'pf_' + Date.now(), type:type, qty:qty, cost:cost, note:note});
+      try { showToast('Varlık eklendi'); } catch(e){}
+    }
+    setPortfolioStorage(items);
+    clearPortfolioForm();
+    renderPortfolio();
+  }
+  function showPortfolioMode(){
+    document.body.classList.add('portfolio-mode');
+    var pBtn = document.getElementById('btnPortfolioTop');
+    var firstBtn = document.getElementById('btnPricesTop');
+    if (pBtn) pBtn.classList.add('active');
+    if (firstBtn) firstBtn.classList.remove('active');
+    renderPortfolio();
+  }
+  function showPriceMode(){
+    document.body.classList.remove('portfolio-mode');
+    var pBtn = document.getElementById('btnPortfolioTop');
+    var firstBtn = document.getElementById('btnPricesTop');
+    if (pBtn) pBtn.classList.remove('active');
+    if (firstBtn) firstBtn.classList.add('active');
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var navPf = document.getElementById('btnPortfolioTop');
+    if (navPf) navPf.onclick = showPortfolioMode;
+    var firstBtn = document.getElementById('btnPricesTop');
+    if (firstBtn) firstBtn.onclick = showPriceMode;
+    var saveBtn = document.getElementById('pfSaveBtn');
+    if (saveBtn) saveBtn.onclick = savePortfolioItem;
+    var cancelBtn = document.getElementById('pfCancelEditBtn');
+    if (cancelBtn) cancelBtn.onclick = clearPortfolioForm;
+    try { renderPortfolio(); } catch(e){}
   });
 })();
 </script>
