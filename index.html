@@ -373,21 +373,7 @@ body.tv-mode .top-switcher{display:none !important}
     <div class="portfolio-title">Yeni Varlık Ekle</div>
     <div class="portfolio-form-grid">
       <div><label class="portfolio-label">Varlık Türü</label>
-        <select class="portfolio-select" id="pfType">
-          <option value="gram_altin">Gram Altın</option>
-          <option value="has_altin">Has Altın</option>
-          <option value="22ayar">22 Ayar</option>
-          <option value="24ayar">24 Ayar</option>
-          <option value="ceyrek">Çeyrek</option>
-          <option value="yarim">Yarım</option>
-          <option value="tam">Tam</option>
-          <option value="gremise">Gremise</option>
-          <option value="resat">Reşat</option>
-          <option value="ata">Ata</option>
-          <option value="hurda_altin">Hurda Altın</option>
-          <option value="usd">Dolar</option>
-          <option value="eur">Euro</option>
-        </select>
+        <select class="portfolio-select" id="pfType"></select>
       </div>
       <div><label class="portfolio-label">Miktar / Adet / Gram</label><input class="portfolio-inp" id="pfQty" type="number" step="0.001" placeholder="0"></div>
       <div><label class="portfolio-label">Toplam Alış Maliyeti (TL)</label><input class="portfolio-inp" id="pfCost" type="number" step="0.01" placeholder="0"></div>
@@ -1770,20 +1756,57 @@ setInterval(function() {
   function setPortfolioStorage(items){
     try { localStorage.setItem('gp10_portfolio', JSON.stringify(items)); } catch(e){}
   }
+  function pfGetPortfolioOptions(){
+    var arr = [];
+    try {
+      var items = getActiveItems();
+      items.forEach(function(it){
+        var id = String(it.id || '');
+        var label = String(it.label || '').trim();
+        var low = label.toLowerCase();
+        if (!label) return;
+        if (low.indexOf('gram altın') !== -1 || low.indexOf('gram altin') !== -1) return;
+        if (low.indexOf('has altın') !== -1 || low.indexOf('has altin') !== -1) return;
+        arr.push({value:'item:' + id, label:label});
+      });
+    } catch(e){}
+    arr.push({value:'usd', label:'Dolar'});
+    arr.push({value:'eur', label:'Euro'});
+    return arr;
+  }
+  function fillPortfolioTypeSelect(){
+    var el = document.getElementById('pfType');
+    if (!el) return;
+    var current = el.value || '';
+    var opts = pfGetPortfolioOptions();
+    el.innerHTML = opts.map(function(o){
+      return '<option value="' + o.value + '">' + o.label + '</option>';
+    }).join('');
+    if (current && Array.from(el.options).some(function(x){ return x.value === current; })) {
+      el.value = current;
+    }
+  }
   function pfTypeLabel(type){
-    var map = {gram_altin:'Gram Altın', has_altin:'Has Altın', '22ayar':'22 Ayar', '24ayar':'24 Ayar', ceyrek:'Çeyrek', yarim:'Yarım', tam:'Tam', gremise:'Gremise', resat:'Reşat', ata:'Ata', hurda_altin:'Hurda Altın', usd:'Dolar', eur:'Euro'};
-    return map[type] || type;
+    if (type === 'usd') return 'Dolar';
+    if (type === 'eur') return 'Euro';
+    if (String(type).indexOf('item:') === 0) {
+      try {
+        var id = String(type).slice(5);
+        var items = getActiveItems();
+        for (var i=0;i<items.length;i++) {
+          if (String(items[i].id) === id) return String(items[i].label || id);
+        }
+      } catch(e){}
+      return String(type).slice(5);
+    }
+    return type;
   }
   function pfParseMoney(val){
     if (val == null) return 0;
     var s = String(val).trim().replace(/₺|TL|\$/gi,'').trim();
-    // If both comma and dot exist, decide decimal separator by last occurrence
     if (s.indexOf(',') !== -1 && s.indexOf('.') !== -1) {
-      if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
-        s = s.replace(/\./g, '').replace(',', '.');
-      } else {
-        s = s.replace(/,/g, '');
-      }
+      if (s.lastIndexOf(',') > s.lastIndexOf('.')) s = s.replace(/\./g, '').replace(',', '.');
+      else s = s.replace(/,/g, '');
     } else if (s.indexOf(',') !== -1) {
       s = s.replace(',', '.');
     }
@@ -1793,8 +1816,7 @@ setInterval(function() {
   function pfFindCurrencyFromBand(code){
     try {
       var txt = document.getElementById('dovizBant').textContent || '';
-      // Match like USD 44.24 / 45.10 ₺ or USD 44,24 / 45,10 ₺
-      var re = new RegExp(code + '\\s+([\\d.,]+)\\s*\\/\\s*([\\d.,]+)', 'i');
+      var re = new RegExp(code + '\s+([\d.,]+)\s*\/\s*([\d.,]+)', 'i');
       var m = txt.match(re);
       if (m) {
         var buy = pfParseMoney(m[1]);
@@ -1804,38 +1826,20 @@ setInterval(function() {
     return 0;
   }
   function pfFindPriceByType(type){
-    var aliases = {
-      gram_altin:['gram'],
-      has_altin:['has'],
-      '22ayar':['22 ayar','22ayar','22'],
-      '24ayar':['24 ayar','24ayar','24'],
-      ceyrek:['çeyrek','ceyrek'],
-      yarim:['yarım','yarim'],
-      tam:['tam'],
-      gremise:['gremise'],
-      resat:['reşat','resat'],
-      ata:['ata'],
-      hurda_altin:['hurda']
-    };
-    if (type === 'usd') {
-      var usd = pfFindCurrencyFromBand('USD');
-      return usd || 0;
-    }
-    if (type === 'eur') {
-      var eur = pfFindCurrencyFromBand('EUR');
-      return eur || 0;
-    }
-    var keys = aliases[type] || [];
-    var items = getActiveItems();
-    for (var i=0;i<items.length;i++) {
-      var lbl = String(items[i].label || '').toLowerCase();
-      for (var j=0;j<keys.length;j++) {
-        if (lbl.indexOf(keys[j]) !== -1) {
-          var lab = getLabor(items[i]);
-          var v = hasAlis ? Math.round(hasAlis * lab.a) : (hasSatis ? Math.round(hasSatis * lab.s) : 0);
-          if (v) return Number(v);
+    if (type === 'usd') return pfFindCurrencyFromBand('USD') || 0;
+    if (type === 'eur') return pfFindCurrencyFromBand('EUR') || 0;
+    if (String(type).indexOf('item:') === 0) {
+      var wantedId = String(type).slice(5);
+      try {
+        var items = getActiveItems();
+        for (var i=0;i<items.length;i++) {
+          if (String(items[i].id) === wantedId) {
+            var lab = getLabor(items[i]);
+            var v = hasAlis ? Math.round(hasAlis * lab.a) : (hasSatis ? Math.round(hasSatis * lab.s) : 0);
+            if (v) return Number(v);
+          }
         }
-      }
+      } catch(e){}
     }
     return 0;
   }
@@ -1849,6 +1853,7 @@ setInterval(function() {
     return {unit:unit, current:current, diff:diff, pct:pct};
   }
   window.renderPortfolio = function(){
+    fillPortfolioTypeSelect();
     var listEl = document.getElementById('pfList');
     if (!listEl) return;
     var items = getPortfolioStorage();
@@ -1909,7 +1914,7 @@ setInterval(function() {
   };
   function clearPortfolioForm(){
     portfolioEditId = null;
-    document.getElementById('pfType').value = 'gram_altin';
+    fillPortfolioTypeSelect(); document.getElementById('pfType').selectedIndex = 0;
     document.getElementById('pfQty').value = '';
     document.getElementById('pfCost').value = '';
     document.getElementById('pfNote').value = '';
@@ -1952,6 +1957,7 @@ setInterval(function() {
   }
 
   document.addEventListener('DOMContentLoaded', function(){
+    fillPortfolioTypeSelect();
     var navPf = document.getElementById('btnPortfolioTop');
     if (navPf) navPf.onclick = showPortfolioMode;
     var firstBtn = document.getElementById('btnPricesTop');
