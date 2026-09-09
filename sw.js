@@ -1,7 +1,4 @@
-self.addEventListener('install', (event) => {
-  self.skipWaiting();
-});
-
+self.addEventListener('install', (event) => { self.skipWaiting(); });
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
@@ -9,12 +6,11 @@ self.addEventListener('activate', (event) => {
     await self.clients.claim();
   })());
 });
-
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
   event.respondWith((async () => {
-    try {
-      return await fetch(event.request, { cache: 'no-store' });
-    } catch (error) {
+    try { return await fetch(event.request, { cache: 'no-store' }); }
+    catch (error) {
       const cached = await caches.match(event.request);
       if (cached) return cached;
       throw error;

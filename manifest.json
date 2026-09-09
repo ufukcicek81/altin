@@ -1,14 +1,14 @@
 {
-  "name": "Asil Kuyumcum",
-  "short_name": "Asil Kuyumcum",
+  "name": "Asil Kuyumculuk",
+  "short_name": "Asil",
   "description": "Canlı altın ve döviz fiyatları",
-  "id": "/altin/",
-  "start_url": "/altin/",
-  "scope": "/altin/",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#1a1a1a",
-  "theme_color": "#b8960c",
+  "background_color": "#0f1112",
+  "theme_color": "#b99a55",
   "icons": [
     {
       "src": "icon-192.png",
