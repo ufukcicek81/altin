@@ -1,14 +1,10 @@
-# Asil Kuyumculuk Premium Stabil
+ASİL KUYUMCULUK PREMIUM STABİL v3
 
-Bu paket mevcut Asil Kuyumculuk Firebase ve Worker bağlantılarını korur.
+- Onaylanan kompakt premium tasarım uygulandı.
+- Logo kutusuz ve çizgisiz, arayüzle bütünleşik kullanılır.
+- Açık/koyu tema kalıcılığı korunur.
+- Firebase canlı senkron ve 2 saniyelik yedek senkron korunur.
+- Asil Firebase/Worker/ürün/işçilik/sıralama verileri değiştirilmedi.
+- Müşteri ve TV ekranları admin güncellemelerini sayfa yenilemeden alır.
 
-Eklenenler:
-- Eğilmez v5.3 premium açık/koyu tema
-- Tema tercihi cihazda kalıcıdır; Firebase tarafından ezilmez
-- Firebase REST SSE canlı senkronu
-- SSE bağlantısı kesilirse 2 saniyelik REST polling yedeği
-- Admin değişiklikleri müşteri ve TV ekranına sayfa yenilemeden yansır
-- Eski Asil `gp10` localStorage ve appId içermeyen mevcut Firebase verileriyle geriye uyumludur
-
-Firebase: Asil mevcut veritabanı korunmuştur.
-Worker: mevcut altin-proxy korunmuştur.
+GitHub reposunda dosyaları aynı isimlerle değiştirin.
