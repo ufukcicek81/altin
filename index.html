@@ -1920,13 +1920,13 @@ body.light .logo{
 
   /* Altın fiyatlarında Alış / Satış daha net ayrışsın */
   body.admin-route .price-row .alis{
-    color:#63d29b!important;
+    color:#ff7f7a!important;
     font-weight:900!important;
     font-size:14px!important;
     letter-spacing:.1px!important;
   }
   body.admin-route .price-row .satis{
-    color:#ff7f7a!important;
+    color:#63d29b!important;
     font-weight:900!important;
     font-size:14px!important;
     letter-spacing:.1px!important;
@@ -1938,11 +1938,11 @@ body.light .logo{
   }
 
   body.admin-route .table-header span:nth-child(2){
-    color:#63d29b!important;
+    color:#ff7f7a!important;
     font-weight:900!important;
   }
   body.admin-route .table-header span:nth-child(3){
-    color:#ff7f7a!important;
+    color:#63d29b!important;
     font-weight:900!important;
   }
   body.admin-route .table-header span:nth-child(4){
@@ -1960,24 +1960,53 @@ body.light .logo{
 
   /* Açık modda daha koyu/kontrast renkler */
   body.admin-route.light-mode .price-row .alis{
-    color:#137a55!important;
+    color:#b33f3f!important;
   }
   body.admin-route.light-mode .price-row .satis{
-    color:#b33f3f!important;
+    color:#137a55!important;
   }
   body.admin-route.light-mode .price-row .kk{
     color:#2d6f9f!important;
   }
   body.admin-route.light-mode .table-header span:nth-child(2){
-    color:#137a55!important;
+    color:#b33f3f!important;
   }
   body.admin-route.light-mode .table-header span:nth-child(3){
-    color:#b33f3f!important;
+    color:#137a55!important;
   }
   body.admin-route.light-mode .table-header span:nth-child(4){
     color:#2d6f9f!important;
   }
 }
+</style>
+
+
+<style id="asil-v45-customer-colors">
+/* Müşteri ekranı: Alış yeşil, Satış kırmızı, K.Kartı mavi */
+body:not(.admin-route) .price-row .alis{
+  color:#ff7f7a!important;font-weight:900!important;
+}
+body:not(.admin-route) .price-row .satis{
+  color:#63d29b!important;font-weight:900!important;
+}
+body:not(.admin-route) .price-row .kk{
+  color:#68b8f2!important;font-weight:900!important;
+}
+body:not(.admin-route) .table-header span:nth-child(2){
+  color:#ff7f7a!important;font-weight:900!important;
+}
+body:not(.admin-route) .table-header span:nth-child(3){
+  color:#63d29b!important;font-weight:900!important;
+}
+body:not(.admin-route) .table-header span:nth-child(4){
+  color:#68b8f2!important;font-weight:900!important;
+}
+body:not(.admin-route).light-mode .price-row .alis,
+body:not(.admin-route).light-mode .table-header span:nth-child(2){color:#b33f3f!important}
+body:not(.admin-route).light-mode .price-row .satis,
+body:not(.admin-route).light-mode .table-header span:nth-child(3){color:#137a55!important}
+body:not(.admin-route).light-mode .price-row .kk,
+body:not(.admin-route).light-mode .table-header span:nth-child(4){color:#2d6f9f!important}
 </style>
 
 </head>
