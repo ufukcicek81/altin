@@ -8,3 +8,6 @@ ASİL KUYUMCULUK PREMIUM STABİL v3
 - Müşteri ve TV ekranları admin güncellemelerini sayfa yenilemeden alır.
 
 GitHub reposunda dosyaları aynı isimlerle değiştirin.
+
+
+ASİL v3.4 TV düzeltmesi: TV modu müşteri fiyat ekranı ile aynı veri içeriğini gösterir; döviz/hurda detayları kesin olarak gizlenmiştir. Fiyat tablosu 16:9 TV ekranına tek sayfada sığacak biçimde yatay genişletilmiştir.
