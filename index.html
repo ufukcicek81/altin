@@ -1020,6 +1020,25 @@ body.light-mode .price-row,body.light-mode .price-row:nth-child(even){background
     min-height:0!important;
     width:100%!important;
   }
+
+  body.tv-mode .tv-col-header{
+    display:grid!important;
+    grid-template-columns:1.45fr .95fr .95fr 1.05fr!important;
+    align-items:center!important;
+    padding:0 20px!important;
+    background:#1b2329!important;
+    border-bottom:1px solid #3a454c!important;
+    border-right:1px solid #2d353a!important;
+    box-sizing:border-box!important;
+    color:#c7d1d8!important;
+    font-size:16px!important;
+    font-weight:700!important;
+    letter-spacing:.15px!important;
+  }
+  body.tv-mode .tv-col-header:nth-child(2){border-right:0!important;}
+  body.tv-mode .tv-col-header span:nth-child(n+2){text-align:center!important;}
+  body.tv-mode .tv-col-header .tv-kk{color:#63b7ff!important;}
+
   body.tv-mode .price-row{
     flex:1 1 0!important;
     min-height:0!important;
@@ -1169,6 +1188,7 @@ body.light-mode .price-row,body.light-mode .price-row:nth-child(even){background
   body.tv-mode #priceRows{
     display:grid!important;
     grid-template-columns:1fr 1fr!important;
+    grid-template-rows:44px!important;
     grid-auto-flow:row!important;
     grid-auto-rows:minmax(0,1fr)!important;
     gap:0!important;
@@ -1226,6 +1246,8 @@ body.light-mode .price-row,body.light-mode .price-row:nth-child(even){background
   body.tv-mode .status-value{font-size:24px!important;}
   body.tv-mode .desktop-layout{width:97vw!important;height:calc(100vh - 132px)!important;}
   body.tv-mode .desktop-main:before{padding:6px 16px!important;font-size:18px!important;}
+  body.tv-mode #priceRows{grid-template-rows:32px!important;}
+  body.tv-mode .tv-col-header{padding:0 14px!important;font-size:12px!important;}
   body.tv-mode .price-row{padding:3px 14px!important;}
   body.tv-mode .price-row .birim{font-size:17px!important;}
   body.tv-mode .price-row .alis,
@@ -3071,6 +3093,34 @@ setInterval(function() {
     }catch(e){}
   }
   setInterval(refreshPremiumStatus,1000);setTimeout(refreshPremiumStatus,300);
+})();
+</script>
+
+
+<script>
+/* TV kolon başlıkları: iki kolonun üstünde Birim / Alış / Satış / K. Kartı */
+(function(){
+  function makeHeader(id){
+    var h=document.createElement('div');
+    h.className='tv-col-header'; h.id=id;
+    h.innerHTML='<span>Birim</span><span>Alış</span><span>Satış</span><span class="tv-kk">K. Kartı</span>';
+    return h;
+  }
+  function ensureTVHeaders(){
+    if(!document.body || !document.body.classList.contains('tv-mode')) return;
+    var c=document.getElementById('priceRows');
+    if(!c) return;
+    var h1=document.getElementById('tvColHeader1');
+    var h2=document.getElementById('tvColHeader2');
+    if(!h1){ h1=makeHeader('tvColHeader1'); c.insertBefore(h1,c.firstChild); }
+    if(!h2){ h2=makeHeader('tvColHeader2'); c.insertBefore(h2,h1.nextSibling); }
+  }
+  window.addEventListener('load',function(){ ensureTVHeaders(); setTimeout(ensureTVHeaders,250); setTimeout(ensureTVHeaders,1200); });
+  var mo=new MutationObserver(function(){ ensureTVHeaders(); });
+  document.addEventListener('DOMContentLoaded',function(){
+    var c=document.getElementById('priceRows'); if(c) mo.observe(c,{childList:true});
+    ensureTVHeaders();
+  });
 })();
 </script>
 
