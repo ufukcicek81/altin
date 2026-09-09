@@ -29,6 +29,75 @@ iframe{
 #adminSplash b{font-size:13px;letter-spacing:2.4px}#adminSplash small{display:block;margin-top:7px;color:#9c8a63;font-size:11px;letter-spacing:1px}
 </style>
 
+
+<style id="asil-v43-pc-readability">
+/* PC ADMIN — daha sıkı sağ panel ve daha okunaklı altın alış/satış */
+@media (min-width: 900px) {
+  /* Sağ panelde gereksiz dikey boşluğu azalt */
+  .sidePanel, .side-panel, .rightPanel, .right-panel, .marketSide, .market-side {
+    gap: 4px !important;
+  }
+  .sidePanel table tr, .side-panel table tr,
+  .rightPanel table tr, .right-panel table tr,
+  .marketSide table tr, .market-side table tr {
+    height: auto !important;
+  }
+  .sidePanel td, .sidePanel th, .side-panel td, .side-panel th,
+  .rightPanel td, .rightPanel th, .right-panel td, .right-panel th,
+  .marketSide td, .marketSide th, .market-side td, .market-side th {
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+    line-height: 1.12 !important;
+  }
+
+  /* Mevcut yapıda sağdaki kart/tablolara da uygula */
+  #fxBox tr, #fxBox td, #fxBox th,
+  #currencyBox tr, #currencyBox td, #currencyBox th,
+  #hurdaBox tr, #hurdaBox td, #hurdaBox th,
+  #scrapBox tr, #scrapBox td, #scrapBox th {
+    height: auto !important;
+  }
+  #fxBox td, #fxBox th, #currencyBox td, #currencyBox th,
+  #hurdaBox td, #hurdaBox th, #scrapBox td, #scrapBox th {
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+    line-height: 1.12 !important;
+  }
+
+  /* Altın tablosunda alış ve satış değerlerini görsel olarak ayır */
+  #priceTable tbody td:nth-child(2),
+  #goldTable tbody td:nth-child(2),
+  .gold-table tbody td:nth-child(2),
+  table.prices tbody td:nth-child(2) {
+    color: #16835f !important;
+    font-weight: 800 !important;
+    text-shadow: 0 0 .01px currentColor;
+  }
+  #priceTable tbody td:nth-child(3),
+  #goldTable tbody td:nth-child(3),
+  .gold-table tbody td:nth-child(3),
+  table.prices tbody td:nth-child(3) {
+    color: #b34d4d !important;
+    font-weight: 800 !important;
+    text-shadow: 0 0 .01px currentColor;
+  }
+  #priceTable thead th:nth-child(2),
+  #goldTable thead th:nth-child(2),
+  .gold-table thead th:nth-child(2),
+  table.prices thead th:nth-child(2) {
+    color: #16835f !important;
+    font-weight: 800 !important;
+  }
+  #priceTable thead th:nth-child(3),
+  #goldTable thead th:nth-child(3),
+  .gold-table thead th:nth-child(3),
+  table.prices thead th:nth-child(3) {
+    color: #b34d4d !important;
+    font-weight: 800 !important;
+  }
+}
+</style>
+
 </head>
 
 <body>
