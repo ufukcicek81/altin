@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Asil Kuyumculuk Yönetim</title>
+<title>Asil Admin</title>
 
-<link rel="manifest" href="manifest-admin.json">
-<meta name="theme-color" content="#151718">
+<link rel="manifest" href="manifest-admin.json?v=42">
+<meta name="theme-color" content="#0e1214">
+<link rel="apple-touch-icon" href="icon-192.png?v=42">
 
 <style>
 html,body{
@@ -20,15 +21,24 @@ iframe{
   height:100%;
   border:none;
 }
+
+#adminSplash{position:fixed;inset:0;z-index:10;background:radial-gradient(circle at 50% 35%,#1d211f,#0e1214 58%,#090c0e);display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#adminSplash.hide{opacity:0;pointer-events:none}
+#adminSplash .inner{text-align:center;color:#d3b66d;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+#adminSplash img{width:min(270px,62vw);display:block;margin:0 auto 18px;filter:drop-shadow(0 12px 34px rgba(0,0,0,.2))}
+#adminSplash b{font-size:13px;letter-spacing:2.4px}#adminSplash small{display:block;margin-top:7px;color:#9c8a63;font-size:11px;letter-spacing:1px}
 </style>
 
 </head>
 
 <body>
+<div id="adminSplash"><div class="inner"><img src="asil-logo-integrated.png" alt=""><b>ASİL ADMIN</b><small>Yönetim paneli hazırlanıyor</small></div></div>
 
-<iframe src="./?admin=1"></iframe>
+<iframe id="adminFrame" src="./?admin=1&v=42"></iframe>
 
 <script>
+var af=document.getElementById('adminFrame'); if(af){ af.addEventListener('load',function(){var s=document.getElementById('adminSplash');if(s){s.classList.add('hide');setTimeout(function(){s.remove()},340)}});}
+setTimeout(function(){var s=document.getElementById('adminSplash');if(s){s.classList.add('hide');setTimeout(function(){s.remove()},340)}},2200);
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
 }
