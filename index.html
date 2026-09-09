@@ -1257,6 +1257,25 @@ body.light-mode .price-row,body.light-mode .price-row:nth-child(even){background
   body.tv-mode .price-row small{font-size:9px!important;margin-top:1px!important;}
 }
 </style>
+
+<style id="tv-theme-v37">
+/* v3.7 — TV'de profesyonel açık/karanlık mod anahtarı */
+body.tv-mode .header-tools{display:flex!important;position:absolute!important;right:2.2vw!important;top:14px!important;z-index:999!important;}
+body.tv-mode .header-tools .contact-pill{display:none!important;}
+body.tv-mode .header-tools .theme-btn{display:flex!important;opacity:1!important;width:86px!important;height:44px!important;}
+body.tv-mode.light-mode{background:linear-gradient(180deg,#f2ede4 0%,#e9e1d5 100%)!important;color:#302922!important;}
+body.tv-mode.light-mode .header{background:transparent!important;}
+body.tv-mode.light-mode .market-status{background:#f4eee5!important;border-color:#b99a5c!important;}
+body.tv-mode.light-mode .desktop-main{background:#f4eee5!important;border-color:#cdbb9f!important;}
+body.tv-mode.light-mode .tv-col-header{background:#ded3c2!important;border-color:#c9baa5!important;}
+body.tv-mode.light-mode .tv-col-header span{color:#62564a!important;}
+body.tv-mode.light-mode .tv-col-header .tv-kk{color:#2f6f9e!important;}
+body.tv-mode.light-mode #priceRows .price-row{background:#f2ece2!important;border-color:#d8ccbb!important;}
+body.tv-mode.light-mode #priceRows .price-row:nth-child(even){background:#e9e1d5!important;}
+body.tv-mode.light-mode #priceRows .price-row .birim,body.tv-mode.light-mode #priceRows .price-row .alis,body.tv-mode.light-mode #priceRows .price-row .satis{color:#2d2823!important;}
+body.tv-mode.light-mode #priceRows .price-row .kk{color:#2f6f9e!important;}
+@media(max-width:900px){body.tv-mode .header-tools{right:12px!important;top:10px!important;}body.tv-mode .header-tools .theme-btn{width:76px!important;height:40px!important;}}
+</style>
 </head>
 <body>
 <script>if (window.location.search.indexOf('admin') !== -1 && window.location.search.indexOf('tv=1') === -1) document.body.classList.add('admin-route');</script>
