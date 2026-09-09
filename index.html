@@ -1839,6 +1839,147 @@ body.light .logo{
 }
 </style>
 
+
+<style id="asil-v44-pc-compact-colors">
+@media (min-width:901px){
+  /* Sağ paneli gereksiz geniş/seyrek olmaktan çıkar */
+  body.admin-route .desktop-layout{
+    grid-template-columns:minmax(0,1fr) 240px!important;
+    gap:7px!important;
+  }
+
+  body.admin-route #desktopSide{
+    width:240px!important;
+    max-width:240px!important;
+    height:100%!important;
+    min-height:0!important;
+    overflow:hidden!important;
+    display:grid!important;
+    grid-template-rows:
+      26px 20px auto
+      26px 20px auto!important;
+    align-content:start!important;
+  }
+
+  body.admin-route #desktopSide .desktop-extra-title{
+    height:26px!important;
+    min-height:26px!important;
+    padding:0 8px!important;
+    margin:0!important;
+    display:flex!important;
+    align-items:center!important;
+  }
+  body.admin-route #desktopSide .desktop-extra-title span{
+    font-size:10px!important;
+    line-height:1!important;
+  }
+
+  body.admin-route #desktopSide .desktop-extra-columns{
+    height:20px!important;
+    min-height:20px!important;
+    padding:0 8px!important;
+    margin:0!important;
+    align-items:center!important;
+  }
+  body.admin-route #desktopSide .desktop-extra-columns span{
+    font-size:8px!important;
+    line-height:1!important;
+  }
+
+  body.admin-route #desktopDovizRows,
+  body.admin-route #desktopHurdaRows{
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:hidden!important;
+    display:grid!important;
+    grid-auto-rows:30px!important;
+    align-content:start!important;
+  }
+
+  body.admin-route #desktopDovizRows > *,
+  body.admin-route #desktopHurdaRows > *{
+    height:30px!important;
+    min-height:30px!important;
+    max-height:30px!important;
+    margin:0!important;
+    padding:0 8px!important;
+    overflow:hidden!important;
+    align-items:center!important;
+    box-sizing:border-box!important;
+  }
+
+  body.admin-route #desktopSide .desktop-extra-name,
+  body.admin-route #desktopSide .extra-name,
+  body.admin-route #desktopSide .desktop-extra-value,
+  body.admin-route #desktopSide .extra-buy,
+  body.admin-route #desktopSide .extra-sell{
+    font-size:10.5px!important;
+    line-height:1!important;
+  }
+
+  /* Altın fiyatlarında Alış / Satış daha net ayrışsın */
+  body.admin-route .price-row .alis{
+    color:#63d29b!important;
+    font-weight:900!important;
+    font-size:14px!important;
+    letter-spacing:.1px!important;
+  }
+  body.admin-route .price-row .satis{
+    color:#ff7f7a!important;
+    font-weight:900!important;
+    font-size:14px!important;
+    letter-spacing:.1px!important;
+  }
+  body.admin-route .price-row .kk{
+    color:#68b8f2!important;
+    font-weight:900!important;
+    font-size:14px!important;
+  }
+
+  body.admin-route .table-header span:nth-child(2){
+    color:#63d29b!important;
+    font-weight:900!important;
+  }
+  body.admin-route .table-header span:nth-child(3){
+    color:#ff7f7a!important;
+    font-weight:900!important;
+  }
+  body.admin-route .table-header span:nth-child(4){
+    color:#68b8f2!important;
+    font-weight:900!important;
+  }
+
+  /* Yüzde değerleri ana rakamı boğmasın */
+  body.admin-route .price-row .alis .change-rate,
+  body.admin-route .price-row .satis .change-rate{
+    font-size:7px!important;
+    font-weight:800!important;
+    opacity:.95!important;
+  }
+
+  /* Açık modda daha koyu/kontrast renkler */
+  body.admin-route.light-mode .price-row .alis{
+    color:#137a55!important;
+  }
+  body.admin-route.light-mode .price-row .satis{
+    color:#b33f3f!important;
+  }
+  body.admin-route.light-mode .price-row .kk{
+    color:#2d6f9f!important;
+  }
+  body.admin-route.light-mode .table-header span:nth-child(2){
+    color:#137a55!important;
+  }
+  body.admin-route.light-mode .table-header span:nth-child(3){
+    color:#b33f3f!important;
+  }
+  body.admin-route.light-mode .table-header span:nth-child(4){
+    color:#2d6f9f!important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div id="premiumSplash" aria-hidden="true">
