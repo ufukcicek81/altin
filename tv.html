@@ -3,183 +3,416 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0d1114">
+<meta name="theme-color" content="#ffffff">
 <title>Asil Kuyumculuk TV</title>
 <style>
 :root{
-  --bg:#0d1114;--panel:#12181b;--panel2:#171e22;--line:#30383d;
-  --text:#f0e8dc;--muted:#a7afb4;--gold:#d3ad4e;--blue:#65b5ef;
-  --green:#42d982;--red:#ff6b68;
-  --row-name:18px;--row-value:21px;--row-change:9px;--row-pad:5px;
+  --bg:#ffffff;
+  --card:#ffffff;
+  --soft:#f4f7f9;
+  --line:#d7e0e7;
+  --text:#172235;
+  --muted:#687989;
+  --red:#d92c2c;
+  --green:#16824f;
+  --blue:#2f77b7;
+  --goldRows:10;
 }
 *{box-sizing:border-box}
 html,body{width:100%;height:100%;margin:0;overflow:hidden}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
-  background:radial-gradient(circle at 50% -20%,rgba(212,175,55,.10),transparent 40%),var(--bg);
-  color:var(--text);
+  background:var(--bg); color:var(--text);
 }
-body.light{
-  --bg:#eee8dd;--panel:#f5efe5;--panel2:#e3d8c8;--line:#cbbda8;
-  --text:#302923;--muted:#6e6257;--gold:#9b742f;--blue:#2f719f;
-  background:linear-gradient(180deg,#f3eee5,#e9e0d3);
+body.dark{
+  --bg:#0d141b;--card:#111a22;--soft:#18232d;--line:#2b3b48;
+  --text:#edf5fb;--muted:#9fb0be;--red:#ff6b67;--green:#55d486;--blue:#69b8ff;
 }
-.app{height:100vh;width:100vw;padding:10px 16px 12px;display:flex;flex-direction:column;gap:8px}
-.topbar{
-  height:70px;min-height:70px;position:relative;
-  display:flex;align-items:center;justify-content:center
+
+.app{
+  width:100vw;height:100vh;height:100dvh;max-height:100dvh;overflow:hidden;
+  display:grid;
+  grid-template-rows:46px 54px minmax(0,1fr);
+  gap:4px;padding:4px 6px 5px;
 }
-.logo{height:66px;max-width:260px;object-fit:contain;display:block}
+.top{position:relative;display:flex;align-items:center;justify-content:center;min-height:0}
+.logo{height:44px;max-width:230px;object-fit:contain}
+body:not(.dark) .logo{
+  filter:brightness(0) saturate(100%) sepia(18%) saturate(520%)
+         hue-rotate(338deg) brightness(43%) contrast(95%);
+}
 .theme{
-  position:absolute;right:4px;top:12px;width:88px;height:44px;border-radius:24px;
-  border:1px solid rgba(211,173,78,.55);background:#1a2024;color:#f2d270;
-  display:grid;grid-template-columns:1fr 1fr;align-items:center;font-size:20px;cursor:pointer
+  position:absolute;right:5px;top:5px;width:68px;height:32px;
+  border:1px solid var(--line);border-radius:20px;background:var(--card);
+  color:var(--text);font-size:16px;cursor:pointer;
 }
-body.light .theme{background:#e8dfd2;color:#856122;border-color:#c3ab80}
-.theme span{text-align:center;opacity:.55}
-.theme .active{opacity:1;font-weight:900}
+
 .status{
-  height:78px;min-height:78px;border:1px solid rgba(211,173,78,.42);border-radius:18px;
-  background:rgba(18,24,27,.92);display:grid;grid-template-columns:1.15fr .72fr .72fr;overflow:hidden
+  display:grid;grid-template-columns:1.25fr .72fr .72fr;
+  min-height:0;border:1px solid var(--line);border-radius:14px;
+  overflow:hidden;background:var(--card);
 }
-body.light .status{background:rgba(247,241,232,.96);border-color:#cbb896}
-.status>div{padding:10px 18px;display:flex;flex-direction:column;justify-content:center}
+.status>div{
+  min-width:0;padding:5px 12px;display:flex;flex-direction:column;justify-content:center;
+}
 .status>div+div{border-left:1px solid var(--line)}
-.live-title{font-size:20px;font-weight:900;display:flex;gap:8px;align-items:center}
-.dot{width:14px;height:14px;border-radius:50%;background:#19df79;box-shadow:0 0 15px rgba(25,223,121,.8)}
-.sub{font-size:12px;color:var(--muted);margin-top:7px}
-.label{font-size:13px;color:var(--muted)}
-.big{font-size:30px;font-weight:900;margin-top:3px}
-.panel{
-  flex:1;min-height:0;border:1px solid rgba(211,173,78,.42);border-radius:18px;
-  background:var(--panel);overflow:hidden;display:flex;flex-direction:column
+.live{font-size:16px;font-weight:900;white-space:nowrap}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;background:#15c875;margin-right:6px}
+.sub,.lab{font-size:10px;color:var(--muted)}
+.val{font-size:25px;line-height:1;font-weight:950}
+#hasA{color:var(--red)} #hasS{color:var(--green)}
+
+.dashboard{
+  min-height:0;overflow:hidden;
+  display:grid;grid-template-columns:minmax(0,68fr) minmax(300px,32fr);gap:8px;
 }
-.panel-title{
-  height:38px;min-height:38px;padding:0 16px;display:flex;align-items:center;
-  font-size:18px;font-weight:900;color:#ead69a;border-bottom:1px solid var(--line);background:var(--panel2)
+.dashboard.only-gold{grid-template-columns:1fr}
+.dashboard.only-gold #sidePanel{display:none}
+
+.card{
+  min-width:0;min-height:0;overflow:hidden;background:var(--card);
+  border:1px solid var(--line);border-radius:14px;
 }
-body.light .panel-title{color:#5c492c}
+
+.gold{
+  display:grid;
+  grid-template-rows:32px 24px minmax(0,1fr);
+}
+.title{
+  display:flex;align-items:center;padding:0 12px;
+  border-bottom:1px solid var(--line);font-size:15px;font-weight:950;
+}
 .head,.row{
-  display:grid;grid-template-columns:1.35fr .85fr .85fr .85fr;align-items:center
+  display:grid;grid-template-columns:1.45fr 1fr 1fr 1fr;align-items:center;
 }
 .head{
-  height:34px;min-height:34px;padding:0 16px;background:var(--panel2);
-  color:var(--muted);font-size:13px;font-weight:800;border-bottom:1px solid var(--line)
+  min-height:0;padding:0 10px;background:var(--soft);
+  border-bottom:1px solid var(--line);font-size:10px;font-weight:900;color:var(--muted);
 }
-.head span:not(:first-child),.row .val{text-align:right}
-.head span:last-child{color:var(--blue)}
-.rows{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.head span:not(:first-child),.num{text-align:right}
+.head span:nth-child(2){color:var(--red)}
+.head span:nth-child(3){color:var(--green)}
+.head span:nth-child(4){color:var(--blue)}
+
+.rows{
+  min-height:0;overflow:hidden;display:grid;
+  grid-template-rows:repeat(var(--goldRows),minmax(0,1fr));
+}
 .row{
-  flex:1 1 0;min-height:0;padding:var(--row-pad) 16px;border-bottom:1px solid var(--line);
+  min-height:0;overflow:hidden;padding:1px 10px;border-bottom:1px solid var(--line);
 }
-.row:nth-child(even){background:rgba(255,255,255,.018)}
-body.light .row:nth-child(even){background:rgba(90,60,20,.025)}
-.name{font-size:var(--row-name);font-weight:850;line-height:1.04}
-.val{font-size:var(--row-value);font-weight:900;line-height:1;white-space:nowrap}
-.val.kk{color:var(--blue)}
-.chg{display:block;font-size:var(--row-change);line-height:1;margin-top:2px;font-weight:800}
-.up{color:var(--green)}.down{color:var(--red)}.same{color:var(--muted)}
-.empty{display:flex;align-items:center;justify-content:center;height:100%;font-size:18px;color:var(--muted)}
-@media(max-height:760px){
-  .app{padding:6px 10px 7px;gap:5px}
-  .topbar{height:54px;min-height:54px}.logo{height:52px}
-  .theme{top:6px;width:78px;height:38px;font-size:17px}
-  .status{height:58px;min-height:58px;border-radius:14px}
-  .status>div{padding:5px 12px}.live-title{font-size:16px}.sub{font-size:10px;margin-top:3px}
-  .label{font-size:11px}.big{font-size:23px}
-  .panel-title{height:30px;min-height:30px;font-size:15px}
-  .head{height:28px;min-height:28px;padding:0 12px;font-size:11px}
-  .row{padding:var(--row-pad) 12px}
+.row:nth-child(even){background:rgba(110,135,155,.045)}
+.name{
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:clamp(12px,1.18vw,17px);font-weight:900;line-height:1;
+}
+.num{
+  font-size:clamp(14px,1.38vw,20px);font-weight:950;line-height:1;
+}
+.buy{color:var(--red)} .sell{color:var(--green)} .cc{color:var(--blue)}
+.chg{
+  display:block;margin-top:1px;font-size:clamp(6px,.58vw,9px);
+  line-height:1;font-weight:800;opacity:.9;
+}
+
+.side{
+  min-height:0;overflow:hidden;display:grid;
+  grid-template-rows:minmax(0,1.06fr) minmax(0,.94fr);gap:8px;
+}
+.side.one{
+  display:grid;grid-template-rows:minmax(0,1fr);gap:0;min-height:0;
+}
+.sidecard{
+  min-height:0;overflow:hidden;
+  display:grid;grid-template-rows:32px 22px minmax(0,1fr);
+}
+.side.one .sidecard{
+  height:100%;max-height:none;min-height:0;
+  grid-template-rows:32px 22px minmax(0,1fr);
+}
+.side-title{
+  display:flex;align-items:center;padding:0 10px;
+  border-bottom:1px solid var(--line);font-size:14px;font-weight:950;
+}
+.fx .side-title{color:var(--blue)}
+.side-head,.side-row{
+  display:grid;grid-template-columns:1.25fr .75fr .75fr;align-items:center;
+}
+.side-head{
+  padding:0 9px;background:var(--soft);border-bottom:1px solid var(--line);
+  font-size:9px;font-weight:900;color:var(--muted);
+}
+.side-head span:nth-child(2){color:var(--red)}
+.side-head span:nth-child(3){color:var(--green)}
+.side-head span:not(:first-child),.side-row span:not(:first-child){text-align:right}
+
+.side-rows{
+  min-height:0;overflow:hidden;display:grid;grid-auto-rows:minmax(0,1fr);
+}
+.side.one .side-rows{
+  display:grid;grid-auto-rows:minmax(0,1fr);overflow:hidden;min-height:0;
+}
+.side-row{
+  min-height:0;overflow:hidden;padding:1px 9px;border-bottom:1px solid var(--line);
+}
+.side.one .side-row{
+  height:auto;min-height:0;
+}
+.side-row:nth-child(even){background:rgba(110,135,155,.04)}
+.side-name{
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:clamp(11px,1vw,15px);font-weight:900;line-height:1;
+}
+.side-num{
+  font-size:clamp(12px,1.1vw,17px);font-weight:950;line-height:1;
+}
+
+@keyframes flashUp{0%{background:rgba(22,130,79,.24)}100%{background:transparent}}
+@keyframes flashDown{0%{background:rgba(217,44,44,.22)}100%{background:transparent}}
+.flash-up{animation:flashUp .55s ease-out}
+.flash-down{animation:flashDown .55s ease-out}
+
+@media(max-height:700px){
+  .app{grid-template-rows:42px 48px minmax(0,1fr);gap:3px;padding:3px 5px 4px}
+  .logo{height:40px}
+  .theme{top:4px;height:30px}
+  .status>div{padding:2px 7px}
+  .live{font-size:13px}.sub,.lab{font-size:8px}.val{font-size:20px}
+  .gold{grid-template-rows:29px 21px minmax(0,1fr)}
+  .title{font-size:13px}.head{font-size:8.5px}
+  .sidecard,.side.one .sidecard{grid-template-rows:29px 20px minmax(0,1fr)}
+  .side-title{font-size:12px}.side-head{font-size:8px}
+  .name{font-size:clamp(10.5px,1.05vw,15px)}
+  .num{font-size:clamp(12.5px,1.25vw,18px)}
+  .side-name{font-size:clamp(9.5px,.9vw,13px)}
+  .side-num{font-size:clamp(10.5px,1vw,15px)}
 }
 </style>
 
-<style id="egilmez-v71-tv-logo-flash">
-/* Açık modda logoyu koyulaştır; başka yerleşime dokunma */
-body.light .logo{
-  filter: brightness(0) saturate(100%) sepia(22%) saturate(760%)
-          hue-rotate(338deg) brightness(45%) contrast(96%)!important;
+<style id="egilmez-v92-tv-large-readable">
+/* TV - ilk referans görseldeki büyük ve okunaklı düzen */
+.app{
+  grid-template-rows:64px 74px minmax(0,1fr)!important;
+  gap:6px!important;
+  padding:6px 10px 8px!important;
+}
+.logo{
+  height:60px!important;
+  max-width:290px!important;
+}
+.theme{
+  right:8px!important;
+  top:10px!important;
+  width:82px!important;
+  height:40px!important;
+  font-size:18px!important;
 }
 
-/* Kısa süreli fiyat değişim efekti */
-@keyframes priceFlashUpV71{
-  0%{background:rgba(44,214,122,.30);box-shadow:0 0 16px rgba(44,214,122,.28)}
-  100%{background:transparent;box-shadow:none}
+.status{
+  border-radius:16px!important;
 }
-@keyframes priceFlashDownV71{
-  0%{background:rgba(255,92,88,.28);box-shadow:0 0 16px rgba(255,92,88,.24)}
-  100%{background:transparent;box-shadow:none}
+.status>div{
+  padding:7px 16px!important;
 }
-.flash-up-v71{animation:priceFlashUpV71 .65s ease-out!important;border-radius:6px}
-.flash-down-v71{animation:priceFlashDownV71 .65s ease-out!important;border-radius:6px}
+.live{
+  font-size:21px!important;
+}
+.sub,.lab{
+  font-size:12px!important;
+}
+.val{
+  font-size:31px!important;
+}
+
+.dashboard{
+  grid-template-columns:minmax(0,68fr) minmax(335px,32fr)!important;
+  gap:10px!important;
+}
+
+.gold{
+  grid-template-rows:44px 34px minmax(0,1fr)!important;
+}
+.title{
+  font-size:22px!important;
+  padding:0 18px!important;
+}
+.head{
+  padding:0 16px!important;
+  font-size:13px!important;
+}
+.row{
+  padding:2px 16px!important;
+}
+.name{
+  font-size:clamp(17px,1.35vw,24px)!important;
+  line-height:1.05!important;
+}
+.num{
+  font-size:clamp(21px,1.8vw,31px)!important;
+  line-height:1!important;
+}
+.chg{
+  margin-top:2px!important;
+  font-size:clamp(9px,.75vw,13px)!important;
+  line-height:1!important;
+}
+
+.side{
+  gap:10px!important;
+}
+.sidecard{
+  grid-template-rows:44px 32px minmax(0,1fr)!important;
+}
+.side.one .sidecard{
+  grid-template-rows:44px 32px minmax(0,1fr)!important;
+}
+.side-title{
+  font-size:20px!important;
+  padding:0 16px!important;
+}
+.side-head{
+  padding:0 14px!important;
+  font-size:12px!important;
+}
+.side-row{
+  padding:2px 14px!important;
+}
+.side-name{
+  font-size:clamp(15px,1.2vw,21px)!important;
+  line-height:1!important;
+}
+.side-num{
+  font-size:clamp(18px,1.45vw,25px)!important;
+  line-height:1!important;
+}
+
+/* 1366x768 ve benzeri TV/laptop ekranlarında da sığdır */
+@media (max-height:820px){
+  .app{
+    grid-template-rows:52px 62px minmax(0,1fr)!important;
+    gap:4px!important;
+    padding:4px 7px 5px!important;
+  }
+  .logo{height:48px!important}
+  .theme{top:6px!important;height:34px!important}
+  .status>div{padding:4px 11px!important}
+  .live{font-size:17px!important}
+  .sub,.lab{font-size:10px!important}
+  .val{font-size:25px!important}
+
+  .gold{grid-template-rows:36px 28px minmax(0,1fr)!important}
+  .title{font-size:18px!important;padding:0 14px!important}
+  .head{font-size:11px!important;padding:0 12px!important}
+  .row{padding:1px 12px!important}
+  .name{font-size:clamp(14px,1.15vw,19px)!important}
+  .num{font-size:clamp(17px,1.45vw,24px)!important}
+  .chg{font-size:clamp(7px,.6vw,10px)!important}
+
+  .sidecard,.side.one .sidecard{
+    grid-template-rows:36px 26px minmax(0,1fr)!important;
+  }
+  .side-title{font-size:16px!important;padding:0 12px!important}
+  .side-head{font-size:10px!important;padding:0 11px!important}
+  .side-row{padding:1px 11px!important}
+  .side-name{font-size:clamp(12px,1vw,16px)!important}
+  .side-num{font-size:clamp(14px,1.15vw,19px)!important}
+}
 </style>
 
 
-<style id="egilmez-v72-top-flash">
-.big.flash-up-v72{animation:priceFlashUpV71 .65s ease-out!important;border-radius:7px}
-.big.flash-down-v72{animation:priceFlashDownV71 .65s ease-out!important;border-radius:7px}
+<style id="egilmez-v94-tv-gold-only-fit">
+/* TV: Döviz + Hurda kapalıysa Altın paneli tüm kullanılabilir alanı doldurur */
+.dashboard.only-gold{
+  grid-template-columns:1fr!important;
+}
+.dashboard.only-gold #sidePanel{
+  display:none!important;
+}
+.dashboard.only-gold .gold{
+  width:100%!important;
+  max-width:none!important;
+  height:100%!important;
+}
+
+/* Gold-only modda biraz daha büyük ve okunaklı rakamlar */
+.dashboard.only-gold .name{
+  font-size:clamp(18px,1.55vw,28px)!important;
+}
+.dashboard.only-gold .num{
+  font-size:clamp(23px,2.05vw,36px)!important;
+}
+.dashboard.only-gold .chg{
+  font-size:clamp(9px,.8vw,14px)!important;
+}
+.dashboard.only-gold .title{
+  font-size:24px!important;
+}
+.dashboard.only-gold .head{
+  font-size:14px!important;
+}
+
+/* 1366x768 benzeri ekranlarda gold-only taşmasın */
+@media (max-height:820px){
+  .dashboard.only-gold .name{
+    font-size:clamp(15px,1.3vw,22px)!important;
+  }
+  .dashboard.only-gold .num{
+    font-size:clamp(18px,1.65vw,28px)!important;
+  }
+  .dashboard.only-gold .chg{
+    font-size:clamp(7px,.65vw,11px)!important;
+  }
+  .dashboard.only-gold .title{
+    font-size:20px!important;
+  }
+  .dashboard.only-gold .head{
+    font-size:12px!important;
+  }
+}
 </style>
 
 
-<style id="asil-v42-tv-logo-light">
-body.light .logo{
-  filter: brightness(0) saturate(100%) sepia(25%) saturate(650%)
-          hue-rotate(338deg) brightness(48%) contrast(96%)!important;
-}
-</style>
-
-
-<style id="asil-v45-tv-colors">
-/* TV: Alış yeşil, Satış kırmızı, K.Kartı mavi */
-.price-row .alis,.alis,.buy,.price-buy,[data-col="alis"],[data-type="buy"]{
-  color:#ff7f7a!important;font-weight:900!important;
-}
-.price-row .satis,.satis,.sell,.price-sell,[data-col="satis"],[data-type="sell"]{
-  color:#63d29b!important;font-weight:900!important;
-}
-.price-row .kk,.kk,.card-price,.price-card,[data-col="kk"],[data-type="card"]{
-  color:#68b8f2!important;font-weight:900!important;
-}
-.table-header span:nth-child(2),thead th:nth-child(2){
-  color:#ff7f7a!important;font-weight:900!important;
-}
-.table-header span:nth-child(3),thead th:nth-child(3){
-  color:#63d29b!important;font-weight:900!important;
-}
-.table-header span:nth-child(4),thead th:nth-child(4){
-  color:#68b8f2!important;font-weight:900!important;
-}
-body.light-mode .price-row .alis,body.light-mode .alis,body.light-mode .buy,
-body.light-mode .price-buy,body.light-mode [data-col="alis"],body.light-mode [data-type="buy"],
-body.light-mode .table-header span:nth-child(2),body.light-mode thead th:nth-child(2){color:#b33f3f!important}
-body.light-mode .price-row .satis,body.light-mode .satis,body.light-mode .sell,
-body.light-mode .price-sell,body.light-mode [data-col="satis"],body.light-mode [data-type="sell"],
-body.light-mode .table-header span:nth-child(3),body.light-mode thead th:nth-child(3){color:#137a55!important}
-body.light-mode .price-row .kk,body.light-mode .kk,body.light-mode .card-price,
-body.light-mode .price-card,body.light-mode [data-col="kk"],body.light-mode [data-type="card"],
-body.light-mode .table-header span:nth-child(4),body.light-mode thead th:nth-child(4){color:#2d6f9f!important}
+<style id="egilmez-v95-live-list-sync">
+#goldRows .row{transition:opacity .12s ease}
 </style>
 
 </head>
 <body>
 <div class="app">
-  <div class="topbar">
+  <div class="top">
     <img id="logo" class="logo" src="asil-logo-integrated.png" alt="Asil Kuyumculuk">
-    <button class="theme" id="themeBtn" title="Tema değiştir"><span id="sun">☀</span><span id="moon">☾</span></button>
+    <button id="theme" class="theme" type="button">☀ / ☾</button>
   </div>
 
   <div class="status">
     <div>
-      <div class="live-title"><span class="dot"></span>Piyasa Canlı</div>
+      <div class="live"><span class="dot"></span>Piyasa Canlı</div>
       <div class="sub">Son güncelleme: <span id="time">--:--:--</span></div>
     </div>
-    <div><div class="label">Has Alış</div><div class="big" id="hasA">—</div></div>
-    <div><div class="label">Has Satış</div><div class="big" id="hasS">—</div></div>
+    <div><div class="lab">Has Alış</div><div class="val" id="hasA">—</div></div>
+    <div><div class="lab">Has Satış</div><div class="val" id="hasS">—</div></div>
   </div>
 
-  <div class="panel">
-    <div class="panel-title">Altın Fiyatları</div>
-    <div class="head"><span>Birim</span><span>Alış</span><span>Satış</span><span>K. Kartı</span></div>
-    <div class="rows" id="rows"><div class="empty">Fiyatlar yükleniyor…</div></div>
+  <div class="dashboard" id="dashboard">
+    <div class="card gold">
+      <div class="title">🪙 Altın Fiyatları</div>
+      <div class="head"><span>Birim</span><span>Alış</span><span>Satış</span><span>K. Kartı</span></div>
+      <div class="rows" id="goldRows"></div>
+    </div>
+
+    <div class="side" id="sidePanel">
+      <div class="card sidecard fx" id="fxCard">
+        <div class="side-title">💱 DÖVİZ KURLARI</div>
+        <div class="side-head"><span>Döviz</span><span>Alış</span><span>Satış</span></div>
+        <div class="side-rows" id="fxRows"></div>
+      </div>
+
+      <div class="card sidecard" id="scrapCard">
+        <div class="side-title">🪙 HURDA ALTIN</div>
+        <div class="side-head"><span>Tür</span><span>Alış</span><span>Satış</span></div>
+        <div class="side-rows" id="scrapRows"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -187,284 +420,389 @@ body.light-mode .table-header span:nth-child(4),body.light-mode thead th:nth-chi
 (function(){
 'use strict';
 
-var FIREBASE='https://asil-kuyumculuk-2feb6-default-rtdb.firebaseio.com/ayarlar.json';
+var SETTINGS_URL='https://asil-kuyumculuk-2feb6-default-rtdb.firebaseio.com/ayarlar.json';
+var TV_URL='https://asil-kuyumculuk-2feb6-default-rtdb.firebaseio.com/tvDisplay.json';
 var WORKER='https://altin-proxy.ufuk87900.workers.dev';
-var APP_ID='asil-kuyumculuk-v2';
+
+var settings={labor:{},customItems:[],itemOrder:[],hiddenItems:[],deletedItems:[],kkOran:0,dovizDuz:{},hurdaCarp:{},theme:'light'};
+var tvDisplay={showDoviz:true,showHurda:true};
+var live={},hasA=0,hasS=0;
+var prevPrice={};
+
+var TV_CACHE_KEY='asil_tv_price_cache_v50';
+
+function saveTvPriceCache(){
+  try{
+    localStorage.setItem(TV_CACHE_KEY,JSON.stringify({
+      live:live,hasA:hasA,hasS:hasS,prevPrice:prevPrice,ts:Date.now()
+    }));
+  }catch(e){}
+}
+function restoreTvPriceCache(){
+  try{
+    var c=JSON.parse(localStorage.getItem(TV_CACHE_KEY)||'null');
+    if(!c||!c.ts||Date.now()-c.ts>1800000)return;
+    if(c.live&&typeof c.live==='object')live=c.live;
+    if(c.prevPrice&&typeof c.prevPrice==='object')prevPrice=c.prevPrice;
+    if(Number(c.hasA)>100)hasA=Number(c.hasA);
+    if(Number(c.hasS)>100)hasS=Number(c.hasS);
+    if(hasA>100&&hasS>100){
+      buildStructureIfNeeded();
+      updateValues();
+      byId('time').textContent='yenileniyor…';
+    }
+  }catch(e){}
+}
+
+var builtSignature='';
+var settingsBusy=false,priceBusy=false,tvBusy=false;
 
 var ITEMS=[
- {id:'has24',label:'24 Ayar',defA:1.0000,defS:1.0030},
- {id:'ayar22',label:'22 Ayar',defA:.9100,defS:.9220},
- {id:'tam',label:'Tam',defA:.9930,defS:1.0080},
- {id:'yarim',label:'Yarım',defA:.9930,defS:1.0090},
- {id:'ceyrek',label:'Çeyrek',defA:.9920,defS:1.0100},
- {id:'besli',label:'Beşli',defA:.9930,defS:1.0080},
- {id:'yarimbes',label:'Yarım Beşli',defA:.9930,defS:1.0085},
- {id:'resat',label:'Reşat',defA:.9930,defS:1.0070},
- {id:'ata',label:'Ata',defA:.9930,defS:1.0070},
- {id:'gremise',label:'Gremise',defA:.9930,defS:1.0080}
+{id:'has24',label:'24 Ayar',defA:1,defS:1.003},
+{id:'ayar22',label:'22 Ayar',defA:.91,defS:.922},
+{id:'tam',label:'Tam',defA:.993,defS:1.008},
+{id:'yarim',label:'Yarım',defA:.993,defS:1.009},
+{id:'ceyrek',label:'Çeyrek',defA:.992,defS:1.01},
+{id:'besli',label:'Beşli',defA:.993,defS:1.008},
+{id:'yarimbes',label:'Yarım Beşli',defA:.993,defS:1.0085},
+{id:'resat',label:'Reşat',defA:.993,defS:1.007},
+{id:'ata',label:'Ata',defA:.993,defS:1.007},
+{id:'gremise',label:'Gremise',defA:.993,defS:1.008}
+];
+var DEFAULT_FX=[
+['usd','🇺🇸','USD'],['eur','🇪🇺','EUR'],['gbp','🇬🇧','GBP'],['sar','🇸🇦','SAR'],['chf','🇨🇭','CHF']
+];
+var DEFAULT_SCR=[
+['hurda22','22 Ayar Hurda',22/24],['hurda14','14 Ayar Hurda',14/24],['hurda8','8 Ayar Hurda',8/24]
 ];
 
-var settings={appId:APP_ID,labor:{},laborH:{},customItems:[],kkOran:0,theme:'dark'};
-var hasA=0,hasS=0,prev={};
 
-var dailyPctBase={};
-
-function getTradingDayKey(){
-  var d=new Date();
-  var resetHour=9;
-  if(d.getHours()<resetHour)d.setDate(d.getDate()-1);
-  var y=d.getFullYear();
-  var m=String(d.getMonth()+1).padStart(2,'0');
-  var day=String(d.getDate()).padStart(2,'0');
-  return y+'-'+m+'-'+day;
+function fxItems(){
+  var arr=(settings.dovizItems&&settings.dovizItems.length)?settings.dovizItems:null;
+  if(!arr)return DEFAULT_FX.map(function(x){return {id:x[0],flag:x[1],label:x[2]}});
+  return arr.map(function(x){return {id:x.id,flag:x.flag||'',label:x.label||String(x.id).toUpperCase()}});
 }
-function pctStorageKey(priceKey){
-  return 'asil_pct_base_v1_'+getTradingDayKey()+'_'+priceKey;
+function scrapItems(){
+  var arr=(settings.hurdaItems&&settings.hurdaItems.length)?settings.hurdaItems:null;
+  if(!arr)return DEFAULT_SCR.map(function(x){return {id:x[0],label:x[1],oran:x[2]}});
+  return arr.map(function(x){return {id:x.id,label:x.label,oran:Number(x.oran)||0}});
 }
-function getDailyBase(priceKey,currentValue){
-  if(dailyPctBase[priceKey])return dailyPctBase[priceKey];
-  var saved=0;
-  try{saved=Number(localStorage.getItem(pctStorageKey(priceKey))||0);}catch(e){}
-  if(!saved&&currentValue){
-    saved=Number(currentValue);
-    try{localStorage.setItem(pctStorageKey(priceKey),String(saved));}catch(e){}
-  }
-  if(saved)dailyPctBase[priceKey]=saved;
-  return saved;
-}
-function getStablePct(priceKey,newValue){
-  var base=getDailyBase(priceKey,newValue);
-  if(!base||!newValue)return {text:'%0.00',cls:'same'};
-  var diff=((Number(newValue)-Number(base))/Number(base))*100;
-  var abs=Math.abs(diff).toFixed(2);
-  if(diff>0)return {text:'+%'+abs,cls:'up'};
-  if(diff<0)return {text:'-%'+abs,cls:'down'};
-  return {text:'%0.00',cls:'same'};
-}
-
-var activeMode='normal';
-var lastSettingsText='';
-var priceBusy=false,settingsBusy=false;
-
-function fmt(n){return new Intl.NumberFormat('tr-TR').format(Math.round(n));}
-function effectiveTheme(){
-  try{var t=localStorage.getItem('asil_theme_local');if(t)return t;}catch(e){}
-  return settings.theme||'dark';
-}
-function applyTheme(){
-  var light=effectiveTheme()==='light';
-  document.body.classList.toggle('light',light);
-  document.getElementById('sun').classList.toggle('active',light);
-  document.getElementById('moon').classList.toggle('active',!light);
-  var meta=document.querySelector('meta[name="theme-color"]');
-  if(meta)meta.content=light?'#eee8dd':'#0d1114';
-}
-document.getElementById('themeBtn').onclick=function(){
-  var next=effectiveTheme()==='light'?'dark':'light';
-  try{localStorage.setItem('asil_theme_local',next);}catch(e){}
-  applyTheme();
-};
-
-function normalize(s){
-  s=s&&typeof s==='object'?s:{};
-  s.appId=APP_ID;
-  if(!Array.isArray(s.customItems))s.customItems=[];
-  if(!s.labor)s.labor={};
-  if(!s.laborH)s.laborH={};
-  if(!Array.isArray(s.hiddenItems))s.hiddenItems=[];
-  if(!Array.isArray(s.deletedItems))s.deletedItems=[];
-  if(!Array.isArray(s.itemOrder))s.itemOrder=[];
-  return s;
-}
-function activeItems(){
-  var all=ITEMS.concat(settings.customItems||[]);
+function fmt(n){return new Intl.NumberFormat('tr-TR').format(Math.round(Number(n)||0))}
+function byId(id){return document.getElementById(id)}
+function allItems(){
+  var a=ITEMS.concat(settings.customItems||[]),map={},out=[];
+  a.forEach(function(x){map[x.id]=x});
+  (settings.itemOrder||[]).forEach(function(id){
+    if(map[id]){out.push(map[id]);delete map[id]}
+  });
+  a.forEach(function(x){if(map[x.id])out.push(x)});
   var hidden=settings.hiddenItems||[],deleted=settings.deletedItems||[];
-  var map={},ordered=[];
-  all.forEach(function(i){map[i.id]=i;});
-  (settings.itemOrder||[]).forEach(function(id){if(map[id]){ordered.push(map[id]);delete map[id];}});
-  all.forEach(function(i){if(map[i.id])ordered.push(i);});
-  return ordered.filter(function(i){return hidden.indexOf(i.id)<0&&deleted.indexOf(i.id)<0;});
+  return out.filter(function(x){return hidden.indexOf(x.id)<0 && deleted.indexOf(x.id)<0});
 }
-function labor(item){
-  if(activeMode==='hareketli'&&settings.laborH&&settings.laborH[item.id])return settings.laborH[item.id];
-  if(settings.labor&&settings.labor[item.id])return settings.labor[item.id];
-  return {a:Number(item.defA)||1,s:Number(item.defS)||1};
+function labor(i){
+  return (settings.labor&&settings.labor[i.id])||{a:i.defA||1,s:i.defS||1};
 }
-function updateLogo(){
-  var img=document.getElementById('logo');
-  if(settings.customLogoEnabled&&settings.logoData)img.src=settings.logoData;
-  else img.src='asil-logo-integrated.png';
+function theme(){
+  var mode=localStorage.getItem('asil_theme_local')||settings.theme||'light';
+  document.body.classList.toggle('dark',mode==='dark');
 }
-function flashClass(id,newVal){
-  var old=prev[id];
-  if(old&&old!==newVal) return newVal>old?' flash-up-v71':' flash-down-v71';
-  return '';
-}
-function changeHtml(id,newVal){
-  var old=prev[id];
-  var cls='same',pct=0,flash='';
-  if(old&&old!==newVal){
-    pct=((newVal-old)/old)*100;
-    cls=pct>0?'up':'down';
-    flash=pct>0?' flash-up-v71':' flash-down-v71';
-  }
-  prev[id]=newVal;
-  return '<span class="chg '+cls+flash+'">'+(old?(pct>=0?'+':'')+pct.toFixed(2)+'%':'%0.00')+'</span>';
-}
-function buildRows(){
-  updateLogo();applyTheme();
-  var list=activeItems();
-  var box=document.getElementById('rows');
-  if(!list.length){
-    box.innerHTML='<div class="empty">Ürün bulunmuyor</div>';
-    return;
-  }
+byId('theme').addEventListener('click',function(){
+  var next=document.body.classList.contains('dark')?'light':'dark';
+  localStorage.setItem('asil_theme_local',next);
+  theme();
+});
 
-  var html='';
-  list.forEach(function(item){
-    html+='<div class="row" data-id="'+esc(item.id)+'">'
-      +'<div class="name">'+esc(item.label)+'</div>'
-      +'<div class="val" id="tvA_'+esc(item.id)+'">—<span class="chg same">%0.00</span></div>'
-      +'<div class="val" id="tvS_'+esc(item.id)+'">—<span class="chg same">%0.00</span></div>'
-      +'<div class="val kk" id="tvK_'+esc(item.id)+'">—</div>'
-      +'</div>';
+function structureSignature(){
+  return JSON.stringify({
+    items:allItems().map(function(x){return x.id+':'+x.label}),
+    fx:fxItems().map(function(x){return x.id+':'+x.label}).join('|'),
+    sc:scrapItems().map(function(x){return x.id+':'+x.label+':'+x.oran}).join('|'),
+    d:tvDisplay.showDoviz!==false,
+    h:tvDisplay.showHurda!==false
   });
-  box.innerHTML=html;
-  fit();
-  updatePricesOnly();
 }
 
-function setPriceCell(el,newVal,key){
+function buildStructureIfNeeded(){
+  var sig=structureSignature();
+  if(sig===builtSignature)return;
+  builtSignature=sig;
+
+  var list=allItems();
+  document.documentElement.style.setProperty('--goldRows',String(Math.max(1,list.length)));
+
+  var g='';
+  list.forEach(function(i){
+    g+='<div class="row" data-id="'+i.id+'">'
+      +'<span class="name">'+i.label+'</span>'
+      +'<span class="num buy" id="ga_'+i.id+'">—<small class="chg" id="gpa_'+i.id+'">%0.00</small></span>'
+      +'<span class="num sell" id="gs_'+i.id+'">—<small class="chg" id="gps_'+i.id+'">%0.00</small></span>'
+      +'<span class="num cc" id="gk_'+i.id+'">—</span></div>';
+  });
+  byId('goldRows').innerHTML=g;
+
+  var f='';
+  fxItems().forEach(function(x){
+    f+='<div class="side-row"><span class="side-name">'+x.flag+' '+x.label+'</span>'
+      +'<span class="side-num buy" id="fba_'+x.id+'">—</span>'
+      +'<span class="side-num sell" id="fbs_'+x.id+'">—</span></div>';
+  });
+  byId('fxRows').innerHTML=f;
+
+  var h='';
+  scrapItems().forEach(function(x){
+    h+='<div class="side-row"><span class="side-name">'+x.label+'</span>'
+      +'<span class="side-num buy" id="hba_'+x.id+'">—</span>'
+      +'<span class="side-num sell" id="hbs_'+x.id+'">—</span></div>';
+  });
+  byId('scrapRows').innerHTML=h;
+
+  applyPanelOptions();
+}
+
+function applyPanelOptions(){
+  var showD=tvDisplay.showDoviz!==false;
+  var showH=tvDisplay.showHurda!==false;
+  var fx=byId('fxCard'),hu=byId('scrapCard'),side=byId('sidePanel'),dash=byId('dashboard');
+
+  if(fx){
+    fx.hidden=!showD;
+    fx.style.setProperty('display',showD?'grid':'none','important');
+  }
+  if(hu){
+    hu.hidden=!showH;
+    hu.style.setProperty('display',showH?'grid':'none','important');
+  }
+
+  var any=showD||showH;
+
+  if(side){
+    side.style.setProperty('display',any?'grid':'none','important');
+    side.classList.toggle('one',any && !(showD&&showH));
+  }
+
+  if(dash){
+    dash.classList.toggle('only-gold',!any);
+    if(!any){
+      dash.style.setProperty('grid-template-columns','1fr','important');
+    }else{
+      dash.style.removeProperty('grid-template-columns');
+    }
+  }
+
+  /* opsiyon değiştiğinde bir defalık reflow */
+  requestAnimationFrame(function(){
+    document.documentElement.style.setProperty('--goldRows',String(Math.max(1,allItems().length)));
+  });
+}
+
+function setNumber(el,value,key){
   if(!el)return;
-
-  var oldTick=prev[key];
-  var pct=getStablePct(key,newVal);
-
-  el.classList.remove('flash-up-v71','flash-down-v71');
-
-  /* Yeşil/kırmızı kısa yanma sadece gerçek anlık fiyat değişiminde */
-  if(oldTick&&newVal&&oldTick!==newVal){
+  var old=prevPrice[key];
+  el.firstChild.nodeValue=value;
+  if(old!==undefined && old!==value){
+    el.classList.remove('flash-up','flash-down');
     void el.offsetWidth;
-    el.classList.add(newVal>oldTick?'flash-up-v71':'flash-down-v71');
-    setTimeout(function(){
-      try{el.classList.remove('flash-up-v71','flash-down-v71');}catch(e){}
-    },700);
+    el.classList.add(Number(value.replace(/\./g,''))>Number(old.replace(/\./g,''))?'flash-up':'flash-down');
+    setTimeout(function(){el.classList.remove('flash-up','flash-down')},600);
   }
-
-  var text=newVal?fmt(newVal):'—';
-  el.innerHTML=text+'<span class="chg '+pct.cls+'">'+pct.text+'</span>';
-
-  if(newVal)prev[key]=newVal;
+  prevPrice[key]=value;
 }
 
-function updatePricesOnly(){
-  document.getElementById('hasA').textContent=hasA?fmt(hasA):'—';
-  document.getElementById('hasS').textContent=hasS?fmt(hasS):'—';
+function updateValues(){
+  buildStructureIfNeeded();
 
-  var list=activeItems();
+  byId('hasA').textContent=hasA?fmt(hasA):'—';
+  byId('hasS').textContent=hasS?fmt(hasS):'—';
+
+  if(settings.logoData&&settings.customLogoEnabled)byId('logo').src=settings.logoData;
+
   var kk=Number(settings.kkOran)||0;
+  allItems().forEach(function(i){
+    var l=labor(i);
+    var a=hasA?Math.round(hasA*(Number(l.a)||i.defA||1)):0;
+    var s=hasS?Math.round(hasS*(Number(l.s)||i.defS||1)):0;
+    var k=s?Math.round(s*(1+kk/100)):0;
 
-  list.forEach(function(item){
-    var l=labor(item);
-    var a=hasA?Math.round(hasA*(Number(l.a)||Number(item.defA)||1)):0;
-    var sv=hasS?Math.round(hasS*(Number(l.s)||Number(item.defS)||1)):0;
-    var k=sv?Math.round(sv*(1+kk/100)):0;
+    var aText=a?fmt(a):'—',sText=s?fmt(s):'—',kText=k?fmt(k):'—';
+    setNumber(byId('ga_'+i.id),aText,'a_'+i.id);
+    setNumber(byId('gs_'+i.id),sText,'s_'+i.id);
+    if(byId('gk_'+i.id))byId('gk_'+i.id).textContent=kText;
 
-    setPriceCell(document.getElementById('tvA_'+item.id),a,item.id+'_a');
-    setPriceCell(document.getElementById('tvS_'+item.id),sv,item.id+'_s');
+    // Değişim yüzdesi son gerçek fiyat değişimine kadar sabit kalsın.
+    // Aynı fiyat tekrar geldiğinde %0.00'a sıfırlama.
+    var oldA=prevPrice['_pctA_'+i.id],oldS=prevPrice['_pctS_'+i.id];
+    var pa=byId('gpa_'+i.id),ps=byId('gps_'+i.id);
 
-    var kEl=document.getElementById('tvK_'+item.id);
-    if(kEl) kEl.textContent=k?fmt(k):'—';
+    if(pa){
+      if(oldA && a && a!==oldA){
+        var da=(a-oldA)/oldA*100;
+        var txtA=(da>0?'+':'')+da.toFixed(2)+'%';
+        pa.textContent=txtA;
+        prevPrice['_pctAText_'+i.id]=txtA;
+      }else if(prevPrice['_pctAText_'+i.id]){
+        pa.textContent=prevPrice['_pctAText_'+i.id];
+      }
+      if(a) prevPrice['_pctA_'+i.id]=a;
+    }
+
+    if(ps){
+      if(oldS && s && s!==oldS){
+        var ds=(s-oldS)/oldS*100;
+        var txtS=(ds>0?'+':'')+ds.toFixed(2)+'%';
+        ps.textContent=txtS;
+        prevPrice['_pctSText_'+i.id]=txtS;
+      }else if(prevPrice['_pctSText_'+i.id]){
+        ps.textContent=prevPrice['_pctSText_'+i.id];
+      }
+      if(s) prevPrice['_pctS_'+i.id]=s;
+    }
+  });
+
+  fxItems().forEach(function(x){
+    var da=Number((settings.dovizDuz||{})[x.id+'A'])||0;
+    var ds=Number((settings.dovizDuz||{})[x.id+'S'])||0;
+    var a=live[x.id+'Alis'],sv=live[x.id+'Satis'];
+    var ea=byId('fba_'+x.id),es=byId('fbs_'+x.id);
+    if(ea)ea.textContent=a?(Number(a)+da).toFixed(2):'—';
+    if(es)es.textContent=sv?(Number(sv)+ds).toFixed(2):'—';
+  });
+
+  scrapItems().forEach(function(x){
+    var ca=Number((settings.hurdaCarp||{})[x.id+'A'])||x.oran*.99;
+    var cs=Number((settings.hurdaCarp||{})[x.id+'S'])||x.oran;
+    var ea=byId('hba_'+x.id),es=byId('hbs_'+x.id);
+    if(ea)ea.textContent=hasA?fmt(hasA*ca):'—';
+    if(es)es.textContent=hasS?fmt(hasS*cs):'—';
   });
 }
 
-function render(){
-  buildRows();
+async function loadTvDisplay(){
+  if(tvBusy)return; tvBusy=true;
+  try{
+    var r=await fetch(TV_URL+'?v='+Date.now(),{cache:'no-store'});
+    if(r.ok){
+      var d=await r.json()||{};
+      var next={showDoviz:d.showDoviz!==false,showHurda:d.showHurda!==false};
+      if(next.showDoviz!==tvDisplay.showDoviz || next.showHurda!==tvDisplay.showHurda){
+        tvDisplay=next;
+        builtSignature='';
+        buildStructureIfNeeded();
+        applyPanelOptions();
+      }
+    }
+  }catch(e){}
+  tvBusy=false;
 }
-function esc(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
-function fit(){
-  var rows=document.querySelectorAll('.row');
-  var n=rows.length||1;
-  var area=document.getElementById('rows').getBoundingClientRect().height||400;
-  var rh=area/n;
-  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
-  document.documentElement.style.setProperty('--row-name',clamp(rh*.34,10.5,20).toFixed(1)+'px');
-  document.documentElement.style.setProperty('--row-value',clamp(rh*.39,11.5,23).toFixed(1)+'px');
-  document.documentElement.style.setProperty('--row-change',clamp(rh*.17,7,10).toFixed(1)+'px');
-  document.documentElement.style.setProperty('--row-pad',clamp(rh*.06,1,6).toFixed(1)+'px');
+
+function applySettingsSnapshot(d){
+  if(!d || typeof d!=='object') return;
+
+  var oldStructure = structureSignature();
+
+  /* Normal ayarları uygula */
+  settings = Object.assign(settings, d);
+
+  /* Firebase'de bir liste tamamen silindiyse eski cihaz belleğinde kalmasın.
+     Bu bölüm özellikle TV'de silinen ürünün yenilemeden kaybolmaması sorununu çözer. */
+  settings.customItems = Array.isArray(d.customItems) ? d.customItems : [];
+  settings.itemOrder   = Array.isArray(d.itemOrder)   ? d.itemOrder   : [];
+  settings.hiddenItems = Array.isArray(d.hiddenItems) ? d.hiddenItems : [];
+  settings.deletedItems= Array.isArray(d.deletedItems)? d.deletedItems: [];
+  settings.dovizItems  = Array.isArray(d.dovizItems)  ? d.dovizItems  : [];
+  settings.hurdaItems  = Array.isArray(d.hurdaItems)  ? d.hurdaItems  : [];
+
+  var newStructure = structureSignature();
+  if(oldStructure !== newStructure){
+    builtSignature='';
+    buildStructureIfNeeded();
+  }
+
+  theme();
+  updateValues();
+}
+
+function startSettingsRealtime(){
+  if(!window.EventSource) return;
+
+  try{
+    var es = new EventSource(SETTINGS_URL);
+
+    function handle(ev){
+      try{
+        var msg = JSON.parse(ev.data||'{}');
+        if(!msg || typeof msg!=='object') return;
+
+        /* İlk PUT genelde tam snapshot'tır. PATCH gelirse güvenli şekilde
+           tam ayarı REST'ten bir kez yenile. */
+        if(msg.path==='/' && msg.data && typeof msg.data==='object'){
+          applySettingsSnapshot(msg.data);
+        }else{
+          loadSettings();
+        }
+      }catch(e){}
+    }
+
+    es.addEventListener('put',handle);
+    es.addEventListener('patch',handle);
+
+    es.onerror=function(){
+      /* EventSource kendi kendine yeniden bağlanır; 8sn fallback polling zaten aktif. */
+    };
+  }catch(e){}
 }
 
 async function loadSettings(){
-  if(settingsBusy)return;settingsBusy=true;
+  if(settingsBusy)return; settingsBusy=true;
   try{
-    var r=await fetch(FIREBASE+'?v='+Date.now(),{cache:'no-store'});
+    var r=await fetch(SETTINGS_URL+'?v='+Date.now(),{cache:'no-store'});
     if(r.ok){
-      var txt=await r.text();
-      if(txt&&txt!=='null'&&txt!==lastSettingsText){
-        lastSettingsText=txt;
-        var s=normalize(JSON.parse(txt));
-        settings=s;
-        activeMode=s.aktifMod||activeMode||'normal';
-        try{localStorage.setItem('gp10',JSON.stringify(s));}catch(e){}
-        buildRows();
-      }
+      var d=await r.json();
+      if(d&&typeof d==='object') applySettingsSnapshot(d);
     }
-  }catch(e){}finally{settingsBusy=false;}
+  }catch(e){}
+  settingsBusy=false;
 }
+
 async function loadPrices(){
-  if(priceBusy)return;priceBusy=true;
+  if(priceBusy)return; priceBusy=true;
   try{
     var r=await fetch(WORKER+'?v='+Date.now(),{cache:'no-store'});
-    if(!r.ok)throw new Error('http');
-    var d=await r.json();
-    var a=Number(d.hasAlis),s=Number(d.hasSatis);
-    if(a>100&&s>100){
-      a+=Number(settings.hasDuzA)||0;
-      s+=Number(settings.hasDuzS)||0;
-      try{if(window.egilmezFlashTop)window.egilmezFlashTop(a,s);}catch(e){}
-      hasA=a;hasS=s;
-      document.getElementById('time').textContent=new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-      updatePricesOnly();
+    if(r.ok){
+      var d=await r.json()||{};
+      live=d;
+      var a=Number(d.hasAlis),s=Number(d.hasSatis);
+      if(a>100&&s>100){
+        hasA=a+(Number(settings.hasDuzA)||0);
+        hasS=s+(Number(settings.hasDuzS)||0);
+        byId('time').textContent=new Date().toLocaleTimeString('tr-TR');
+        updateValues();
+        saveTvPriceCache();
+      }
     }
-  }catch(e){}finally{priceBusy=false;}
-}
-
-function initLocal(){
-  try{
-    var s=JSON.parse(localStorage.getItem('gp10')||'null');
-    if(s)settings=normalize(s);
-    activeMode=settings.aktifMod||localStorage.getItem('gp10_mod')||'normal';
   }catch(e){}
-  applyTheme();updateLogo();buildRows();
+  priceBusy=false;
 }
 
-window.addEventListener('resize',fit);
-document.addEventListener('fullscreenchange',fit);
+theme();
+buildStructureIfNeeded();
+restoreTvPriceCache();
 
-initLocal();
-loadSettings();loadPrices();
-setInterval(loadSettings,2000);
+/* İlk açılışta istekleri paralel başlat: bekleme zinciri yok. */
+Promise.allSettled([
+  loadTvDisplay(),
+  loadSettings(),
+  loadPrices()
+]);
+
+/* Ürün ekleme/silme/sıralama TV'ye yenilemesiz gelsin. */
+startSettingsRealtime();
+
+/* Dengeli polling: hızlı ama sistemi yormaz. */
+setInterval(loadTvDisplay,4000);
+setInterval(loadSettings,8000);
 setInterval(loadPrices,2000);
 })();
 </script>
-<script id="egilmez-v72-top-flash-js">
-(function(){
-  var lastHA=null,lastHS=null;
-  window.egilmezFlashTop=function(a,s){
-    function go(id,now,old){
-      var el=document.getElementById(id);
-      if(!el||old==null||!now||now===old)return;
-      el.classList.remove('flash-up-v72','flash-down-v72');
-      void el.offsetWidth;
-      el.classList.add(now>old?'flash-up-v72':'flash-down-v72');
-      setTimeout(function(){el.classList.remove('flash-up-v72','flash-down-v72')},700);
-    }
-    go('hasA',a,lastHA);go('hasS',s,lastHS);
-    if(a)lastHA=a;if(s)lastHS=s;
-  };
-})();
-</script>
-
 </body>
 </html>

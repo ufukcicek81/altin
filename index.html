@@ -9,17 +9,17 @@
 (function(){
   try{
     if(new URLSearchParams(location.search).get('tv')==='1'){
-      location.replace('tv.html?v=42');
+      location.replace('tv.html?v=95');
     }
   }catch(e){}
 })();
 </script>
 
-<link rel="manifest" href="manifest.json?v=57">
+<link rel="manifest" href="manifest.json?v=87">
 <script>
 if (window.location.search.indexOf('admin') !== -1) {
-  try { localStorage.removeItem('egilmez_tv_v1'); } catch(e) {}
-  try { sessionStorage.removeItem('egilmez_tv_v1'); } catch(e) {}
+  try { localStorage.removeItem('asil_tv_v1'); } catch(e) {}
+  try { sessionStorage.removeItem('asil_tv_v1'); } catch(e) {}
   document.addEventListener('DOMContentLoaded', function () {
     document.body.classList.remove('tv-mode');
   });
@@ -1115,898 +1115,512 @@ body.tv-mode .price-row small{
 .flash-down-v71{animation:mainPriceFlashDownV71 .65s ease-out!important;border-radius:6px}
 </style>
 
+<style id="egilmez-v87-final-layout">
+:root{--final-white:#fff;--final-soft:#f4f7f9;--final-line:#d7e0e7}
+body.light-mode{background:#fff!important}
+body.light-mode .header,body.light-mode .market-status,body.light-mode .desktop-main,
+body.light-mode #desktopSide .desktop-side-card,body.light-mode .top-switcher,
+body.light-mode #adminEkstra .mobile-extra-card,body.light-mode .admin-panel,
+body.light-mode .modal-content{background:#fff!important}
+body.light-mode .table-header,body.light-mode .extra-columns{background:#f4f7f9!important}
+body.light-mode .price-row:nth-child(even),body.light-mode .extra-data-row:nth-child(even){background:#f7f9fb!important}
+body.light-mode .price-row:nth-child(odd),body.light-mode .extra-data-row:nth-child(odd){background:#fff!important}
+#statusHasA{color:#d92c2c!important;font-weight:950!important}
+#statusHasS{color:#16824f!important;font-weight:950!important}
+.price-row .alis,.extra-buy{color:#d92c2c!important;font-weight:950!important}
+.price-row .satis,.extra-sell{color:#16824f!important;font-weight:950!important}
+.price-row .kk{color:#2f77b7!important;font-weight:950!important}
 
-<style id="pc-sidebar-fit-v75">
-@media (min-width: 901px){
-  /* Sağ Döviz + Hurda paneli: iç kaydırma yok, tamamı görünür */
-  .side-panel,
-  .right-panel,
-  .market-side,
-  .sidebar-market,
-  .desktop-side,
-  #sidePanel,
-  #rightPanel,
-  #marketSide,
+@media(min-width:901px){
+  html,body{width:100%;height:100%;margin:0}
+  body.admin-route,body:not(.admin-route){overflow:hidden}
+  body.admin-route .top-switcher{display:none!important}
+
+  .desktop-layout{
+    display:grid!important;grid-template-columns:minmax(0,70fr) minmax(300px,30fr)!important;
+    gap:10px!important;width:calc(100vw - 18px)!important;margin:0 9px 6px!important;
+    min-height:0!important;overflow:hidden!important;align-items:stretch!important
+  }
+  .desktop-layout.side-hidden{grid-template-columns:1fr!important}
+  .desktop-main{
+    min-width:0!important;min-height:0!important;height:100%!important;overflow:hidden!important;
+    display:grid!important;grid-template-rows:34px 26px minmax(0,1fr) 20px!important;
+    border:1px solid var(--v8-line,#d7e0e7)!important;border-radius:14px!important
+  }
+  .desktop-main:before{
+    content:'🪙  Altın Fiyatları'!important;display:flex!important;align-items:center!important;
+    height:34px!important;min-height:34px!important;padding:0 12px!important;font-size:15px!important;font-weight:950!important
+  }
+  .table-header{height:26px!important;min-height:26px!important;padding:0 10px!important}
+  #priceRows{min-height:0!important;height:100%!important;overflow:hidden!important;display:grid!important}
+  .price-row{height:auto!important;min-height:0!important;max-height:none!important;padding:1px 10px!important;overflow:hidden!important}
+  .price-row .birim{font-size:var(--main-name-fs,13px)!important;line-height:1!important;font-weight:900!important}
+  .price-row .alis,.price-row .satis,.price-row .kk{font-size:var(--main-val-fs,16px)!important;line-height:1!important}
+  .change-rate{font-size:var(--main-chg-fs,7px)!important;line-height:1!important;margin-top:1px!important}
+  .update-bar{height:20px!important;min-height:20px!important;margin:0!important;padding:0!important;overflow:hidden!important}
+
   #desktopSide{
-    height:auto!important;
-    max-height:none!important;
-    min-height:0!important;
-    overflow:visible!important;
-    overflow-y:visible!important;
-    scrollbar-width:none!important;
+    position:static!important;display:grid!important;grid-template-rows:minmax(0,1fr) minmax(0,1fr)!important;
+    gap:8px!important;width:auto!important;max-width:none!important;min-width:300px!important;height:100%!important;
+    min-height:0!important;overflow:hidden!important;background:transparent!important;border:0!important;box-shadow:none!important
   }
-  .side-panel::-webkit-scrollbar,
-  .right-panel::-webkit-scrollbar,
-  .market-side::-webkit-scrollbar,
-  .sidebar-market::-webkit-scrollbar,
-  .desktop-side::-webkit-scrollbar,
-  #sidePanel::-webkit-scrollbar,
-  #rightPanel::-webkit-scrollbar,
-  #marketSide::-webkit-scrollbar,
-  #desktopSide::-webkit-scrollbar{
-    display:none!important;
-    width:0!important;
+  .desktop-layout.side-single #desktopSide{grid-template-rows:minmax(0,1fr)!important}
+  #desktopSide .desktop-side-card{
+    min-height:0!important;height:100%!important;overflow:hidden!important;display:grid!important;
+    grid-template-rows:34px 24px minmax(0,1fr)!important;border:1px solid var(--v8-line,#d7e0e7)!important;
+    border-radius:14px!important;background:var(--v8-card,#fff)!important
   }
+  #desktopSide .desktop-extra-title{height:34px!important;min-height:34px!important;padding:0 10px!important;display:flex!important;align-items:center!important}
+  #desktopSide .desktop-extra-columns{height:24px!important;min-height:24px!important;padding:0 10px!important}
+  #desktopSide .desktop-side-rows{min-height:0!important;height:100%!important;overflow:hidden!important;display:grid!important}
+  #desktopSide .desktop-extra-row{min-height:0!important;height:auto!important;max-height:none!important;padding:1px 10px!important;align-items:center!important;overflow:hidden!important}
+  #desktopSide .desktop-extra-name{font-size:var(--side-name-fs,12px)!important;line-height:1!important;font-weight:900!important}
+  #desktopSide .desktop-extra-value{font-size:var(--side-val-fs,14px)!important;line-height:1!important;font-weight:950!important}
 
-  /* Döviz/Hurda kartlarını PC'de biraz sıkılaştır: tek ekrana sığsın */
-  .fx-card, .scrap-card, .currency-card, .hurda-card,
-  #fxCard, #scrapCard, #currencyCard, #hurdaCard{
-    height:auto!important;
-    max-height:none!important;
-    overflow:visible!important;
-  }
+  .header{flex-shrink:0!important}.market-status{flex-shrink:0!important}.top-switcher{flex-shrink:0!important}
+}
 
-  .fx-card .row, .scrap-card .row,
-  .currency-card .row, .hurda-card .row,
-  #fxCard .row, #scrapCard .row{
-    min-height:34px!important;
-    padding-top:5px!important;
-    padding-bottom:5px!important;
-  }
+@media(max-width:900px){
+  body.light-mode,#adminEkstra{background:#fff!important}
+  #adminEkstra{margin:10px 12px!important;border:0!important;overflow:visible!important}
+  #adminEkstra .mobile-extra-card{margin-bottom:10px;border:1px solid var(--v8-line,#d7e0e7)!important;border-radius:14px!important;overflow:hidden!important}
+  #adminEkstra .extra-section-title{height:38px!important;display:flex!important;align-items:center!important;padding:0 12px!important}
+  #adminEkstra .extra-columns{height:28px!important;padding:0 12px!important}
+  #adminEkstra .extra-data-row{min-height:44px!important;padding:6px 12px!important}
 }
 </style>
 
 
-<style id="egilmez-v76-pc-fullfit">
+<style id="egilmez-v88-final-override">
+/* =========================
+   LIGHT MODE: PURE WHITE
+   ========================= */
+body.light-mode{
+  --v8-bg:#ffffff!important;
+  --v8-card:#ffffff!important;
+  --v8-card2:#f3f6f8!important;
+  --v8-line:#d5dee5!important;
+  --v8-text:#162231!important;
+  --v8-muted:#657585!important;
+  --v8-red:#d92c2c!important;
+  --v8-green:#16824f!important;
+  --v8-blue:#2f77b7!important;
+  background:#ffffff!important;
+  color:#162231!important;
+}
+body.light-mode .header,
+body.light-mode .market-status,
+body.light-mode .desktop-layout,
+body.light-mode .desktop-main,
+body.light-mode #desktopSide,
+body.light-mode #desktopSide .desktop-side-card,
+body.light-mode #adminEkstra,
+body.light-mode #adminEkstra .mobile-extra-card,
+body.light-mode .top-switcher,
+body.light-mode .update-bar,
+body.light-mode .admin-panel,
+body.light-mode .admin-header,
+body.light-mode .admin-row,
+body.light-mode .sec-title,
+body.light-mode .hint-box,
+body.light-mode .overlay-card,
+body.light-mode .modal,
+body.light-mode .modal-content{
+  background:#ffffff!important;
+  color:#162231!important;
+  border-color:#d5dee5!important;
+}
+body.light-mode .table-header,
+body.light-mode .extra-columns,
+body.light-mode #desktopSide .desktop-extra-columns{
+  background:#f3f6f8!important;
+  border-color:#d5dee5!important;
+}
+body.light-mode .price-row:nth-child(even),
+body.light-mode .extra-data-row:nth-child(even){
+  background:#f7f9fb!important;
+}
+body.light-mode .price-row:nth-child(odd),
+body.light-mode .extra-data-row:nth-child(odd){
+  background:#ffffff!important;
+}
+body.light-mode .upd-text{
+  background:#f3f6f8!important;
+  color:#526170!important;
+  border-color:#d5dee5!important;
+}
+body.light-mode .top-switch-btn{
+  color:#4d5d6d!important;
+}
+body.light-mode .top-switch-btn.active{
+  background:#eef2f5!important;
+  color:#172235!important;
+  box-shadow:none!important;
+}
+body.light-mode input,
+body.light-mode select,
+body.light-mode textarea,
+body.light-mode .admin-inp{
+  background:#ffffff!important;
+  color:#172235!important;
+  border-color:#cbd6de!important;
+}
+
+/* Price colors on all normal/admin customer screens */
+#statusHasA{color:#d92c2c!important;font-weight:950!important}
+#statusHasS{color:#16824f!important;font-weight:950!important}
+.price-row .alis,.extra-buy{color:#d92c2c!important;font-weight:950!important}
+.price-row .satis,.extra-sell{color:#16824f!important;font-weight:950!important}
+.price-row .kk{color:#2f77b7!important;font-weight:950!important}
+.table-header span:nth-child(2),.extra-columns span:nth-child(2){color:#d92c2c!important;font-weight:900!important}
+.table-header span:nth-child(3),.extra-columns span:nth-child(3){color:#16824f!important;font-weight:900!important}
+.table-header span:nth-child(4){color:#2f77b7!important;font-weight:900!important}
+
+/* =========================
+   DESKTOP ADMIN + CUSTOMER
+   ========================= */
 @media (min-width:901px){
-  /* PC admin: sayfanın tamamı tek ekrana sığar, ana scrollbar yok */
-  html, body.admin-route{
-    width:100%!important;
-    height:100%!important;
-    min-height:100%!important;
-    overflow:hidden!important;
-  }
-  body.admin-route{
-    --pc-main-row-h:38px;
-    --pc-main-font:14px;
-    --pc-main-value:15px;
-    --pc-side-row-h:32px;
-    --pc-side-font:13px;
-  }
+  html,body{width:100%!important;height:100%!important;min-height:0!important;margin:0!important}
+  body{overflow:hidden!important}
 
-  body.admin-route .header{
-    height:66px!important;
-    min-height:66px!important;
-    padding:2px 22px!important;
-    overflow:hidden!important;
-  }
-  body.admin-route .brand-wrap{
-    height:62px!important;
-    min-height:62px!important;
-  }
-  body.admin-route .logo{
-    max-height:58px!important;
-    height:58px!important;
-    width:auto!important;
-  }
-  body.admin-route .market-status{
-    height:62px!important;
-    min-height:62px!important;
-    width:min(900px,92vw)!important;
-    margin:4px auto 5px!important;
-  }
-  body.admin-route .market-status .status-cell{
-    min-height:60px!important;
-    padding:5px 12px!important;
-  }
-
-  body.admin-route .desktop-layout{
-    width:calc(100vw - 24px)!important;
-    height:calc(100vh - 137px)!important;
-    max-height:calc(100vh - 137px)!important;
-    margin:0 12px!important;
+  .desktop-layout{
     display:grid!important;
-    grid-template-columns:minmax(0,1fr) 315px!important;
+    grid-template-columns:minmax(0,68fr) minmax(310px,32fr)!important;
     gap:10px!important;
-    align-items:stretch!important;
-    overflow:hidden!important;
-  }
-
-  body.admin-route .desktop-main{
-    height:100%!important;
-    min-height:0!important;
-    overflow:hidden!important;
-    display:flex!important;
-    flex-direction:column!important;
-  }
-
-  body.admin-route .table-header{
-    height:30px!important;
-    min-height:30px!important;
-    padding:0 12px!important;
-    align-items:center!important;
-  }
-  body.admin-route .table-header span{
-    font-size:11px!important;
-  }
-
-  body.admin-route #priceRows{
-    flex:1 1 auto!important;
-    min-height:0!important;
-    overflow:hidden!important;
-  }
-
-  body.admin-route .price-row{
-    height:var(--pc-main-row-h)!important;
-    min-height:var(--pc-main-row-h)!important;
-    max-height:var(--pc-main-row-h)!important;
-    padding:2px 12px!important;
-    margin:0!important;
-    align-items:center!important;
-  }
-  body.admin-route .price-row .birim{
-    font-size:var(--pc-main-font)!important;
-    line-height:1.05!important;
-  }
-  body.admin-route .price-row .alis,
-  body.admin-route .price-row .satis,
-  body.admin-route .price-row .kk{
-    font-size:var(--pc-main-value)!important;
-    line-height:1!important;
-  }
-  body.admin-route .change-rate{
-    font-size:8px!important;
-    line-height:1!important;
-    margin-top:1px!important;
-  }
-
-  body.admin-route .update-bar{
-    height:24px!important;
-    min-height:24px!important;
-    padding:2px 10px!important;
-    font-size:10px!important;
-  }
-
-  /* Sağ Döviz + Hurda: tek panel, iç scrollbar yok */
-  body.admin-route #desktopSide{
-    display:flex!important;
-    flex-direction:column!important;
-    width:315px!important;
-    max-width:315px!important;
-    height:100%!important;
-    min-height:0!important;
-    max-height:none!important;
-    overflow:hidden!important;
-    overflow-y:hidden!important;
-    border-radius:14px!important;
-  }
-
-  body.admin-route #desktopSide .desktop-extra-title{
-    flex:0 0 31px!important;
-    height:31px!important;
-    min-height:31px!important;
-    padding:0 10px!important;
-    display:flex!important;
-    align-items:center!important;
-  }
-  body.admin-route #desktopSide .desktop-extra-title span{
-    font-size:11px!important;
-  }
-
-  body.admin-route #desktopSide .desktop-extra-columns{
-    flex:0 0 25px!important;
-    height:25px!important;
-    min-height:25px!important;
-    padding:0 10px!important;
-    align-items:center!important;
-  }
-  body.admin-route #desktopSide .desktop-extra-columns span{
-    font-size:9px!important;
-  }
-
-  body.admin-route #desktopDovizRows,
-  body.admin-route #desktopHurdaRows{
-    flex:0 0 auto!important;
-    min-height:0!important;
-    max-height:none!important;
-    overflow:hidden!important;
-  }
-
-  body.admin-route #desktopDovizRows .desktop-extra-row,
-  body.admin-route #desktopHurdaRows .desktop-extra-row,
-  body.admin-route #desktopDovizRows .extra-data-row,
-  body.admin-route #desktopHurdaRows .extra-data-row{
-    height:var(--pc-side-row-h)!important;
-    min-height:var(--pc-side-row-h)!important;
-    max-height:var(--pc-side-row-h)!important;
-    padding:2px 10px!important;
-    align-items:center!important;
-  }
-
-  body.admin-route #desktopDovizRows .desktop-extra-name,
-  body.admin-route #desktopHurdaRows .desktop-extra-name,
-  body.admin-route #desktopDovizRows .extra-name,
-  body.admin-route #desktopHurdaRows .extra-name,
-  body.admin-route #desktopDovizRows .desktop-extra-value,
-  body.admin-route #desktopHurdaRows .desktop-extra-value,
-  body.admin-route #desktopDovizRows .extra-buy,
-  body.admin-route #desktopDovizRows .extra-sell,
-  body.admin-route #desktopHurdaRows .extra-buy,
-  body.admin-route #desktopHurdaRows .extra-sell{
-    font-size:var(--pc-side-font)!important;
-    line-height:1!important;
-  }
-
-  body.admin-route #desktopSide,
-  body.admin-route #desktopSide *{
-    scrollbar-width:none!important;
-  }
-  body.admin-route #desktopSide::-webkit-scrollbar,
-  body.admin-route #desktopSide *::-webkit-scrollbar{
-    width:0!important;
-    height:0!important;
-    display:none!important;
-  }
-}
-
-/* Daha alçak laptop ekranları (örn. 1366x768) */
-@media (min-width:901px) and (max-height:780px){
-  body.admin-route .header{
-    height:56px!important;
-    min-height:56px!important;
-  }
-  body.admin-route .brand-wrap{
-    height:52px!important;
-    min-height:52px!important;
-  }
-  body.admin-route .logo{
-    height:50px!important;
-    max-height:50px!important;
-  }
-  body.admin-route .market-status{
-    height:54px!important;
-    min-height:54px!important;
-    margin:2px auto 3px!important;
-  }
-  body.admin-route .market-status .status-cell{
-    min-height:52px!important;
-    padding:3px 10px!important;
-  }
-  body.admin-route .status-title{font-size:15px!important}
-  body.admin-route .status-label{font-size:10px!important}
-  body.admin-route .status-value{font-size:20px!important}
-  body.admin-route .status-sub{font-size:9px!important}
-
-  body.admin-route .desktop-layout{
-    height:calc(100vh - 113px)!important;
-    max-height:calc(100vh - 113px)!important;
-  }
-}
-</style>
-
-
-<style id="egilmez-v77-pc-final-one-screen">
-/*
-  PC ADMIN FINAL:
-  - Tüm altın satırları viewport içinde
-  - Sağ Döviz + Hurda viewport içinde
-  - Ana/yan scrollbar yok
-  - Ürün sayısı değişince CSS Grid otomatik eşit satır dağıtır
-*/
-@media (min-width:901px){
-  html{
-    width:100%!important;
-    height:100%!important;
-    overflow:hidden!important;
-  }
-  body.admin-route{
-    width:100vw!important;
-    height:100vh!important;
-    min-height:0!important;
-    max-width:none!important;
-    margin:0!important;
-    padding:0!important;
-    overflow:hidden!important;
-    display:flex!important;
-    flex-direction:column!important;
-  }
-
-  /* Üst alanı mümkün olduğunca kompakt tut */
-  body.admin-route .header{
-    flex:0 0 58px!important;
-    height:58px!important;
-    min-height:58px!important;
-    width:100%!important;
-    margin:0!important;
-    padding:2px 18px!important;
-    overflow:hidden!important;
-    box-sizing:border-box!important;
-  }
-  body.admin-route .brand-wrap{
-    height:54px!important;
-    min-height:54px!important;
-    padding:0!important;
-  }
-  body.admin-route .header .logo{
-    height:52px!important;
-    max-height:52px!important;
-    width:auto!important;
-    max-width:220px!important;
-    margin:0 auto!important;
-  }
-  body.admin-route .header h1,
-  body.admin-route .header .phone,
-  body.admin-route .has-info{
-    display:none!important;
-  }
-
-  body.admin-route .market-status{
-    flex:0 0 56px!important;
-    height:56px!important;
-    min-height:56px!important;
-    width:min(880px,88vw)!important;
-    margin:2px auto 4px!important;
-    border-radius:14px!important;
-  }
-  body.admin-route .market-status .status-cell{
-    height:54px!important;
-    min-height:54px!important;
-    padding:4px 12px!important;
-  }
-  body.admin-route .status-title{font-size:15px!important}
-  body.admin-route .status-sub{font-size:9px!important;margin-top:2px!important}
-  body.admin-route .status-label{font-size:10px!important}
-  body.admin-route .status-value{font-size:20px!important;line-height:1!important}
-
-  body.admin-route .top-switcher,
-  body.admin-route .doviz-bant{
-    display:none!important;
-  }
-
-  /* Kalan bütün alan fiyat ekranı */
-  body.admin-route .desktop-layout{
-    flex:1 1 auto!important;
     width:calc(100vw - 16px)!important;
-    height:auto!important;
+    margin:0 8px 5px!important;
     min-height:0!important;
-    max-height:none!important;
-    margin:0 8px 6px!important;
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr) 300px!important;
-    gap:8px!important;
-    align-items:stretch!important;
     overflow:hidden!important;
-    box-sizing:border-box!important;
+    align-items:stretch!important;
+  }
+  .desktop-layout.side-hidden{
+    grid-template-columns:1fr!important;
   }
 
-  /* SOL: Altın */
-  body.admin-route .desktop-main{
-    width:100%!important;
+  .desktop-main{
     height:100%!important;
     min-height:0!important;
-    max-height:none!important;
-    margin:0!important;
-    padding:0!important;
     overflow:hidden!important;
     display:grid!important;
-    grid-template-rows:34px 28px minmax(0,1fr) 22px!important;
+    grid-template-rows:36px 28px minmax(0,1fr) 30px!important;
     border-radius:14px!important;
-    box-sizing:border-box!important;
   }
-
-  body.admin-route .desktop-main:before{
-    content:'◉  Altın Fiyatları'!important;
-    height:34px!important;
-    min-height:34px!important;
+  .desktop-main:before{
+    height:36px!important;
+    min-height:36px!important;
     padding:0 12px!important;
-    margin:0!important;
+    font-size:16px!important;
     display:flex!important;
     align-items:center!important;
-    font-size:15px!important;
-    line-height:1!important;
-    box-sizing:border-box!important;
   }
-
-  body.admin-route .table-header{
+  .table-header{
     height:28px!important;
     min-height:28px!important;
-    padding:0 10px!important;
-    margin:0!important;
-    display:grid!important;
-    grid-template-columns:1.45fr 1fr 1fr 1fr!important;
-    align-items:center!important;
-    box-sizing:border-box!important;
+    padding:0 11px!important;
   }
-  body.admin-route .table-header span{
-    font-size:10px!important;
-    line-height:1!important;
+  .table-header span{
+    font-size:11.5px!important;
   }
 
-  body.admin-route #priceRows{
+  #priceRows{
     min-height:0!important;
     height:100%!important;
     overflow:hidden!important;
     display:grid!important;
-    grid-auto-flow:row!important;
-    grid-auto-rows:minmax(0,1fr)!important;
   }
-
-  body.admin-route .price-row{
-    width:100%!important;
+  .price-row{
     height:auto!important;
     min-height:0!important;
     max-height:none!important;
-    padding:1px 10px!important;
-    margin:0!important;
-    display:grid!important;
-    grid-template-columns:1.45fr 1fr 1fr 1fr!important;
-    align-items:center!important;
-    box-sizing:border-box!important;
+    padding:1px 11px!important;
     overflow:hidden!important;
+    align-items:center!important;
   }
-  body.admin-route .price-row .birim{
-    font-size:clamp(10px,1.05vw,14px)!important;
-    line-height:1.02!important;
+  .price-row .birim{
+    font-size:var(--v88-main-name,14px)!important;
+    line-height:1.05!important;
+    font-weight:900!important;
   }
-  body.admin-route .price-row .alis,
-  body.admin-route .price-row .satis,
-  body.admin-route .price-row .kk{
-    font-size:clamp(11px,1.12vw,15px)!important;
+  .price-row .alis,
+  .price-row .satis,
+  .price-row .kk{
+    font-size:var(--v88-main-val,17px)!important;
     line-height:1!important;
+    font-weight:950!important;
   }
-  body.admin-route .change-rate{
-    font-size:7px!important;
-    line-height:.95!important;
-    margin-top:0!important;
+  .change-rate{
+    font-size:var(--v88-main-chg,7.5px)!important;
+    line-height:1!important;
+    margin-top:2px!important;
   }
 
-  body.admin-route .update-bar{
-    height:22px!important;
-    min-height:22px!important;
+  .update-bar{
+    height:30px!important;
+    min-height:30px!important;
     margin:0!important;
-    padding:0 8px!important;
+    padding:0 6px!important;
     display:flex!important;
     align-items:center!important;
     justify-content:center!important;
-    overflow:hidden!important;
+    overflow:visible!important;
   }
-  body.admin-route .upd-text{
-    font-size:9px!important;
-    line-height:1!important;
-    padding:3px 10px!important;
-  }
-
-  /* SAĞ: Döviz + Hurda */
-  body.admin-route #desktopSide{
-    width:300px!important;
-    max-width:300px!important;
-    height:100%!important;
-    min-height:0!important;
-    margin:0!important;
-    padding:0!important;
-    overflow:hidden!important;
-    display:grid!important;
-    grid-template-rows:
-      28px 22px minmax(0,5fr)
-      28px 22px minmax(0,5fr)!important;
-    border-radius:14px!important;
-    box-sizing:border-box!important;
-  }
-  body.admin-route #desktopSide .desktop-extra-title{
-    height:28px!important;
-    min-height:28px!important;
-    margin:0!important;
-    padding:0 9px!important;
-    display:flex!important;
-    align-items:center!important;
-    box-sizing:border-box!important;
-  }
-  body.admin-route #desktopSide .desktop-extra-title span{
-    font-size:10px!important;
-    line-height:1!important;
-  }
-  body.admin-route #desktopSide .desktop-extra-columns{
-    height:22px!important;
-    min-height:22px!important;
-    margin:0!important;
-    padding:0 9px!important;
-    display:grid!important;
-    align-items:center!important;
-    box-sizing:border-box!important;
-  }
-  body.admin-route #desktopSide .desktop-extra-columns span{
-    font-size:8px!important;
-    line-height:1!important;
-  }
-
-  body.admin-route #desktopDovizRows,
-  body.admin-route #desktopHurdaRows{
-    height:100%!important;
-    min-height:0!important;
-    max-height:none!important;
-    overflow:hidden!important;
-    display:grid!important;
-    grid-auto-rows:minmax(0,1fr)!important;
-  }
-
-  body.admin-route #desktopDovizRows > *,
-  body.admin-route #desktopHurdaRows > *{
-    height:auto!important;
-    min-height:0!important;
-    max-height:none!important;
-    margin:0!important;
-    padding:1px 9px!important;
-    display:grid!important;
-    align-items:center!important;
-    box-sizing:border-box!important;
-    overflow:hidden!important;
-  }
-
-  body.admin-route #desktopDovizRows *,
-  body.admin-route #desktopHurdaRows *{
-    line-height:1!important;
-  }
-
-  body.admin-route #desktopDovizRows .desktop-extra-name,
-  body.admin-route #desktopHurdaRows .desktop-extra-name,
-  body.admin-route #desktopDovizRows .extra-name,
-  body.admin-route #desktopHurdaRows .extra-name{
-    font-size:clamp(9px,.82vw,12px)!important;
-  }
-  body.admin-route #desktopDovizRows .desktop-extra-value,
-  body.admin-route #desktopHurdaRows .desktop-extra-value,
-  body.admin-route #desktopDovizRows .extra-buy,
-  body.admin-route #desktopDovizRows .extra-sell,
-  body.admin-route #desktopHurdaRows .extra-buy,
-  body.admin-route #desktopHurdaRows .extra-sell{
-    font-size:clamp(9px,.86vw,12px)!important;
-  }
-
-  /* Kesinlikle scrollbar yok */
-  body.admin-route,
-  body.admin-route .desktop-layout,
-  body.admin-route .desktop-main,
-  body.admin-route #priceRows,
-  body.admin-route #desktopSide,
-  body.admin-route #desktopDovizRows,
-  body.admin-route #desktopHurdaRows{
-    scrollbar-width:none!important;
-  }
-  body.admin-route::-webkit-scrollbar,
-  body.admin-route .desktop-layout::-webkit-scrollbar,
-  body.admin-route .desktop-main::-webkit-scrollbar,
-  body.admin-route #priceRows::-webkit-scrollbar,
-  body.admin-route #desktopSide::-webkit-scrollbar,
-  body.admin-route #desktopDovizRows::-webkit-scrollbar,
-  body.admin-route #desktopHurdaRows::-webkit-scrollbar{
-    display:none!important;width:0!important;height:0!important;
-  }
-}
-
-/* 1366x768 gibi laptop ekranlarında sağ panel biraz daha dar */
-@media (min-width:901px) and (max-width:1450px){
-  body.admin-route .desktop-layout{
-    grid-template-columns:minmax(0,1fr) 280px!important;
-  }
-  body.admin-route #desktopSide{
-    width:280px!important;
-    max-width:280px!important;
-  }
-}
-
-/* Çok düşük yükseklik: başlıkları biraz daha sıkıştır */
-@media (min-width:901px) and (max-height:720px){
-  body.admin-route .header{flex-basis:50px!important;height:50px!important;min-height:50px!important}
-  body.admin-route .brand-wrap{height:46px!important;min-height:46px!important}
-  body.admin-route .header .logo{height:44px!important;max-height:44px!important}
-  body.admin-route .market-status{flex-basis:48px!important;height:48px!important;min-height:48px!important}
-  body.admin-route .market-status .status-cell{height:46px!important;min-height:46px!important}
-  body.admin-route .status-title{font-size:13px!important}
-  body.admin-route .status-value{font-size:18px!important}
-  body.admin-route .desktop-main{grid-template-rows:30px 24px minmax(0,1fr) 18px!important}
-  body.admin-route .desktop-main:before{height:30px!important;min-height:30px!important;font-size:13px!important}
-  body.admin-route .table-header{height:24px!important;min-height:24px!important}
-  body.admin-route .update-bar{height:18px!important;min-height:18px!important}
-}
-</style>
-
-
-<style id="egilmez-v78-final-fit">
-@media (min-width:901px){
-  html,body.admin-route{
-    width:100%!important;height:100%!important;min-height:0!important;
-    margin:0!important;padding:0!important;overflow:hidden!important;
-    max-width:none!important;
-  }
-  body.admin-route .header{
-    height:52px!important;min-height:52px!important;max-height:52px!important;
-    padding:0 14px!important;margin:0!important;box-sizing:border-box!important;
-  }
-  body.admin-route .brand-wrap{height:50px!important;min-height:50px!important}
-  body.admin-route .header .logo{height:48px!important;max-height:48px!important;width:auto!important}
-  body.admin-route .market-status{
-    height:50px!important;min-height:50px!important;max-height:50px!important;
-    margin:2px auto 3px!important;width:min(860px,86vw)!important;
-  }
-  body.admin-route .market-status .status-cell{
-    height:48px!important;min-height:48px!important;padding:2px 10px!important;
-  }
-  body.admin-route .status-title{font-size:13px!important}
-  body.admin-route .status-sub,.status-label{font-size:8px!important}
-  body.admin-route .status-value{font-size:18px!important;line-height:1!important}
-  body.admin-route .top-switcher,body.admin-route .doviz-bant{display:none!important}
-
-  body.admin-route .desktop-layout{
-    position:relative!important;
-    width:calc(100vw - 12px)!important;
-    margin:0 6px 4px!important;padding:0!important;
-    display:grid!important;grid-template-columns:minmax(0,1fr) 280px!important;
-    gap:7px!important;overflow:hidden!important;box-sizing:border-box!important;
-  }
-  body.admin-route .desktop-main{
-    margin:0!important;padding:0!important;width:100%!important;height:100%!important;
-    min-height:0!important;overflow:hidden!important;
-    display:grid!important;
-    grid-template-rows:28px 24px minmax(0,1fr) 18px!important;
-    box-sizing:border-box!important;
-  }
-  body.admin-route .desktop-main:before{
-    height:28px!important;min-height:28px!important;padding:0 10px!important;
-    display:flex!important;align-items:center!important;font-size:13px!important;
-    box-sizing:border-box!important;
-  }
-  body.admin-route .table-header{
-    height:24px!important;min-height:24px!important;padding:0 8px!important;margin:0!important;
-    display:grid!important;grid-template-columns:1.45fr 1fr 1fr 1fr!important;
-    align-items:center!important;box-sizing:border-box!important;
-  }
-  body.admin-route .table-header span{font-size:9px!important}
-  body.admin-route #priceRows{
-    height:100%!important;min-height:0!important;overflow:hidden!important;
-    display:grid!important;grid-auto-flow:row!important;
-    grid-auto-rows:minmax(0,1fr)!important;
-  }
-  body.admin-route .price-row{
-    height:auto!important;min-height:0!important;max-height:none!important;
-    margin:0!important;padding:0 8px!important;overflow:hidden!important;
-    display:grid!important;grid-template-columns:1.45fr 1fr 1fr 1fr!important;
-    align-items:center!important;box-sizing:border-box!important;
-  }
-  body.admin-route .price-row .birim{font-size:12px!important;line-height:1!important}
-  body.admin-route .price-row .alis,
-  body.admin-route .price-row .satis,
-  body.admin-route .price-row .kk{font-size:13px!important;line-height:1!important}
-  body.admin-route .change-rate{font-size:6.5px!important;line-height:1!important;margin:0!important}
-  body.admin-route .update-bar{
-    height:18px!important;min-height:18px!important;padding:0!important;margin:0!important;
-    overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;
-  }
-  body.admin-route .upd-text{font-size:8px!important;padding:2px 8px!important}
-
-  body.admin-route #desktopSide{
-    width:280px!important;max-width:280px!important;height:100%!important;min-height:0!important;
-    margin:0!important;padding:0!important;overflow:hidden!important;
-    display:grid!important;
-    grid-template-rows:25px 19px minmax(0,5fr) 25px 19px minmax(0,5fr)!important;
-    box-sizing:border-box!important;
-  }
-  body.admin-route #desktopSide .desktop-extra-title{
-    height:25px!important;min-height:25px!important;padding:0 8px!important;margin:0!important;
-    display:flex!important;align-items:center!important;box-sizing:border-box!important;
-  }
-  body.admin-route #desktopSide .desktop-extra-title span{font-size:9px!important}
-  body.admin-route #desktopSide .desktop-extra-columns{
-    height:19px!important;min-height:19px!important;padding:0 8px!important;margin:0!important;
-    align-items:center!important;box-sizing:border-box!important;
-  }
-  body.admin-route #desktopSide .desktop-extra-columns span{font-size:7px!important}
-  body.admin-route #desktopDovizRows,body.admin-route #desktopHurdaRows{
-    height:100%!important;min-height:0!important;overflow:hidden!important;
-    display:grid!important;grid-auto-rows:minmax(0,1fr)!important;
-  }
-  body.admin-route #desktopDovizRows>*,
-  body.admin-route #desktopHurdaRows>*{
-    height:auto!important;min-height:0!important;max-height:none!important;
-    margin:0!important;padding:0 8px!important;overflow:hidden!important;
-    display:grid!important;align-items:center!important;box-sizing:border-box!important;
-  }
-  body.admin-route #desktopSide .desktop-extra-name,
-  body.admin-route #desktopSide .extra-name,
-  body.admin-route #desktopSide .desktop-extra-value,
-  body.admin-route #desktopSide .extra-buy,
-  body.admin-route #desktopSide .extra-sell{
-    font-size:10px!important;line-height:1!important;
-  }
-}
-</style>
-
-
-<style id="asil-v42-logo-light">
-body.light-mode .header .logo,
-body.light .logo{
-  filter: brightness(0) saturate(100%) sepia(25%) saturate(650%)
-          hue-rotate(338deg) brightness(48%) contrast(96%)!important;
-}
-</style>
-
-
-<style id="asil-v44-pc-compact-colors">
-@media (min-width:901px){
-  /* Sağ paneli gereksiz geniş/seyrek olmaktan çıkar */
-  body.admin-route .desktop-layout{
-    grid-template-columns:minmax(0,1fr) 240px!important;
-    gap:7px!important;
-  }
-
-  body.admin-route #desktopSide{
-    width:240px!important;
-    max-width:240px!important;
-    height:100%!important;
-    min-height:0!important;
-    overflow:hidden!important;
-    display:grid!important;
-    grid-template-rows:
-      26px 20px auto
-      26px 20px auto!important;
-    align-content:start!important;
-  }
-
-  body.admin-route #desktopSide .desktop-extra-title{
-    height:26px!important;
-    min-height:26px!important;
-    padding:0 8px!important;
-    margin:0!important;
-    display:flex!important;
-    align-items:center!important;
-  }
-  body.admin-route #desktopSide .desktop-extra-title span{
-    font-size:10px!important;
-    line-height:1!important;
-  }
-
-  body.admin-route #desktopSide .desktop-extra-columns{
-    height:20px!important;
-    min-height:20px!important;
-    padding:0 8px!important;
-    margin:0!important;
-    align-items:center!important;
-  }
-  body.admin-route #desktopSide .desktop-extra-columns span{
-    font-size:8px!important;
-    line-height:1!important;
-  }
-
-  body.admin-route #desktopDovizRows,
-  body.admin-route #desktopHurdaRows{
-    height:auto!important;
-    min-height:0!important;
-    max-height:none!important;
-    overflow:hidden!important;
-    display:grid!important;
-    grid-auto-rows:30px!important;
-    align-content:start!important;
-  }
-
-  body.admin-route #desktopDovizRows > *,
-  body.admin-route #desktopHurdaRows > *{
-    height:30px!important;
-    min-height:30px!important;
-    max-height:30px!important;
-    margin:0!important;
-    padding:0 8px!important;
-    overflow:hidden!important;
-    align-items:center!important;
-    box-sizing:border-box!important;
-  }
-
-  body.admin-route #desktopSide .desktop-extra-name,
-  body.admin-route #desktopSide .extra-name,
-  body.admin-route #desktopSide .desktop-extra-value,
-  body.admin-route #desktopSide .extra-buy,
-  body.admin-route #desktopSide .extra-sell{
+  .upd-text{
     font-size:10.5px!important;
     line-height:1!important;
+    padding:5px 14px!important;
+    white-space:nowrap!important;
+  }
+  .upd-src{display:none!important}
+
+  #desktopSide{
+    position:static!important;
+    width:auto!important;
+    max-width:none!important;
+    min-width:310px!important;
+    height:100%!important;
+    min-height:0!important;
+    overflow:hidden!important;
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+    gap:8px!important;
+  }
+  body.admin-route #desktopSide,
+  body:not(.admin-route) #desktopSide.customer-side-visible{
+    display:grid!important;
+  }
+  body:not(.admin-route) #desktopSide:not(.customer-side-visible){
+    display:none!important;
   }
 
-  /* Altın fiyatlarında Alış / Satış daha net ayrışsın */
-  body.admin-route .price-row .alis{
-    color:#ff7f7a!important;
-    font-weight:900!important;
+  #desktopSide.two-panels{
+    grid-template-rows:minmax(0,1.08fr) minmax(0,.92fr)!important;
+  }
+  #desktopSide.one-panel{
+    grid-template-rows:minmax(0,1fr)!important;
+  }
+  #desktopSide .desktop-side-card{
+    position:static!important;
+    inset:auto!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    overflow:hidden!important;
+    display:grid!important;
+    grid-template-rows:36px 26px minmax(0,1fr)!important;
+    border-radius:14px!important;
+  }
+  #desktopSide .desktop-extra-title{
+    height:36px!important;
+    min-height:36px!important;
+    padding:0 10px!important;
+    display:flex!important;
+    align-items:center!important;
     font-size:14px!important;
-    letter-spacing:.1px!important;
   }
-  body.admin-route .price-row .satis{
-    color:#63d29b!important;
-    font-weight:900!important;
-    font-size:14px!important;
-    letter-spacing:.1px!important;
+  #desktopSide .desktop-extra-columns{
+    height:26px!important;
+    min-height:26px!important;
+    padding:0 10px!important;
   }
-  body.admin-route .price-row .kk{
-    color:#68b8f2!important;
+  #desktopSide .desktop-extra-columns span{
+    font-size:10px!important;
+  }
+  #desktopSide .desktop-side-rows{
+    height:100%!important;
+    min-height:0!important;
+    overflow:hidden!important;
+    display:grid!important;
+  }
+  #desktopSide .desktop-extra-row{
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    padding:1px 10px!important;
+    align-items:center!important;
+    overflow:hidden!important;
+  }
+  #desktopSide .desktop-extra-name{
+    font-size:var(--v88-side-name,13px)!important;
+    line-height:1!important;
     font-weight:900!important;
-    font-size:14px!important;
+  }
+  #desktopSide .desktop-extra-value{
+    font-size:var(--v88-side-val,16px)!important;
+    line-height:1!important;
+    font-weight:950!important;
+  }
+}
+
+/* =========================
+   MOBILE CUSTOMER EXTRAS
+   ========================= */
+@media (max-width:900px){
+  body:not(.admin-route) #adminEkstra.customer-extra-visible{
+    display:block!important;
+    background:#ffffff!important;
+    margin:10px 12px 16px!important;
+    padding:0!important;
+    border:0!important;
+    overflow:visible!important;
+  }
+  body:not(.admin-route) #adminEkstra:not(.customer-extra-visible){
+    display:none!important;
+  }
+  body:not(.admin-route) #adminEkstra .mobile-extra-card{
+    display:block!important;
+    background:#ffffff!important;
+    border:1px solid #d5dee5!important;
+    border-radius:14px!important;
+    overflow:hidden!important;
+    margin:0 0 10px!important;
+  }
+  body:not(.admin-route) #adminEkstra .mobile-extra-card.customer-card-hidden{
+    display:none!important;
+  }
+  body:not(.admin-route) #adminEkstra .extra-section-title{
+    height:40px!important;
+    padding:0 13px!important;
+    display:flex!important;
+    align-items:center!important;
+    background:#ffffff!important;
+    font-size:15px!important;
+    font-weight:900!important;
+  }
+  body:not(.admin-route) #adminEkstra .extra-columns{
+    height:30px!important;
+    padding:0 13px!important;
+    background:#f3f6f8!important;
+  }
+  body:not(.admin-route) #adminEkstra .extra-columns span{
+    font-size:11px!important;
+  }
+  body:not(.admin-route) #adminEkstra .extra-data-row{
+    min-height:48px!important;
+    padding:7px 13px!important;
+    background:#ffffff!important;
+  }
+  body:not(.admin-route) #adminEkstra .extra-data-row:nth-child(even){
+    background:#f7f9fb!important;
+  }
+  body:not(.admin-route) #adminEkstra .extra-name{
+    font-size:15px!important;
+    font-weight:900!important;
+  }
+  body:not(.admin-route) #adminEkstra .extra-buy,
+  body:not(.admin-route) #adminEkstra .extra-sell{
+    font-size:16px!important;
+    font-weight:950!important;
   }
 
-  body.admin-route .table-header span:nth-child(2){
-    color:#ff7f7a!important;
+  /* Main customer text slightly larger */
+  body:not(.admin-route) .price-row .birim{
+    font-size:17px!important;
     font-weight:900!important;
   }
-  body.admin-route .table-header span:nth-child(3){
-    color:#63d29b!important;
-    font-weight:900!important;
+  body:not(.admin-route) .price-row .alis,
+  body:not(.admin-route) .price-row .satis,
+  body:not(.admin-route) .price-row .kk{
+    font-size:19px!important;
+    font-weight:950!important;
   }
-  body.admin-route .table-header span:nth-child(4){
-    color:#68b8f2!important;
-    font-weight:900!important;
-  }
-
-  /* Yüzde değerleri ana rakamı boğmasın */
-  body.admin-route .price-row .alis .change-rate,
-  body.admin-route .price-row .satis .change-rate{
-    font-size:7px!important;
-    font-weight:800!important;
-    opacity:.95!important;
-  }
-
-  /* Açık modda daha koyu/kontrast renkler */
-  body.admin-route.light-mode .price-row .alis{
-    color:#b33f3f!important;
-  }
-  body.admin-route.light-mode .price-row .satis{
-    color:#137a55!important;
-  }
-  body.admin-route.light-mode .price-row .kk{
-    color:#2d6f9f!important;
-  }
-  body.admin-route.light-mode .table-header span:nth-child(2){
-    color:#b33f3f!important;
-  }
-  body.admin-route.light-mode .table-header span:nth-child(3){
-    color:#137a55!important;
-  }
-  body.admin-route.light-mode .table-header span:nth-child(4){
-    color:#2d6f9f!important;
+  body:not(.admin-route) .change-rate{
+    font-size:10px!important;
   }
 }
 </style>
 
 
-<style id="asil-v45-customer-colors">
-/* Müşteri ekranı: Alış yeşil, Satış kırmızı, K.Kartı mavi */
-body:not(.admin-route) .price-row .alis{
-  color:#ff7f7a!important;font-weight:900!important;
+<style id="egilmez-v91-admin-speed-css">
+/* Admin overlay tıklamada anında görünür */
+#overlay.open{visibility:visible!important;opacity:1!important}
+#overlay{will-change:opacity}
+.admin-panel,.admin-modal,.overlay-card{contain:layout paint style}
+</style>
+
+
+<style id="egilmez-v93-mobile-extra-fix">
+@media (max-width:900px){
+  /* Mobil admin: ikinci kopya olan desktop side tamamen kapalı */
+  body.admin-route #desktopSide,
+  body.admin-route .desktop-side{
+    display:none!important;
+  }
+
+  /* Mobil admin ana fiyat ekranında Döviz/Hurda yalnızca bir kez */
+  body.admin-route #adminEkstra{
+    display:block!important;
+    margin:10px 12px 16px!important;
+  }
+  body.admin-route #adminEkstra .mobile-extra-card{
+    display:block!important;
+  }
+
+  /* Müşteri: seçime göre tek mobil blok görünür */
+  body:not(.admin-route) #desktopSide,
+  body:not(.admin-route) .desktop-side{
+    display:none!important;
+  }
+  body:not(.admin-route) #adminEkstra.customer-extra-visible{
+    display:block!important;
+  }
+  body:not(.admin-route) #adminEkstra:not(.customer-extra-visible){
+    display:none!important;
+  }
+  body:not(.admin-route) #adminEkstra .mobile-extra-card.customer-card-hidden{
+    display:none!important;
+  }
 }
-body:not(.admin-route) .price-row .satis{
-  color:#63d29b!important;font-weight:900!important;
+
+/* Admin ayar başlıklarını karıştırmamak için net ayır */
+.sec-title{
+  scroll-margin-top:12px;
 }
-body:not(.admin-route) .price-row .kk{
-  color:#68b8f2!important;font-weight:900!important;
+</style>
+
+
+<style id="egilmez-v94-mobile-admin-single-extra">
+@media (max-width:900px){
+  /* Mobil admin: sadece TEK Döviz/Hurda bloğu */
+  body.admin-route #desktopSide,
+  body.admin-route .desktop-side,
+  body.admin-route #desktopDovizCard,
+  body.admin-route #desktopHurdaCard{
+    display:none!important;
+    visibility:hidden!important;
+    height:0!important;
+    min-height:0!important;
+    max-height:0!important;
+    overflow:hidden!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+  }
+
+  body.admin-route #adminEkstra{
+    display:block!important;
+    visibility:visible!important;
+    height:auto!important;
+    max-height:none!important;
+    overflow:visible!important;
+    margin:10px 12px 16px!important;
+    padding:0!important;
+  }
+
+  body.admin-route #adminEkstra .mobile-extra-card{
+    display:block!important;
+    visibility:visible!important;
+    height:auto!important;
+    max-height:none!important;
+    overflow:hidden!important;
+  }
+
+  /* Aynı başlığın/section'ın legacy kopyası varsa gizle */
+  body.admin-route .desktop-layout > #adminEkstra ~ #adminEkstra,
+  body.admin-route #adminEkstra + #adminEkstra{
+    display:none!important;
+  }
 }
-body:not(.admin-route) .table-header span:nth-child(2){
-  color:#ff7f7a!important;font-weight:900!important;
-}
-body:not(.admin-route) .table-header span:nth-child(3){
-  color:#63d29b!important;font-weight:900!important;
-}
-body:not(.admin-route) .table-header span:nth-child(4){
-  color:#68b8f2!important;font-weight:900!important;
-}
-body:not(.admin-route).light-mode .price-row .alis,
-body:not(.admin-route).light-mode .table-header span:nth-child(2){color:#b33f3f!important}
-body:not(.admin-route).light-mode .price-row .satis,
-body:not(.admin-route).light-mode .table-header span:nth-child(3){color:#137a55!important}
-body:not(.admin-route).light-mode .price-row .kk,
-body:not(.admin-route).light-mode .table-header span:nth-child(4){color:#2d6f9f!important}
 </style>
 
 </head>
@@ -2079,12 +1693,16 @@ body:not(.admin-route).light-mode .table-header span:nth-child(4){color:#2d6f9f!
 
 <!-- Sadece admin modunda görünür -->
 <div id="adminEkstra" style="display:none">
-  <div class="extra-section-title extra-doviz-title"><span>💱 Döviz Kurları</span></div>
-  <div class="extra-columns"><span>Döviz</span><span>Alış</span><span>Satış</span></div>
-  <div id="ekstraDovizRows"></div>
-  <div class="extra-section-title extra-hurda-title"><span>🔩 Hurda Altın</span></div>
-  <div class="extra-columns"><span>Tür</span><span>Alış</span><span>Satış</span></div>
-  <div id="ekstraHurdaRows"></div>
+  <section class="mobile-extra-card" id="mobileDovizCard">
+    <div class="extra-section-title extra-doviz-title"><span>💱 Döviz Kurları</span></div>
+    <div class="extra-columns"><span>Döviz</span><span>Alış</span><span>Satış</span></div>
+    <div id="ekstraDovizRows"></div>
+  </section>
+  <section class="mobile-extra-card" id="mobileHurdaCard">
+    <div class="extra-section-title extra-hurda-title"><span>🔩 Hurda Altın</span></div>
+    <div class="extra-columns"><span>Tür</span><span>Alış</span><span>Satış</span></div>
+    <div id="ekstraHurdaRows"></div>
+  </section>
 </div>
 
 
@@ -2126,12 +1744,16 @@ body:not(.admin-route).light-mode .table-header span:nth-child(4){color:#2d6f9f!
 
 <!-- Masaüstü sağ panel: döviz + hurda -->
 <div class="desktop-side" id="desktopSide" style="display:none">
-  <div class="extra-section-title extra-doviz-title desktop-extra-title"><span>💱 Döviz Kurları</span></div>
-  <div class="extra-columns desktop-extra-columns"><span>Döviz</span><span>Alış</span><span>Satış</span></div>
-  <div id="desktopDovizRows"></div>
-  <div class="extra-section-title extra-hurda-title desktop-extra-title"><span>🔩 Hurda Altın</span></div>
-  <div class="extra-columns desktop-extra-columns"><span>Tür</span><span>Alış</span><span>Satış</span></div>
-  <div id="desktopHurdaRows"></div>
+  <section class="desktop-side-card" id="desktopDovizCard">
+    <div class="extra-section-title extra-doviz-title desktop-extra-title"><span>💱 Döviz Kurları</span></div>
+    <div class="extra-columns desktop-extra-columns"><span>Döviz</span><span>Alış</span><span>Satış</span></div>
+    <div class="desktop-side-rows" id="desktopDovizRows"></div>
+  </section>
+  <section class="desktop-side-card" id="desktopHurdaCard">
+    <div class="extra-section-title extra-hurda-title desktop-extra-title"><span>🔩 Hurda Altın</span></div>
+    <div class="extra-columns desktop-extra-columns"><span>Tür</span><span>Alış</span><span>Satış</span></div>
+    <div class="desktop-side-rows" id="desktopHurdaRows"></div>
+  </section>
 </div>
 </div><!-- desktop-layout -->
 
@@ -2254,7 +1876,46 @@ body:not(.admin-route).light-mode .table-header span:nth-child(4){color:#2d6f9f!
       </div>
     </div>
 
-    <div class="sec-title">TV Ekranı Linki</div>
+    <div class="sec-title">👥 Müşteri Ekranı Görünüm Ayarları</div>
+    <div class="admin-row">
+      <span class="row-label">Döviz Kurlarını Göster</span>
+      <label class="tv-opt-switch">
+        <input type="checkbox" id="aCustomerShowDoviz">
+        <span class="tv-opt-slider"></span>
+      </label>
+    </div>
+    <div class="admin-row">
+      <span class="row-label">Hurda Altını Göster</span>
+      <label class="tv-opt-switch">
+        <input type="checkbox" id="aCustomerShowHurda">
+        <span class="tv-opt-slider"></span>
+      </label>
+    </div>
+    <div class="hint-box" style="margin-bottom:4px">
+      Müşteri ekranında Döviz ve Hurda bölümlerini ayrı ayrı açıp kapatabilirsin.
+    </div>
+
+    
+    <div class="sec-title">📺 TV Ekranı Görünüm Ayarları</div>
+    <div class="admin-row">
+      <span class="row-label">Döviz Kurlarını Göster</span>
+      <label class="tv-opt-switch">
+        <input type="checkbox" id="aTvShowDoviz">
+        <span class="tv-opt-slider"></span>
+      </label>
+    </div>
+    <div class="admin-row">
+      <span class="row-label">Hurda Altını Göster</span>
+      <label class="tv-opt-switch">
+        <input type="checkbox" id="aTvShowHurda">
+        <span class="tv-opt-slider"></span>
+      </label>
+    </div>
+    <div class="hint-box" style="margin-bottom:4px">
+      TV ekranında istersen sadece altın fiyatlarını, istersen Döviz ve Hurda panelleriyle birlikte gösterebilirsin.
+    </div>
+
+<div class="sec-title">TV Ekranı Linki</div>
     <div class="share-box" style="background:#101826;border-color:#203a5a">
       <p>📺 TV'de bu adresi açın</p>
       <span class="share-link" id="tvLink">Yükleniyor...</span>
@@ -2325,7 +1986,7 @@ var APP_ID = 'asil-kuyumculuk-v2';
 function makeDefaults() {
   var l = {};
   ITEMS.forEach(function(i) { l[i.id] = { a: i.defA, s: i.defS }; });
-  return { appId:APP_ID, shopName:'ASİL KUYUMCULUK', shopPhone:'', logoData:'', theme:'dark', labor:l, customItems:[], kkOran:0 };
+  return { appId:APP_ID, shopName:'ASİL KUYUMCULUK', shopPhone:'', logoData:'', theme:'dark', labor:l, customItems:[], kkOran:0, tvShowDoviz:true, tvShowHurda:true };
 }
 
 // Aktif urun listesini dondur (varsayilan + ozel, gizliler haric)
@@ -2362,6 +2023,13 @@ function parseHash() {
 
 // ── FIREBASE AYARLARI ─────────────────────────────────────────────────────────
 var FIREBASE_URL = 'https://asil-kuyumculuk-2feb6-default-rtdb.firebaseio.com/ayarlar.json';
+var TV_CONFIG_URL = 'https://asil-kuyumculuk-2feb6-default-rtdb.firebaseio.com/tvDisplay.json';
+var CUSTOMER_CONFIG_URL = 'https://asil-kuyumculuk-2feb6-default-rtdb.firebaseio.com/customerDisplay.json';
+var customerDisplayConfig = { showDoviz:true, showHurda:true };
+var CUSTOMER_DISPLAY_CACHE_KEY = 'asil_customer_display_v50';
+
+var tvDisplayConfig = { showDoviz:true, showHurda:true };
+
 
 // Admin şifresi — Firebase'den yüklenir
 var ADMIN_PASS = '1234';
@@ -2388,14 +2056,14 @@ applyTVMode();
 updateModBtn();
 
 function checkAdminSession() {
-  return sessionStorage.getItem('egilmez_admin_v1') === '1';
+  return sessionStorage.getItem('asil_admin_v1') === '1';
 }
 
 function openAdminLogin() {
   var pass = prompt('Yönetici şifresi:');
   if (pass === null) return;
   if (pass === ADMIN_PASS) {
-    sessionStorage.setItem('egilmez_admin_v1', '1');
+    sessionStorage.setItem('asil_admin_v1', '1');
     IS_ADMIN = true;
     openAdmin();
   } else {
@@ -2424,7 +2092,7 @@ function jsonbinLoad(cb) {
 function loadSettings() {
   // Bu uygulama kendi alanında saklanır; Asil veya başka kuyumcunun ayarları alınmaz.
   var local = null;
-  try { local = JSON.parse(localStorage.getItem('gp10') || 'null'); } catch(e) { local = null; }
+  try { local = JSON.parse(localStorage.getItem('asil_settings_v2') || 'null'); } catch(e) { local = null; }
   if (!local || local.appId !== APP_ID) local = null;
   var s = local || makeDefaults();
   s.appId = APP_ID;
@@ -2438,15 +2106,17 @@ if (typeof settings.logoData !== 'string') settings.logoData = '';
 if (typeof settings.customLogoEnabled !== 'boolean') settings.customLogoEnabled = false;
 if (!settings.theme) settings.theme = 'dark';
 if (typeof settings.shopPhone !== 'string') settings.shopPhone = '';
-var hasAlis  = parseFloat(localStorage.getItem('gp10_ha') || '0') || null;
-var hasSatis = parseFloat(localStorage.getItem('gp10_hs') || '0') || null;
+    if (typeof settings.tvShowDoviz !== 'boolean') settings.tvShowDoviz = true;
+    if (typeof settings.tvShowHurda !== 'boolean') settings.tvShowHurda = true;
+var hasAlis  = parseFloat(localStorage.getItem('asil_ha_v1') || '0') || null;
+var hasSatis = parseFloat(localStorage.getItem('asil_hs_v1') || '0') || null;
 var prevPrices = {};
 var aktifMod = 'normal';
 var tvMode = FORCE_TV;
 
 function toggleMod() {
   aktifMod = aktifMod === 'normal' ? 'hareketli' : 'normal';
-  localStorage.setItem('gp10_mod', aktifMod);
+  localStorage.setItem('asil_mod_v1', aktifMod);
   try { settings.aktifMod = aktifMod; } catch(e) {}
   try {
     jsonbinSave(settings, function(){});
@@ -2475,8 +2145,8 @@ function applyTVMode() {
     document.body.classList.add('tv-mode');
   } else if (!isAdmin) {
     tvMode = false;
-    try { localStorage.removeItem('egilmez_tv_v1'); } catch(e) {}
-    try { sessionStorage.removeItem('egilmez_tv_v1'); } catch(e) {}
+    try { localStorage.removeItem('asil_tv_v1'); } catch(e) {}
+    try { sessionStorage.removeItem('asil_tv_v1'); } catch(e) {}
     document.body.classList.remove('tv-mode');
   } else {
     document.body.classList.remove('tv-mode');
@@ -2656,8 +2326,8 @@ function applyPrices(a, s) {
   s = s + (parseFloat(settings.hasDuzS) || 0);
   if (!a || a < 100) return false;
   hasAlis = a; hasSatis = s;
-  localStorage.setItem('gp10_ha', a);
-  localStorage.setItem('gp10_hs', s);
+  localStorage.setItem('asil_ha_v1', a);
+  localStorage.setItem('asil_hs_v1', s);
   setStatus(true);
   renderTable();
   return true;
@@ -2702,20 +2372,222 @@ function fetchPrices() {
 }
 
 // ── YÖNETİCİ ─────────────────────────────────────────────────────────────────
+
+function normalizeTvDisplay(data){
+  data = data && typeof data === 'object' ? data : {};
+  return {
+    showDoviz: data.showDoviz !== false,
+    showHurda: data.showHurda !== false
+  };
+}
+
+function applyTvDisplayToAdmin(data){
+  tvDisplayConfig = normalizeTvDisplay(data);
+  settings.tvShowDoviz = tvDisplayConfig.showDoviz;
+  settings.tvShowHurda = tvDisplayConfig.showHurda;
+
+  var d = document.getElementById('aTvShowDoviz');
+  var h = document.getElementById('aTvShowHurda');
+  if (d) d.checked = tvDisplayConfig.showDoviz;
+  if (h) h.checked = tvDisplayConfig.showHurda;
+}
+
+function loadTvDisplayConfig(cb){
+  fetch(TV_CONFIG_URL + '?v=' + Date.now(), {cache:'no-store'})
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(data){
+      applyTvDisplayToAdmin(data);
+      if(cb) cb(tvDisplayConfig);
+    })
+    .catch(function(){
+      if(cb) cb(tvDisplayConfig);
+    });
+}
+
+function saveTvDisplayConfig(showDoviz, showHurda, cb){
+  var payload = {
+    showDoviz: !!showDoviz,
+    showHurda: !!showHurda,
+    updatedAt: Date.now()
+  };
+  fetch(TV_CONFIG_URL, {
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  }).then(function(r){
+    if(!r.ok) throw new Error('TV config save failed');
+    return r.json();
+  }).then(function(){
+    applyTvDisplayToAdmin(payload);
+    if(cb) cb(true);
+  }).catch(function(){
+    if(cb) cb(false);
+  });
+}
+
+/* TV seçenekleri değiştiği anda buluta yazılır.
+   Böylece farklı admin cihazları birbirinin eski ayarını ezmez. */
+function bindTvDisplayControls(){
+  var d = document.getElementById('aTvShowDoviz');
+  var h = document.getElementById('aTvShowHurda');
+  if(!d || !h || d.dataset.bound === '1') return;
+  d.dataset.bound = h.dataset.bound = '1';
+
+  function push(){
+    saveTvDisplayConfig(d.checked, h.checked, function(ok){
+      showToast(ok ? '✅ TV görünümü güncellendi' : '⚠ TV görünümü kaydedilemedi');
+    });
+  }
+  d.addEventListener('change', push);
+  h.addEventListener('change', push);
+}
+
+
+function normalizeCustomerDisplay(data){
+  data = data && typeof data === 'object' ? data : {};
+  return {
+    showDoviz: data.showDoviz !== false,
+    showHurda: data.showHurda !== false
+  };
+}
+function applyCustomerDisplayToAdmin(data){
+  customerDisplayConfig = normalizeCustomerDisplay(data);
+  try{ localStorage.setItem(CUSTOMER_DISPLAY_CACHE_KEY, JSON.stringify(customerDisplayConfig)); }catch(e){}
+  var d=document.getElementById('aCustomerShowDoviz');
+  var h=document.getElementById('aCustomerShowHurda');
+  if(d)d.checked=customerDisplayConfig.showDoviz;
+  if(h)h.checked=customerDisplayConfig.showHurda;
+  applyCustomerDisplayLayout();
+}
+function loadCustomerDisplayConfig(cb){
+  fetch(CUSTOMER_CONFIG_URL+'?v='+Date.now(),{cache:'no-store'})
+    .then(function(r){if(!r.ok)throw new Error('customer config');return r.json()})
+    .then(function(data){
+      if(data && typeof data==='object') applyCustomerDisplayToAdmin(data);
+      try{renderEkstraDoviz();renderEkstraHurda();renderDesktopPanel();}catch(e){}
+      applyCustomerDisplayLayout();
+      if(cb)cb(customerDisplayConfig);
+    })
+    .catch(function(){
+      applyCustomerDisplayLayout();
+      if(cb)cb(customerDisplayConfig);
+    });
+}
+function saveCustomerDisplayConfig(showDoviz,showHurda,cb){
+  var payload={showDoviz:!!showDoviz,showHurda:!!showHurda,updatedAt:Date.now()};
+  customerDisplayConfig=normalizeCustomerDisplay(payload);
+  try{localStorage.setItem(CUSTOMER_DISPLAY_CACHE_KEY,JSON.stringify(customerDisplayConfig));}catch(e){}
+  applyCustomerDisplayLayout();
+  fetch(CUSTOMER_CONFIG_URL,{
+    method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
+  }).then(function(r){if(!r.ok)throw new Error('customer display save');return r.json()})
+    .then(function(){applyCustomerDisplayToAdmin(payload);if(cb)cb(true)})
+    .catch(function(){if(cb)cb(false)});
+}
+function bindCustomerDisplayControls(){
+  var d=document.getElementById('aCustomerShowDoviz');
+  var h=document.getElementById('aCustomerShowHurda');
+  if(!d||!h||d.dataset.bound==='1')return;
+  d.dataset.bound=h.dataset.bound='1';
+  function push(){
+    saveCustomerDisplayConfig(d.checked,h.checked,function(ok){
+      showToast(ok?'✅ Müşteri görünümü güncellendi':'⚠ Müşteri görünümü kaydedilemedi');
+    });
+  }
+  d.addEventListener('change',push);h.addEventListener('change',push);
+}
+function applyCustomerDisplayLayout(){
+  var isAdmin=document.body.classList.contains('admin-route');
+  var showD=isAdmin ? true : customerDisplayConfig.showDoviz!==false;
+  var showH=isAdmin ? true : customerDisplayConfig.showHurda!==false;
+
+  var side=document.getElementById('desktopSide');
+  var dCard=document.getElementById('desktopDovizCard');
+  var hCard=document.getElementById('desktopHurdaCard');
+  var mobile=document.getElementById('adminEkstra');
+  var md=document.getElementById('mobileDovizCard');
+  var mh=document.getElementById('mobileHurdaCard');
+  var layout=document.querySelector('.desktop-layout');
+  var any=showD||showH;
+
+  if(dCard){
+    dCard.classList.toggle('customer-card-hidden',!showD);
+    dCard.style.setProperty('display',showD?'grid':'none','important');
+  }
+  if(hCard){
+    hCard.classList.toggle('customer-card-hidden',!showH);
+    hCard.style.setProperty('display',showH?'grid':'none','important');
+  }
+  if(md){
+    md.classList.toggle('customer-card-hidden',!showD);
+    md.style.setProperty('display',showD?'block':'none','important');
+  }
+  if(mh){
+    mh.classList.toggle('customer-card-hidden',!showH);
+    mh.style.setProperty('display',showH?'block':'none','important');
+  }
+
+  if(side){
+    side.classList.toggle('customer-side-visible',(!isAdmin && any));
+    side.classList.toggle('two-panels',showD&&showH);
+    side.classList.toggle('one-panel',any && !(showD&&showH));
+    if(isAdmin){
+      side.style.setProperty('display','grid','important');
+    }else{
+      side.style.setProperty('display',(innerWidth>=901&&any)?'grid':'none','important');
+    }
+  }
+
+  if(mobile){
+    mobile.classList.toggle('customer-extra-visible',(!isAdmin && innerWidth<901 && any));
+    if(!isAdmin){
+      mobile.style.setProperty('display',(innerWidth<901&&any)?'block':'none','important');
+    }
+  }
+
+  if(layout){
+    layout.classList.toggle('side-hidden',(!isAdmin && !any));
+    layout.classList.toggle('side-single',any && !(showD&&showH));
+  }
+
+  /* Sadece görünürlüğü yönet. Veri render fonksiyonları ayrı çalışır. */
+}
+
 function openAdmin() {
-  document.getElementById('aName').value  = settings.shopName;
-  document.getElementById('aPhone').value = settings.shopPhone || '';
-  var themeSel = document.getElementById('aTheme'); if (themeSel) themeSel.value = settings.theme || 'dark';
-  document.getElementById('aKK').value    = (settings.kkOran || 0).toFixed(2);
-  document.getElementById('aHasDuzA').value = settings.hasDuzA || 0;
-  document.getElementById('aHasDuzS').value = settings.hasDuzS || 0;
-  document.getElementById('adminHasA').textContent = hasAlis  ? fmt(Math.round(hasAlis))  + ' ₺' : '—';
-  document.getElementById('adminHasS').textContent = hasSatis ? fmt(Math.round(hasSatis)) + ' ₺' : '—';
-  updateCustomerLink();
-  renderAdminRows();
-  renderAdminDoviz();
-  renderAdminHurda();
-  document.getElementById('overlay').classList.add('open');
+  /* Paneli önce aç: kullanıcı tıklayınca anında cevap versin. */
+  var overlay = document.getElementById('overlay');
+  if (overlay) overlay.classList.add('open');
+
+  /* Ağ ayarlarını arka planda al; panel açılışını bekletme. */
+  try { loadTvDisplayConfig(function(){ bindTvDisplayControls(); }); } catch(e) {}
+  try { loadCustomerDisplayConfig(function(){ bindCustomerDisplayControls(); }); } catch(e) {}
+
+  /* Hafif alanları hemen doldur. */
+  try {
+    document.getElementById('aName').value  = settings.shopName;
+    document.getElementById('aPhone').value = settings.shopPhone || '';
+    var themeSel = document.getElementById('aTheme');
+    if (themeSel) themeSel.value = settings.theme || 'dark';
+    document.getElementById('aKK').value = (settings.kkOran || 0).toFixed(2);
+    document.getElementById('aHasDuzA').value = settings.hasDuzA || 0;
+    document.getElementById('aHasDuzS').value = settings.hasDuzS || 0;
+    document.getElementById('adminHasA').textContent = hasAlis ? fmt(Math.round(hasAlis)) + ' ₺' : '—';
+    document.getElementById('adminHasS').textContent = hasSatis ? fmt(Math.round(hasSatis)) + ' ₺' : '—';
+    updateCustomerLink();
+  } catch(e) {}
+
+  /* Büyük admin listelerini ilk ekran çizildikten sonra hazırla. */
+  var heavyRender = function(){
+    try { renderAdminRows(); } catch(e) {}
+    try { renderAdminDoviz(); } catch(e) {}
+    try { renderAdminHurda(); } catch(e) {}
+  };
+
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(heavyRender, {timeout:180});
+  } else {
+    requestAnimationFrame(function(){ setTimeout(heavyRender, 0); });
+  }
 }
 function closeAdmin() { document.getElementById('overlay').classList.remove('open'); }
 
@@ -2723,7 +2595,7 @@ function updateCustomerLink() {
   var base = window.location.href.split('?')[0].split('#')[0];
   document.getElementById('customerLink').textContent = base;
   document.getElementById('customerLink').dataset.url = base;
-  var tvUrl = base.replace(/[^\/]*$/,'') + 'tv.html?v=42';
+  var tvUrl = base.replace(/[^\/]*$/,'') + 'tv.html?v=95';
   var tvEl = document.getElementById('tvLink');
   if (tvEl) {
     tvEl.textContent = tvUrl;
@@ -2846,7 +2718,7 @@ function moveItem(id, direction) {
   order[newIdx] = tmp;
   settings.itemOrder = order;
 
-  try { localStorage.setItem('gp10', JSON.stringify(settings)); } catch(e) {}
+  try { localStorage.setItem('asil_settings_v2', JSON.stringify(settings)); } catch(e) {}
 
   /* Önce ekranı anında güncelle, sonra Firebase'e yaz. */
   try { renderUrunList(); } catch(e) {}
@@ -2883,7 +2755,7 @@ function toggleUrun(id) {
 
 
 function persistQuickSettings(msg) {
-  try { localStorage.setItem('gp10', JSON.stringify(settings)); } catch(e) {}
+  try { localStorage.setItem('asil_settings_v2', JSON.stringify(settings)); } catch(e) {}
   jsonbinSave(settings, function(ok) {
     if (msg) showToast(ok ? msg : (msg + ' (yerel kaydedildi)'));
   });
@@ -2993,6 +2865,11 @@ function saveAdmin() {
   settings.kkOran    = parseFloat(document.getElementById('aKK').value) || 0;
   settings.hasDuzA   = parseFloat(document.getElementById('aHasDuzA').value) || 0;
   settings.hasDuzS   = parseFloat(document.getElementById('aHasDuzS').value) || 0;
+  var tvD = document.getElementById('aTvShowDoviz');
+  var tvH = document.getElementById('aTvShowHurda');
+  settings.tvShowDoviz = tvD ? !!tvD.checked : tvDisplayConfig.showDoviz;
+  settings.tvShowHurda = tvH ? !!tvH.checked : tvDisplayConfig.showHurda;
+  saveTvDisplayConfig(settings.tvShowDoviz, settings.tvShowHurda, function(){});
   // Şifre değiştir
   var p1 = document.getElementById('aNewPass').value;
   var p2 = document.getElementById('aNewPass2').value;
@@ -3027,7 +2904,7 @@ function saveAdmin() {
     settings.hurdaCarp[h.id+'A'] = parseFloat(document.getElementById('hurdaA_'+h.id).value) || h.oran;
     settings.hurdaCarp[h.id+'S'] = parseFloat(document.getElementById('hurdaS_'+h.id).value) || h.oran;
   });
-  localStorage.setItem('gp10', JSON.stringify(settings));
+  localStorage.setItem('asil_settings_v2', JSON.stringify(settings));
   // Cihazın tema tercihini koru; admin kaydı temayı zorla değiştirmesin.
   applyTheme(); applyShopLogo();
   renderTable();
@@ -3041,7 +2918,7 @@ function saveAdmin() {
 function resetAdmin() {
   if (!confirm('Sıfırlansın mı?')) return;
   settings = makeDefaults();
-  localStorage.removeItem('gp10');
+  localStorage.removeItem('asil_settings_v2');
   document.getElementById('priceRows').innerHTML = '';
   renderTable(); closeAdmin();
   showToast('↺ Sıfırlandı');
@@ -3068,7 +2945,7 @@ function shareWA() {
 
 function copyTVLink() {
   var el = document.getElementById('tvLink');
-  var link = (el && (el.dataset.url || el.textContent)) || (window.location.href.split('?')[0].split('#')[0].replace(/[^\/]*$/,'') + 'tv.html?v=42');
+  var link = (el && (el.dataset.url || el.textContent)) || (window.location.href.split('?')[0].split('#')[0].replace(/[^\/]*$/,'') + 'tv.html?v=95');
   if (navigator.clipboard) {
     navigator.clipboard.writeText(link).then(function(){ showToast('✓ TV linki kopyalandı'); });
   } else {
@@ -3081,7 +2958,7 @@ function copyTVLink() {
 
 function openTVScreen() {
   var el = document.getElementById('tvLink');
-  var link = (el && (el.dataset.url || el.textContent)) || (window.location.href.split('?')[0].split('#')[0].replace(/[^\/]*$/,'') + 'tv.html?v=42');
+  var link = (el && (el.dataset.url || el.textContent)) || (window.location.href.split('?')[0].split('#')[0].replace(/[^\/]*$/,'') + 'tv.html?v=95');
   window.open(link, '_blank');
 }
 
@@ -3133,14 +3010,14 @@ jsonbinLoad(function(cloud) {
     if (settings.adminPass) ADMIN_PASS = settings.adminPass;
     if (settings.aktifMod) aktifMod = settings.aktifMod;
     updateModBtn();
-    localStorage.setItem('gp10', JSON.stringify(settings));
+    localStorage.setItem('asil_settings_v2', JSON.stringify(settings));
     document.getElementById('priceRows').innerHTML = '';
     renderTable();
     refreshAdminDataViews();
   } else if (cloud && cloud.appId !== APP_ID) {
     // Yeni Firebase'e başka uygulamadan taşınmış/eski veri geldiyse temiz Eğilmez ayarını başlat.
     settings = makeDefaults();
-    try { localStorage.setItem('gp10', JSON.stringify(settings)); } catch(e) {}
+    try { localStorage.setItem('asil_settings_v2', JSON.stringify(settings)); } catch(e) {}
     try { jsonbinSave(settings, function(){}); } catch(e) {}
     document.getElementById('priceRows').innerHTML = '';
     renderTable();
@@ -3306,45 +3183,37 @@ function renderAdminHurda() {
 }
 
 function renderDesktopPanel() {
-  var side = document.getElementById('desktopSide');
-  if (!side) return;
-  // Sadece admin modunda ve geniş ekranda göster
-  var isAdmin = window.location.search.indexOf('admin') !== -1;
-  var isDesktop = window.innerWidth >= 768;
-  side.style.display = (isAdmin && isDesktop) ? 'flex' : 'none';
-  if (!isAdmin || !isDesktop) return;
-  side.style.flexDirection = 'column';
-  if (!liveDoviz) liveDoviz = {};
+  var dEl=document.getElementById('desktopDovizRows');
+  var hEl=document.getElementById('desktopHurdaRows');
+  if(!dEl||!hEl)return;
+  if(!liveDoviz)liveDoviz={};
 
-  // Döviz
-  var dovizHtml = '';
-  DOVIZLER.forEach(function(d) {
-    var duzA  = parseFloat((settings.dovizDuz && settings.dovizDuz[d.id+'A']) || 0);
-    var duzS  = parseFloat((settings.dovizDuz && settings.dovizDuz[d.id+'S']) || 0);
-    var alis  = liveDoviz[d.id+'Alis']  ? (liveDoviz[d.id+'Alis']  + duzA).toFixed(2) : '—';
-    var satis = liveDoviz[d.id+'Satis'] ? (liveDoviz[d.id+'Satis'] + duzS).toFixed(2) : '—';
-    dovizHtml += '<div class="extra-data-row desktop-extra-row">'
-      + '<span class="extra-name desktop-extra-name">' + d.flag + ' ' + d.label + '</span>'
-      + '<span class="extra-buy desktop-extra-value">' + alis + '</span>'
-      + '<span class="extra-sell desktop-extra-value">' + satis + '</span>'
-      + '</div>';
+  var dhtml='';
+  DOVIZLER.forEach(function(d){
+    var duzA=parseFloat((settings.dovizDuz&&settings.dovizDuz[d.id+'A'])||0);
+    var duzS=parseFloat((settings.dovizDuz&&settings.dovizDuz[d.id+'S'])||0);
+    var alis=liveDoviz[d.id+'Alis']?(liveDoviz[d.id+'Alis']+duzA).toFixed(2):'—';
+    var satis=liveDoviz[d.id+'Satis']?(liveDoviz[d.id+'Satis']+duzS).toFixed(2):'—';
+    dhtml+='<div class="extra-data-row desktop-extra-row">'
+      +'<span class="extra-name desktop-extra-name">'+d.flag+' '+d.label+'</span>'
+      +'<span class="extra-buy desktop-extra-value">'+alis+'</span>'
+      +'<span class="extra-sell desktop-extra-value">'+satis+'</span></div>';
   });
-  document.getElementById('desktopDovizRows').innerHTML = dovizHtml;
+  dEl.innerHTML=dhtml;
 
-  // Hurda
-  var hurdaHtml = '';
-  HURDALAR.forEach(function(h) {
-    var carpA = parseFloat((settings.hurdaCarp && settings.hurdaCarp[h.id+'A']) || h.oran * 0.99);
-    var carpS = parseFloat((settings.hurdaCarp && settings.hurdaCarp[h.id+'S']) || h.oran);
-    var alis  = hasAlis  ? fmt(Math.round(hasAlis  * carpA)) : '—';
-    var satis = hasSatis ? fmt(Math.round(hasSatis * carpS)) : '—';
-    hurdaHtml += '<div class="extra-data-row desktop-extra-row">'
-      + '<span class="extra-name desktop-extra-name">' + h.label + '</span>'
-      + '<span class="extra-buy desktop-extra-value">' + alis + '</span>'
-      + '<span class="extra-sell desktop-extra-value">' + satis + '</span>'
-      + '</div>';
+  var hhtml='';
+  HURDALAR.forEach(function(h){
+    var carpA=parseFloat((settings.hurdaCarp&&settings.hurdaCarp[h.id+'A'])||h.oran*.99);
+    var carpS=parseFloat((settings.hurdaCarp&&settings.hurdaCarp[h.id+'S'])||h.oran);
+    var alis=hasAlis?fmt(Math.round(hasAlis*carpA)):'—';
+    var satis=hasSatis?fmt(Math.round(hasSatis*carpS)):'—';
+    hhtml+='<div class="extra-data-row desktop-extra-row">'
+      +'<span class="extra-name desktop-extra-name">'+h.label+'</span>'
+      +'<span class="extra-buy desktop-extra-value">'+alis+'</span>'
+      +'<span class="extra-sell desktop-extra-value">'+satis+'</span></div>';
   });
-  document.getElementById('desktopHurdaRows').innerHTML = hurdaHtml;
+  hEl.innerHTML=hhtml;
+  applyCustomerDisplayLayout();
 }
 
 function renderEkstraDoviz() {
@@ -3387,31 +3256,13 @@ function renderEkstraHurda() {
   el.innerHTML = html;
 }
 
-// hareketli/normal mod canlı senkron
-setInterval(function() {
-  try {
-    if (typeof jsonbinLoad === 'function') {
-      jsonbinLoad(function(data) {
-        if (!data) return;
-        if (isAdminEditing()) return;
-        if (data.aktifMod && data.aktifMod !== aktifMod) {
-          aktifMod = data.aktifMod;
-          try { localStorage.setItem('gp10_mod', aktifMod); } catch(e) {}
-          updateModBtn();
-          try { document.getElementById('priceRows').innerHTML = ''; } catch(e) {}
-          try { renderTable(); } catch(e) {}
-        }
-      });
-    }
-  } catch(e) {}
-}, 2000);
-
+/* Hareketli/normal mod ayrı 2sn polling kaldırıldı; ana canlı senkron bunu zaten yönetiyor. */
 </script>
 
 <script>
 (function(){
   try {
-    var aktifMod = localStorage.getItem('gp10_mod') || 'normal';
+    var aktifMod = localStorage.getItem('asil_mod_v1') || 'normal';
 
     window.updateModBtn = function() {
       var btn = document.getElementById('modBtn');
@@ -3427,7 +3278,7 @@ setInterval(function() {
 
     window.toggleMod = function() {
       aktifMod = aktifMod === 'normal' ? 'hareketli' : 'normal';
-      localStorage.setItem('gp10_mod', aktifMod);
+      localStorage.setItem('asil_mod_v1', aktifMod);
       if (typeof settings !== 'undefined') {
         settings.aktifMod = aktifMod;
         try { jsonbinSave(settings, function(){}); } catch(e){}
@@ -3492,12 +3343,14 @@ setInterval(function() {
 
     try {
       settings = data;
-      try { localStorage.setItem('gp10', JSON.stringify(settings)); } catch(e) {}
+      settings.tvShowDoviz = tvDisplayConfig.showDoviz;
+      settings.tvShowHurda = tvDisplayConfig.showHurda;
+      try { localStorage.setItem('asil_settings_v2', JSON.stringify(settings)); } catch(e) {}
 
       if (data.adminPass) ADMIN_PASS = data.adminPass;
       if (data.aktifMod && data.aktifMod !== aktifMod) {
         aktifMod = data.aktifMod;
-        try { localStorage.setItem('gp10_mod', aktifMod); } catch(e) {}
+        try { localStorage.setItem('asil_mod_v1', aktifMod); } catch(e) {}
       }
 
       // Cihazın light/dark tercihi localStorage'da kalır; bulut ayarı bunu ezmez.
@@ -3526,7 +3379,7 @@ setInterval(function() {
   function startPollingFallback() {
     if (pollTimer) return;
     fetchOnce(true);
-    pollTimer = setInterval(function(){ fetchOnce(false); }, 2000);
+    pollTimer = setInterval(function(){ fetchOnce(false); }, 8000);
   }
 
   function stopPollingFallback() {
@@ -3700,10 +3553,10 @@ setInterval(function() {
     return v.toLocaleString('tr-TR', {maximumFractionDigits:3});
   }
   function getPortfolioStorage(){
-    try { return JSON.parse(localStorage.getItem('gp10_portfolio') || '[]'); } catch(e){ return []; }
+    try { return JSON.parse(localStorage.getItem('asil_portfolio_v1') || '[]'); } catch(e){ return []; }
   }
   function setPortfolioStorage(items){
-    try { localStorage.setItem('gp10_portfolio', JSON.stringify(items)); } catch(e){}
+    try { localStorage.setItem('asil_portfolio_v1', JSON.stringify(items)); } catch(e){}
   }
   function pfGetPortfolioOptions(){
     var arr = [];
@@ -3934,7 +3787,7 @@ setInterval(function() {
       if(t){ var u=document.getElementById('updTime'); var txt=u?u.textContent:''; var m=txt.match(/(\d{1,2}:\d{2}(?::\d{2})?)/); t.textContent=m?m[1]:new Date().toLocaleTimeString('tr-TR'); }
     }catch(e){}
   }
-  setInterval(refreshPremiumStatus,1000);setTimeout(refreshPremiumStatus,300);
+  setInterval(refreshPremiumStatus,3000);setTimeout(refreshPremiumStatus,250);
 })();
 </script>
 
@@ -3957,7 +3810,7 @@ setInterval(function() {
 <script id="egilmez-v6-admin-crud-tv">
 (function(){
   function persist(msg){
-    try{localStorage.setItem('gp10',JSON.stringify(settings));}catch(e){}
+    try{localStorage.setItem('asil_settings_v2',JSON.stringify(settings));}catch(e){}
     try{jsonbinSave(settings,function(ok){ if(msg) showToast(ok?msg:(msg+' (yerel)')); });}catch(e){ if(msg) showToast(msg); }
   }
   function ensureDynamicLists(){
@@ -4233,33 +4086,130 @@ setInterval(function() {
   },500);
 })();
 </script>
-
-
-<script id="pc-sidebar-fit-runtime-v75">
+<script id="egilmez-v82-tv-config-live-sync">
 (function(){
-  function fitPcSide(){
-    if(innerWidth < 901) return;
-    var headings=[].slice.call(document.querySelectorAll('h1,h2,h3,h4,div,span'));
-    var fx=headings.find(function(e){return (e.textContent||'').trim().toUpperCase()==='DÖVİZ KURLARI';});
-    var hu=headings.find(function(e){return (e.textContent||'').trim().toUpperCase()==='HURDA ALTIN';});
-    [fx,hu].forEach(function(h){
-      if(!h)return;
-      var p=h.parentElement;
-      for(var i=0;i<4 && p;i++,p=p.parentElement){
-        var cs=getComputedStyle(p);
-        if(cs.overflowY==='auto'||cs.overflowY==='scroll'||cs.maxHeight!=='none'){
-          p.style.setProperty('height','auto','important');
-          p.style.setProperty('max-height','none','important');
-          p.style.setProperty('overflow-y','visible','important');
-          p.style.setProperty('overflow','visible','important');
+  var lastTvText='';
+  function pullTvConfig(){
+    if(typeof TV_CONFIG_URL==='undefined') return;
+    fetch(TV_CONFIG_URL+'?v='+Date.now(),{cache:'no-store'})
+      .then(function(r){return r.ok?r.text():''})
+      .then(function(txt){
+        if(!txt || txt===lastTvText) return;
+        lastTvText=txt;
+        var data=null;
+        try{data=JSON.parse(txt)}catch(e){}
+        if(data && typeof applyTvDisplayToAdmin==='function'){
+          applyTvDisplayToAdmin(data);
         }
-      }
-    });
+      }).catch(function(){});
   }
-  addEventListener('load',fitPcSide);
-  addEventListener('resize',fitPcSide);
-  setTimeout(fitPcSide,300);
-  setTimeout(fitPcSide,1200);
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(function(){
+      try{bindTvDisplayControls()}catch(e){}
+      pullTvConfig();
+    },200);
+  });
+  window.addEventListener('focus',pullTvConfig);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)pullTvConfig()});
+  setInterval(pullTvConfig,4000);
+})();
+</script>
+
+
+<!-- eski tekrar eden customer polling kaldırıldı -->
+
+
+
+<script id="egilmez-v88-final-engine">
+(function(){
+  var timer=null,lastCustomerText='';
+
+  function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
+
+  function fitDesktop(){
+    if(innerWidth<901)return;
+
+    var layout=document.querySelector('.desktop-layout');
+    var rows=document.getElementById('priceRows');
+    if(!layout||!rows)return;
+
+    var top=layout.getBoundingClientRect().top;
+    var available=Math.max(300,window.innerHeight-top-5);
+    layout.style.setProperty('height',available+'px','important');
+    layout.style.setProperty('max-height',available+'px','important');
+
+    var n=rows.querySelectorAll('.price-row').length||1;
+    rows.style.setProperty('grid-template-rows','repeat('+n+',minmax(0,1fr))','important');
+
+    /* 36 title + 28 header + 30 update */
+    var usable=Math.max(180,available-94);
+    var rh=usable/n;
+    document.documentElement.style.setProperty('--v88-main-name',clamp(rh*.35,11.5,17)+'px');
+    document.documentElement.style.setProperty('--v88-main-val',clamp(rh*.41,13,20)+'px');
+    document.documentElement.style.setProperty('--v88-main-chg',clamp(rh*.19,6.5,10)+'px');
+
+    var side=document.getElementById('desktopSide');
+    if(side){
+      var visibleCards=Array.prototype.slice.call(side.querySelectorAll('.desktop-side-card')).filter(function(el){
+        return getComputedStyle(el).display!=='none';
+      });
+
+      visibleCards.forEach(function(card){
+        var data=card.querySelector('.desktop-side-rows');
+        if(!data)return;
+        var count=data.children.length||1;
+        data.style.setProperty('grid-template-rows','repeat('+count+',minmax(0,1fr))','important');
+        var h=data.getBoundingClientRect().height/count;
+        document.documentElement.style.setProperty('--v88-side-name',clamp(h*.32,10.5,15.5)+'px');
+        document.documentElement.style.setProperty('--v88-side-val',clamp(h*.38,12,18)+'px');
+      });
+    }
+  }
+
+  function refreshCustomer(){
+    try{
+      if(typeof renderDesktopPanel==='function')renderDesktopPanel();
+      if(typeof renderEkstraDoviz==='function')renderEkstraDoviz();
+      if(typeof renderEkstraHurda==='function')renderEkstraHurda();
+      if(typeof applyCustomerDisplayLayout==='function')applyCustomerDisplayLayout();
+    }catch(e){}
+    fitDesktop();
+  }
+
+  function pullCustomer(){
+    if(typeof CUSTOMER_CONFIG_URL==='undefined')return;
+    fetch(CUSTOMER_CONFIG_URL+'?v='+Date.now(),{cache:'no-store'})
+      .then(function(r){return r.ok?r.text():''})
+      .then(function(txt){
+        if(!txt||txt===lastCustomerText)return;
+        lastCustomerText=txt;
+        var d=null;try{d=JSON.parse(txt)}catch(e){}
+        if(d&&typeof applyCustomerDisplayToAdmin==='function'){
+          applyCustomerDisplayToAdmin(d);
+          refreshCustomer();
+        }
+      }).catch(function(){});
+  }
+
+  function schedule(){
+    clearTimeout(timer);
+    timer=setTimeout(function(){refreshCustomer();},50);
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(schedule,80);
+    setTimeout(schedule,400);
+    setTimeout(schedule,1000);
+  });
+  addEventListener('load',schedule);
+  addEventListener('resize',schedule);
+  addEventListener('focus',function(){pullCustomer();schedule()});
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden){pullCustomer();schedule()}
+  });
+
+  /* Config sync only; no constant layout polling */
+  setInterval(pullCustomer,4000);
 })();
 </script>
 
@@ -4267,68 +4217,174 @@ setInterval(function() {
 
 
 
-
-<script id="egilmez-v78-viewport-engine">
+<script id="egilmez-v90-fast-splash">
 (function(){
-  var busy=false;
-  function isAdmin(){
-    var p=(location.pathname||'').toLowerCase(), q=(location.search||'').toLowerCase();
-    return q.indexOf('tv=1')===-1 && (q.indexOf('admin')!==-1 || /\/admin(?:\.html)?\/?$/.test(p) || document.body.classList.contains('admin-route'));
+  var done=false;
+  function hideSplash(){
+    if(done)return; done=true;
+    var el=document.getElementById('premiumSplash');
+    if(!el)return;
+    el.style.transition='opacity .18s ease';
+    el.style.opacity='0';
+    el.style.pointerEvents='none';
+    setTimeout(function(){
+      if(el&&el.parentNode)el.parentNode.removeChild(el);
+    },200);
   }
-  function fit(){
-    if(busy || innerWidth<901 || !isAdmin()) return;
-    busy=true;
-    document.body.classList.add('admin-route');
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(hideSplash,250)},{once:true});
+  window.addEventListener('load',hideSplash,{once:true});
+  setTimeout(hideSplash,700);
+})();
+</script>
 
-    var layout=document.querySelector('.desktop-layout');
-    var rows=document.getElementById('priceRows');
-    var side=document.getElementById('desktopSide');
-    if(!layout||!rows){busy=false;return;}
 
-    /* Browserın GERÇEK görünen yüksekliğini kullan. */
-    var top=layout.getBoundingClientRect().top;
-    var available=Math.max(260, window.innerHeight-top-4);
-    layout.style.setProperty('height',available+'px','important');
-    layout.style.setProperty('max-height',available+'px','important');
+<script id="egilmez-v90-performance-guard">
+(function(){
+  var queued=false;
+  function lightRefresh(){
+    if(queued)return;
+    queued=true;
+    requestAnimationFrame(function(){
+      queued=false;
+      try{
+        if(typeof applyCustomerDisplayLayout==='function')applyCustomerDisplayLayout();
+      }catch(e){}
+    });
+  }
+  addEventListener('resize',lightRefresh,{passive:true});
+  addEventListener('focus',lightRefresh,{passive:true});
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden) lightRefresh();
+  });
+})();
+</script>
 
-    /* Altın satırları mevcut boşluğa zorla eşit dağıt. */
-    var main=document.querySelector('.desktop-main');
-    var count=rows.querySelectorAll('.price-row').length||1;
-    var mainH=available;
-    var fixed=28+24+18;
-    var rh=Math.max(18,(mainH-fixed)/count);
-    rows.style.setProperty('grid-template-rows','repeat('+count+', minmax(0, 1fr))','important');
 
-    /* Çok ürün varsa yazıyı de küçült; hiçbir satır kesilmesin. */
-    var fs=Math.max(8.5,Math.min(13,rh*.36));
-    var nfs=Math.max(9,Math.min(14,rh*.40));
-    document.querySelectorAll('.price-row .birim').forEach(function(e){e.style.setProperty('font-size',fs+'px','important')});
-    document.querySelectorAll('.price-row .alis,.price-row .satis,.price-row .kk').forEach(function(e){e.style.setProperty('font-size',nfs+'px','important')});
-    document.querySelectorAll('.change-rate').forEach(function(e){e.style.setProperty('font-size',Math.max(5.5,fs*.52)+'px','important')});
+<script id="egilmez-v91-speed-guard">
+(function(){
+  var lastRefresh=0, queued=false;
 
-    if(side){
-      side.style.setProperty('height',available+'px','important');
-      side.style.setProperty('overflow','hidden','important');
-      ['desktopDovizRows','desktopHurdaRows'].forEach(function(id){
-        var el=document.getElementById(id);
-        if(el) el.style.setProperty('overflow','hidden','important');
+  function cheapLayout(){
+    var now=Date.now();
+    if(now-lastRefresh<180) return;
+    lastRefresh=now;
+    if(queued)return;
+    queued=true;
+    requestAnimationFrame(function(){
+      queued=false;
+      try{
+        if(typeof applyCustomerDisplayLayout==='function') applyCustomerDisplayLayout();
+      }catch(e){}
+    });
+  }
+
+  addEventListener('resize',cheapLayout,{passive:true});
+  addEventListener('orientationchange',cheapLayout,{passive:true});
+})();
+</script>
+
+
+<script id="egilmez-v93-customer-stable-boot">
+(function(){
+  function bootCustomerDisplay(){
+    try{
+      var raw=localStorage.getItem(CUSTOMER_DISPLAY_CACHE_KEY);
+      if(raw){
+        var cached=JSON.parse(raw);
+        if(cached&&typeof cached==='object'){
+          customerDisplayConfig=normalizeCustomerDisplay(cached);
+        }
+      }
+    }catch(e){}
+
+    try{
+      renderEkstraDoviz();
+      renderEkstraHurda();
+      renderDesktopPanel();
+    }catch(e){}
+
+    try{applyCustomerDisplayLayout();}catch(e){}
+
+    /* Bulut ayarını ilk 4 saniyeyi beklemeden hemen al */
+    try{loadCustomerDisplayConfig();}catch(e){}
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',bootCustomerDisplay,{once:true});
+  }else{
+    bootCustomerDisplay();
+  }
+})();
+</script>
+
+
+<script id="egilmez-v93-display-mapping-migration">
+(function(){
+  if(!document.body.classList.contains('admin-route')) return;
+  var FLAG='asil_display_mapping_v50_done';
+  if(localStorage.getItem(FLAG)==='1') return;
+
+  Promise.all([
+    fetch(TV_CONFIG_URL+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}),
+    fetch(CUSTOMER_CONFIG_URL+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null})
+  ]).then(function(res){
+    var tv=res[0], cu=res[1];
+    if(!tv || !cu || typeof tv!=='object' || typeof cu!=='object'){
+      localStorage.setItem(FLAG,'1');
+      return;
+    }
+
+    var tvN=normalizeTvDisplay(tv);
+    var cuN=normalizeCustomerDisplay(cu);
+
+    /* Sadece durumlar farklıysa geçmişte ters kaydedilmiş seçimleri düzelt. */
+    if(tvN.showDoviz!==cuN.showDoviz || tvN.showHurda!==cuN.showHurda){
+      return Promise.all([
+        fetch(TV_CONFIG_URL,{method:'PUT',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({showDoviz:cuN.showDoviz,showHurda:cuN.showHurda,updatedAt:Date.now()})}),
+        fetch(CUSTOMER_CONFIG_URL,{method:'PUT',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({showDoviz:tvN.showDoviz,showHurda:tvN.showHurda,updatedAt:Date.now()})})
+      ]).then(function(){
+        loadTvDisplayConfig();
+        loadCustomerDisplayConfig();
       });
     }
-    busy=false;
+  }).catch(function(){}).finally(function(){
+    try{localStorage.setItem(FLAG,'1');}catch(e){}
+  });
+})();
+</script>
+
+
+<script id="egilmez-v94-mobile-admin-guard">
+(function(){
+  function enforceSingleAdminExtra(){
+    var isAdmin=document.body.classList.contains('admin-route');
+    if(!isAdmin || innerWidth>900) return;
+
+    var side=document.getElementById('desktopSide');
+    if(side){
+      side.style.setProperty('display','none','important');
+      side.setAttribute('aria-hidden','true');
+    }
+
+    var extra=document.getElementById('adminEkstra');
+    if(extra){
+      extra.style.setProperty('display','block','important');
+      extra.removeAttribute('aria-hidden');
+    }
+
+    /* duplicate #adminEkstra id oluşmuşsa ilkini bırak */
+    var extras=document.querySelectorAll('#adminEkstra');
+    for(var i=1;i<extras.length;i++){
+      extras[i].style.setProperty('display','none','important');
+    }
   }
 
-  var t;
-  function schedule(){clearTimeout(t);t=setTimeout(fit,30)}
-  document.addEventListener('DOMContentLoaded',function(){
-    fit();
-    ['priceRows','desktopDovizRows','desktopHurdaRows'].forEach(function(id){
-      var e=document.getElementById(id);
-      if(e&&window.MutationObserver)new MutationObserver(schedule).observe(e,{childList:true,subtree:false});
-    });
-  });
-  addEventListener('load',fit);
-  addEventListener('resize',schedule);
-  setTimeout(fit,150);setTimeout(fit,600);setTimeout(fit,1500);
+  document.addEventListener('DOMContentLoaded',enforceSingleAdminExtra,{once:true});
+  addEventListener('load',enforceSingleAdminExtra,{once:true});
+  addEventListener('resize',enforceSingleAdminExtra,{passive:true});
+  addEventListener('orientationchange',enforceSingleAdminExtra,{passive:true});
 })();
 </script>
 
