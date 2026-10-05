@@ -1,8 +1,6 @@
-const CACHE='asil-v61-static';
+const CACHE='asil-v62-static';
 const SYNC_FIX='supabase-sync-fix.js';
-const LIVE_BRIDGE='supabase-live-bridge.js';
-const REMOTE_RENDER='remote-render.js';
-const SYNC_VER='61';
+const SYNC_VER='62';
 
 self.addEventListener('install',e=>e.waitUntil(self.skipWaiting()));
 self.addEventListener('activate',e=>e.waitUntil((async()=>{
@@ -16,7 +14,7 @@ async function injectScripts(resp){
     const type=resp.headers.get('content-type')||'';
     if(type.indexOf('text/html')===-1)return resp;
     let text=await resp.text();
-    const tag='<script src="/'+LIVE_BRIDGE+'?v='+SYNC_VER+'"></script>\n<script src="/'+SYNC_FIX+'?v='+SYNC_VER+'"></script>\n<script src="/'+REMOTE_RENDER+'?v='+SYNC_VER+'"></script>\n';
+    const tag='<script src="/'+SYNC_FIX+'?v='+SYNC_VER+'"></script>\n';
     if(text.indexOf(SYNC_FIX+'?v='+SYNC_VER)===-1){
       if(/<\/head>/i.test(text)) text=text.replace(/<\/head>/i,tag+'</head>');
       else text=tag+text;
@@ -24,6 +22,7 @@ async function injectScripts(resp){
     const headers=new Headers(resp.headers);
     headers.delete('content-length');
     headers.delete('content-encoding');
+    headers.set('Cache-Control','no-store');
     return new Response(text,{status:resp.status,statusText:resp.statusText,headers:headers});
   }catch(e){return resp;}
 }
