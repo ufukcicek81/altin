@@ -2748,6 +2748,20 @@ function toggleUrun(id) {
     settings.hiddenItems.splice(idx, 1);
     showToast('Gosterildi');
   }
+
+  // Ürün görünürlük ayarı da kalıcı olmalı.
+  // Eski sürümde burada sadece ekran yenileniyor, kayıt yapılmadığı için
+  // sayfa yenilenince gizlenen/gösterilen ürünler geri dönüyordu.
+  try {
+    localStorage.setItem('asil_settings_v2', JSON.stringify(settings));
+  } catch(e) {}
+
+  try {
+    jsonbinSave(settings, function(ok) {
+      if (!ok) showToast('Yerel kaydedildi; bulut bağlantısı yok');
+    });
+  } catch(e) {}
+
   document.getElementById('priceRows').innerHTML = '';
   renderTable();
   renderUrunList();
