@@ -1,8 +1,8 @@
-const CACHE='asil-v58-static';
+const CACHE='asil-v59-static';
 const SYNC_FIX='supabase-sync-fix.js';
 const LIVE_BRIDGE='supabase-live-bridge.js';
 const REMOTE_RENDER='remote-render.js';
-const SYNC_VER='58';
+const SYNC_VER='59';
 
 self.addEventListener('install',e=>e.waitUntil(self.skipWaiting()));
 self.addEventListener('activate',e=>e.waitUntil((async()=>{
