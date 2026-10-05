@@ -1986,7 +1986,7 @@ var APP_ID = 'asil-kuyumculuk-v2';
 function makeDefaults() {
   var l = {};
   ITEMS.forEach(function(i) { l[i.id] = { a: i.defA, s: i.defS }; });
-  return { appId:APP_ID, shopName:'ASİL KUYUMCULUK', shopPhone:'', logoData:'', theme:'dark', labor:l, customItems:[], kkOran:0, tvShowDoviz:true, tvShowHurda:true };
+  return { appId:APP_ID, shopName:'ASİL KUYUMCULUK', shopPhone:'', logoData:'', theme:'dark', labor:l, customItems:[], kkOran:0, tvShowDoviz:true, tvShowHurda:true, settingsUpdatedAt:0 };
 }
 
 // Aktif urun listesini dondur (varsayilan + ozel, gizliler haric)
@@ -2072,7 +2072,10 @@ function openAdminLogin() {
 }
 
 function jsonbinSave(data, cb) {
-  try { data.appId = APP_ID; } catch(e) {}
+  try {
+    data.appId = APP_ID;
+    data.settingsUpdatedAt = Date.now();
+  } catch(e) {}
   fetch(FIREBASE_URL, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -2096,6 +2099,7 @@ function loadSettings() {
   if (!local || local.appId !== APP_ID) local = null;
   var s = local || makeDefaults();
   s.appId = APP_ID;
+  if (!Number.isFinite(Number(s.settingsUpdatedAt))) s.settingsUpdatedAt = 0;
   if (!s.customItems) s.customItems = [];
   if (!s.labor) s.labor = {};
   return s;
@@ -2718,7 +2722,7 @@ function moveItem(id, direction) {
   order[newIdx] = tmp;
   settings.itemOrder = order;
 
-  try { localStorage.setItem('asil_settings_v2', JSON.stringify(settings)); } catch(e) {}
+  try { settings.settingsUpdatedAt = Date.now(); localStorage.setItem('asil_settings_v2', JSON.stringify(settings)); } catch(e) {}
 
   /* Önce ekranı anında güncelle, sonra Firebase'e yaz. */
   try { renderUrunList(); } catch(e) {}
@@ -2753,7 +2757,7 @@ function toggleUrun(id) {
   // Eski sürümde burada sadece ekran yenileniyor, kayıt yapılmadığı için
   // sayfa yenilenince gizlenen/gösterilen ürünler geri dönüyordu.
   try {
-    localStorage.setItem('asil_settings_v2', JSON.stringify(settings));
+    settings.settingsUpdatedAt = Date.now(); localStorage.setItem('asil_settings_v2', JSON.stringify(settings));
   } catch(e) {}
 
   try {
@@ -2769,7 +2773,7 @@ function toggleUrun(id) {
 
 
 function persistQuickSettings(msg) {
-  try { localStorage.setItem('asil_settings_v2', JSON.stringify(settings)); } catch(e) {}
+  try { settings.settingsUpdatedAt = Date.now(); localStorage.setItem('asil_settings_v2', JSON.stringify(settings)); } catch(e) {}
   jsonbinSave(settings, function(ok) {
     if (msg) showToast(ok ? msg : (msg + ' (yerel kaydedildi)'));
   });
@@ -2918,7 +2922,7 @@ function saveAdmin() {
     settings.hurdaCarp[h.id+'A'] = parseFloat(document.getElementById('hurdaA_'+h.id).value) || h.oran;
     settings.hurdaCarp[h.id+'S'] = parseFloat(document.getElementById('hurdaS_'+h.id).value) || h.oran;
   });
-  localStorage.setItem('asil_settings_v2', JSON.stringify(settings));
+  settings.settingsUpdatedAt = Date.now(); localStorage.setItem('asil_settings_v2', JSON.stringify(settings));
   // Cihazın tema tercihini koru; admin kaydı temayı zorla değiştirmesin.
   applyTheme(); applyShopLogo();
   renderTable();
@@ -3016,7 +3020,21 @@ jsonbinLoad(function(cloud) {
   cloudLoaded = true;
   clearTimeout(cloudTimeout);
   if (cloud && cloud.appId === APP_ID && cloud.shopName) {
-    settings = cloud;
+    var localNow = null;
+    try { localNow = JSON.parse(localStorage.getItem('asil_settings_v2') || 'null'); } catch(e) { localNow = null; }
+    var localTs = localNow && localNow.appId === APP_ID ? Number(localNow.settingsUpdatedAt || 0) : 0;
+    var cloudTs = Number(cloud.settingsUpdatedAt || 0);
+
+    // Sayfa açılışında eski bulut verisi yerel olarak daha yeni ise
+    // bulutun eski ayarlarıyla cihazdaki doğru ayarları ezme.
+    if (localNow && localTs > cloudTs) {
+      settings = localNow;
+      try { jsonbinSave(settings, function(){}); } catch(e) {}
+    } else {
+      settings = cloud;
+      settings.settingsUpdatedAt = cloudTs;
+      try { settings.settingsUpdatedAt = Date.now(); localStorage.setItem('asil_settings_v2', JSON.stringify(settings)); } catch(e) {}
+    }
     if (typeof settings.logoData !== 'string') settings.logoData = '';
     if (typeof settings.customLogoEnabled !== 'boolean') settings.customLogoEnabled = false;
     if (!settings.theme) settings.theme = 'dark';
@@ -3024,14 +3042,13 @@ jsonbinLoad(function(cloud) {
     if (settings.adminPass) ADMIN_PASS = settings.adminPass;
     if (settings.aktifMod) aktifMod = settings.aktifMod;
     updateModBtn();
-    localStorage.setItem('asil_settings_v2', JSON.stringify(settings));
     document.getElementById('priceRows').innerHTML = '';
     renderTable();
     refreshAdminDataViews();
   } else if (cloud && cloud.appId !== APP_ID) {
     // Yeni Firebase'e başka uygulamadan taşınmış/eski veri geldiyse temiz Eğilmez ayarını başlat.
     settings = makeDefaults();
-    try { localStorage.setItem('asil_settings_v2', JSON.stringify(settings)); } catch(e) {}
+    try { settings.settingsUpdatedAt = Date.now(); localStorage.setItem('asil_settings_v2', JSON.stringify(settings)); } catch(e) {}
     try { jsonbinSave(settings, function(){}); } catch(e) {}
     document.getElementById('priceRows').innerHTML = '';
     renderTable();
@@ -3359,7 +3376,7 @@ function renderEkstraHurda() {
       settings = data;
       settings.tvShowDoviz = tvDisplayConfig.showDoviz;
       settings.tvShowHurda = tvDisplayConfig.showHurda;
-      try { localStorage.setItem('asil_settings_v2', JSON.stringify(settings)); } catch(e) {}
+      try { settings.settingsUpdatedAt = Date.now(); localStorage.setItem('asil_settings_v2', JSON.stringify(settings)); } catch(e) {}
 
       if (data.adminPass) ADMIN_PASS = data.adminPass;
       if (data.aktifMod && data.aktifMod !== aktifMod) {
