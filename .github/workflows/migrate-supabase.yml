@@ -1,0 +1,124 @@
+name: Migrate settings to Supabase
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Replace Firebase settings storage with Supabase
+        env:
+          SUPABASE_URL: https://isrcaoulynycmwnxofgn.supabase.co
+          SUPABASE_KEY: sb_publishable_2lHpVrZEgHmPjWD8kOEuLA_Fz6gzZEe
+        run: |
+          python3 <<'PY'
+          import os, re
+          from pathlib import Path
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+
+          text = re.sub(
+              r"var FIREBASE_URL = '[^']+';",
+              "var SUPABASE_URL = '" + os.environ['SUPABASE_URL'] + "';\n"
+              "var SUPABASE_KEY = '" + os.environ['SUPABASE_KEY'] + "';\n"
+              "var SUPABASE_SETTINGS_URL = SUPABASE_URL + '/rest/v1/app_settings';\n"
+              "var FIREBASE_URL = SUPABASE_SETTINGS_URL;",
+              text,
+              count=1
+          )
+
+          def replace_function(src, name, replacement):
+              marker = 'function ' + name + '(' 
+              start = src.find(marker)
+              if start < 0:
+                  raise SystemExit('Missing function: ' + name)
+              brace = src.find('{', start)
+              depth = 0
+              end = None
+              for i in range(brace, len(src)):
+                  c = src[i]
+                  if c == '{': depth += 1
+                  elif c == '}':
+                      depth -= 1
+                      if depth == 0:
+                          end = i + 1
+                          break
+              if end is None:
+                  raise SystemExit('Unclosed function: ' + name)
+              return src[:start] + replacement + src[end:]
+
+          save_fn = r'''function jsonbinSave(data, cb) {
+            var payload = makeCloudSettings(data);
+            var row = { id: 'asil_settings', data: payload, updated_at: new Date().toISOString() };
+            fetch(SUPABASE_SETTINGS_URL + '?on_conflict=id', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_KEY,
+                'Prefer': 'resolution=merge-duplicates,return=minimal'
+              },
+              body: JSON.stringify(row)
+            }).then(function(r){
+              if (!r.ok) throw new Error('Supabase HTTP ' + r.status);
+              if(cb) cb(true);
+            }).catch(function(){ if(cb) cb(false); });
+          }'''
+
+          load_fn = r'''function jsonbinLoad(cb) {
+            fetch(SUPABASE_SETTINGS_URL + '?id=eq.asil_settings&select=data,updated_at&limit=1&v=' + Date.now(), {
+              cache:'no-store',
+              headers:{
+                'apikey': SUPABASE_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_KEY
+              }
+            })
+              .then(function(r){
+                if (!r.ok) throw new Error('Supabase HTTP ' + r.status);
+                return r.json();
+              })
+              .then(function(rows){
+                var row = Array.isArray(rows) && rows.length ? rows[0] : null;
+                if(cb) cb(row && row.data ? row.data : null);
+              })
+              .catch(function(){ if(cb) cb(null); });
+          }'''
+
+          text = replace_function(text, 'jsonbinSave', save_fn)
+          text = replace_function(text, 'jsonbinLoad', load_fn)
+
+          # Replace the old Firebase EventSource line with a harmless polling shim.
+          old = "stream = new EventSource(FIREBASE_URL);"
+          new = "stream = { close:function(){}, addEventListener:function(){} };\n      if (window.__supabaseSettingsPoll) clearInterval(window.__supabaseSettingsPoll);\n      window.__supabaseSettingsPoll = setInterval(function(){ try { jsonbinLoad(function(data){ if (data) applyRemoteSettings(data, false); }); } catch(e) {} }, 5000);"
+          if old in text:
+              text = text.replace(old, new, 1)
+
+          path.write_text(text, encoding='utf-8')
+          print('Supabase migration applied')
+          PY
+
+      - name: Commit migrated index
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Migrate settings persistence from Firebase to Supabase"
+          git push
+
+      - name: Remove migration workflow
+        if: success()
+        run: |
+          git rm .github/workflows/migrate-supabase.yml || true
+          git commit -m "Remove one-time Supabase migration workflow" || true
+          git push || true
