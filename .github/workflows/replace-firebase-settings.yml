@@ -1,0 +1,166 @@
+name: Replace Firebase settings transport with Supabase
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch settings transport
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          def replace_function(src, name, replacement):
+              marker = 'function ' + name + '('
+              start = src.find(marker)
+              if start < 0:
+                  raise SystemExit('Missing function: ' + name)
+              brace = src.find('{', start)
+              depth = 0
+              end = None
+              for i in range(brace, len(src)):
+                  if src[i] == '{': depth += 1
+                  elif src[i] == '}':
+                      depth -= 1
+                      if depth == 0:
+                          end = i + 1
+                          break
+              if end is None:
+                  raise SystemExit('Unclosed function: ' + name)
+              return src[:start] + replacement + src[end:]
+
+          # Replace the transport constants.
+          s = re.sub(
+              r"var SUPABASE_URL\s*=\s*'[^']+';\s*\nvar SUPABASE_KEY\s*=\s*'[^']+';\s*\nvar SUPABASE_SETTINGS_URL\s*=\s*[^;]+;\s*\nvar FIREBASE_URL\s*=\s*[^;]+;",
+              "var SUPABASE_URL = 'https://isrcaoulynycmwnxofgn.supabase.co';\n"
+              "var SUPABASE_KEY = 'sb_publishable_2lHpVrZEgHmPjWD8kOEuLA_Fz6gzZEe';\n"
+              "var SUPABASE_SETTINGS_URL = SUPABASE_URL + '/rest/v1/app_settings';\n"
+              "var FIREBASE_URL = SUPABASE_SETTINGS_URL;",
+              s, count=1)
+
+          # TV/customer config rows also move to the same Supabase table.
+          s = re.sub(r"var TV_CONFIG_URL\s*=\s*[^;]+;", "var TV_CONFIG_URL = SUPABASE_SETTINGS_URL + '?id=eq.tv_display';", s, count=1)
+          s = re.sub(r"var CUSTOMER_CONFIG_URL\s*=\s*[^;]+;", "var CUSTOMER_CONFIG_URL = SUPABASE_SETTINGS_URL + '?id=eq.customer_display';", s, count=1)
+
+          # Replace main settings save/load. Publishable key goes ONLY in apikey.
+          save_main = r'''function jsonbinSave(data, cb) {
+            var payload = makeCloudSettings(data);
+            var row = { id:'asil_settings', data:payload, updated_at:new Date().toISOString() };
+            fetch(SUPABASE_SETTINGS_URL + '?on_conflict=id', {
+              method:'POST', cache:'no-store',
+              headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Prefer':'resolution=merge-duplicates,return=minimal'},
+              body:JSON.stringify(row)
+            }).then(function(r){
+              if(!r.ok) return r.text().then(function(t){throw new Error('Supabase '+r.status+' '+t);});
+              if(cb) cb(true);
+            }).catch(function(e){ console.error('[Asil Supabase save]',e); if(cb) cb(false); });
+          }'''
+
+          load_main = r'''function jsonbinLoad(cb) {
+            fetch(SUPABASE_SETTINGS_URL + '?id=eq.asil_settings&select=data,updated_at&limit=1&v='+Date.now(), {
+              method:'GET', cache:'no-store', headers:{'apikey':SUPABASE_KEY}
+            }).then(function(r){
+              if(!r.ok) return r.text().then(function(t){throw new Error('Supabase '+r.status+' '+t);});
+              return r.json();
+            }).then(function(rows){
+              var row = Array.isArray(rows) && rows.length ? rows[0] : null;
+              if(cb) cb(row && row.data ? row.data : null);
+            }).catch(function(e){ console.error('[Asil Supabase load]',e); if(cb) cb(null); });
+          }'''
+          s = replace_function(s, 'jsonbinSave', save_main)
+          s = replace_function(s, 'jsonbinLoad', load_main)
+
+          # Replace Firebase EventSource with the same polling architecture that the stable project uses as fallback.
+          connect = r'''function connectStream() {
+            if (window.__asilCloudPoll) clearInterval(window.__asilCloudPoll);
+            function pull(){
+              try {
+                jsonbinLoad(function(data){
+                  if(data && typeof applyRemoteSettings === 'function') applyRemoteSettings(data, false);
+                });
+              } catch(e) { console.error('[Asil cloud poll]',e); }
+            }
+            pull();
+            window.__asilCloudPoll = setInterval(pull, 1500);
+          }'''
+          s = replace_function(s, 'connectStream', connect)
+
+          # Replace TV config loader/saver with Supabase rows.
+          load_tv = r'''function loadTvDisplayConfig(cb){
+            fetch(SUPABASE_SETTINGS_URL+'?id=eq.tv_display&select=data&limit=1&v='+Date.now(),{cache:'no-store',headers:{'apikey':SUPABASE_KEY}})
+              .then(function(r){return r.ok?r.json():null;})
+              .then(function(rows){
+                var data=Array.isArray(rows)&&rows.length?rows[0].data:null;
+                if(data && typeof data==='object') applyTvDisplayToAdmin(data);
+                if(cb) cb(tvDisplayConfig);
+              }).catch(function(){if(cb)cb(tvDisplayConfig);});
+          }'''
+          s = replace_function(s, 'loadTvDisplayConfig', load_tv)
+
+          save_tv = r'''function saveTvDisplayConfig(showDoviz, showHurda, cb){
+            var data={showDoviz:!!showDoviz,showHurda:!!showHurda,updatedAt:Date.now()};
+            fetch(SUPABASE_SETTINGS_URL+'?on_conflict=id',{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:'tv_display',data:data,updated_at:new Date().toISOString()})})
+              .then(function(r){if(!r.ok)throw new Error('Supabase '+r.status);tvDisplayConfig=data;if(cb)cb(true);})
+              .catch(function(){if(cb)cb(false);});
+          }'''
+          s = replace_function(s, 'saveTvDisplayConfig', save_tv)
+
+          load_customer = r'''function loadCustomerDisplayConfig(cb){
+            fetch(SUPABASE_SETTINGS_URL+'?id=eq.customer_display&select=data&limit=1&v='+Date.now(),{cache:'no-store',headers:{'apikey':SUPABASE_KEY}})
+              .then(function(r){return r.ok?r.json():null;})
+              .then(function(rows){
+                var data=Array.isArray(rows)&&rows.length?rows[0].data:null;
+                if(data && typeof data==='object') applyCustomerDisplayToAdmin(data);
+                try{renderEkstraDoviz();renderEkstraHurda();renderDesktopPanel();}catch(e){}
+                if(cb)cb(customerDisplayConfig);
+              }).catch(function(){if(cb)cb(customerDisplayConfig);});
+          }'''
+          s = replace_function(s, 'loadCustomerDisplayConfig', load_customer)
+
+          # Find and replace customer save by marker.
+          save_customer_marker = 'function saveCustomerDisplayConfig('
+          if save_customer_marker in s:
+              save_customer = r'''function saveCustomerDisplayConfig(showDoviz, showHurda, cb){
+            var data={showDoviz:!!showDoviz,showHurda:!!showHurda,updatedAt:Date.now()};
+            fetch(SUPABASE_SETTINGS_URL+'?on_conflict=id',{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:'customer_display',data:data,updated_at:new Date().toISOString()})})
+              .then(function(r){if(!r.ok)throw new Error('Supabase '+r.status);customerDisplayConfig=data;if(cb)cb(true);})
+              .catch(function(){if(cb)cb(false);});
+          }'''
+              s = replace_function(s, 'saveCustomerDisplayConfig', save_customer)
+
+          # Make sure the page can never fall back to the Firebase URL.
+          s = s.replace('firebaseio.com', 'supabase-disabled.local')
+
+          p.write_text(s, encoding='utf-8')
+          print('Patched index.html to use Supabase for all cloud settings.')
+          PY
+
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Use Supabase for settings and device sync"
+          git push
+
+      - name: Remove one-time workflow
+        if: success()
+        run: |
+          git rm .github/workflows/replace-firebase-settings.yml || true
+          git commit -m "Remove one-time settings migration workflow" || true
+          git push || true
