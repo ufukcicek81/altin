@@ -13,23 +13,29 @@ async function injectSyncFix(resp){
     if(!resp||!resp.ok)return resp;
     const type=resp.headers.get('content-type')||'';
     if(type.indexOf('text/html')===-1)return resp;
-    const text=await resp.text();
-    if(text.indexOf(SYNC_FIX+'?v='+SYNC_VER)!==-1){
-      return new Response(text,{status:resp.status,statusText:resp.statusText,headers:resp.headers});
-    }
+    let text=await resp.text();
 
     /*
-     * KRITIK: Supabase senkron dosyasi body sonunda yuklenirse,
-     * index.html icindeki eski jsonbinLoad/jsonbinSave fonksiyonlari
-     * daha once calisir. Bu nedenle fix'i HEAD icine, uygulamanin
-     * ana inline scriptlerinden ONCE ekliyoruz.
+     * index.html icindeki eski istemci kodu sb_publishable_* anahtarini
+     * Authorization: Bearer olarak gonderiyordu. Publishable key JWT degildir.
+     * Bu iki inline fonksiyonu tarayici calistirmadan once duzeltiyoruz.
      */
-    const tag='<script src="/'+SYNC_FIX+'?v='+SYNC_VER+'"></script>\n';
-    const out=text.replace(/<\/head>/i,tag+'</head>');
+    text=text.replace(/['\"]Authorization['\"]\s*:\s*['\"]Bearer\s+['\"]\s*\+\s*SUPABASE_KEY\s*,?/g,'');
+
+    /*
+     * Ana uygulama scripti kendi jsonbinSave/jsonbinLoad fonksiyonlarini
+     * tanimladiktan ve ilk yuklemeyi yaptiktan sonra, daha saglam polling ve
+     * sonraki kayitlar icin guncel sync katmanini body sonunda yukle.
+     */
+    if(text.indexOf(SYNC_FIX+'?v='+SYNC_VER)===-1){
+      const tag='<script src="/'+SYNC_FIX+'?v='+SYNC_VER+'"></script>\n';
+      text=text.replace(/<\/body>/i,tag+'</body>');
+    }
+
     const headers=new Headers(resp.headers);
     headers.delete('content-length');
     headers.delete('content-encoding');
-    return new Response(out,{status:resp.status,statusText:resp.statusText,headers:headers});
+    return new Response(text,{status:resp.status,statusText:resp.statusText,headers:headers});
   }catch(e){
     return resp;
   }
