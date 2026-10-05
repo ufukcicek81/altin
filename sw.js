@@ -1,11 +1,12 @@
-const CACHE='asil-v62-static';
-const SYNC_FIX='supabase-sync-fix.js';
-const SYNC_VER='62';
+const CACHE='asil-v63-static';
+const SYNC_FIX='supabase-sync-v63.js';
+const SW_VER='63';
 
 self.addEventListener('install',e=>e.waitUntil(self.skipWaiting()));
 self.addEventListener('activate',e=>e.waitUntil((async()=>{
   for(const k of await caches.keys())if(k!==CACHE)await caches.delete(k);
   await self.clients.claim();
+  try{await self.registration.update();}catch(e){}
 })()));
 
 async function injectScripts(resp){
@@ -14,9 +15,9 @@ async function injectScripts(resp){
     const type=resp.headers.get('content-type')||'';
     if(type.indexOf('text/html')===-1)return resp;
     let text=await resp.text();
-    const tag='<script src="/'+SYNC_FIX+'?v='+SYNC_VER+'"></script>\n';
-    if(text.indexOf(SYNC_FIX+'?v='+SYNC_VER)===-1){
-      if(/<\/head>/i.test(text)) text=text.replace(/<\/head>/i,tag+'</head>');
+    const tag='<script src="/'+SYNC_FIX+'"></script>\n';
+    if(text.indexOf(SYNC_FIX)===-1){
+      if(/<\\/head>/i.test(text))text=text.replace(/<\\/head>/i,tag+'</head>');
       else text=tag+text;
     }
     const headers=new Headers(resp.headers);
@@ -31,7 +32,7 @@ self.addEventListener('fetch',e=>{
   const r=e.request;
   if(r.method!=='GET')return;
   const u=new URL(r.url);
-  if(r.mode==='navigate'||/\.(?:html?)$/i.test(u.pathname)){
+  if(r.mode==='navigate'||/\\.(?:html?)$/i.test(u.pathname)){
     e.respondWith(fetch(r,{cache:'no-store'}).then(injectScripts).catch(()=>caches.match(r)));
     return;
   }
