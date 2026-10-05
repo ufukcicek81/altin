@@ -2022,7 +2022,9 @@ function parseHash() {
 }
 
 // ── FIREBASE AYARLARI ─────────────────────────────────────────────────────────
-var FIREBASE_URL = 'https://asil-kuyumculuk-2feb6-default-rtdb.firebaseio.com/ayarlar.json';
+var FIREBASE_URL = 'https://asil-kuyumculuk-2feb6-default-rtdb.firebaseio.com/ayarlarLite.json';
+// Büyük/eski /ayarlar düğümünü artık istemci cihazlar okumaz/yazmaz.
+// İşletme ayarları küçük bir düğümde tutulur; bu, gereksiz GB'larca indirmeyi önler.
 var TV_CONFIG_URL = 'https://asil-kuyumculuk-2feb6-default-rtdb.firebaseio.com/tvDisplay.json';
 var CUSTOMER_CONFIG_URL = 'https://asil-kuyumculuk-2feb6-default-rtdb.firebaseio.com/customerDisplay.json';
 var customerDisplayConfig = { showDoviz:true, showHurda:true };
@@ -2071,42 +2073,39 @@ function openAdminLogin() {
   }
 }
 
+function makeCloudSettings(data) {
+  var out = {};
+  try { out = JSON.parse(JSON.stringify(data || {})); } catch(e) { out = {}; }
+  out.appId = APP_ID;
+  // Büyük logo verisini ayar paketinden çıkar: logo cihazda localStorage'da kalır.
+  // Böylece tek bir logo/base64 alanı tüm cihazlara tekrar tekrar taşınmaz.
+  delete out.logoData;
+  if (out.customLogoEnabled && !out.logoData) out.customLogoEnabled = false;
+  return out;
+}
+
 function jsonbinSave(data, cb) {
-  try {
-    data.appId = APP_ID;
-    data.updatedAt = Date.now();
-    data.settingsRevision = Math.max(Number(data.settingsRevision) || 0, Date.now());
-  } catch(e) {}
-  var payload = JSON.stringify(data);
-  try { localStorage.setItem('asil_settings_v2', payload); } catch(e) {}
-  fetch(FIREBASE_URL + '?v=' + Date.now(), {
+  var payload = makeCloudSettings(data);
+  fetch(FIREBASE_URL, {
     method: 'PUT',
-    cache: 'no-store',
     headers: { 'Content-Type': 'application/json' },
-    body: payload
+    body: JSON.stringify(payload)
   }).then(function(r){
-    if (!r.ok) throw new Error('Firebase HTTP ' + r.status);
-    return r.json();
-  }).then(function(saved){
-    // Firebase REST PUT returns the object actually stored. Do not claim success
-    // unless the saved revision/timestamp matches the object we sent.
-    var ok = !!saved && saved.appId === APP_ID &&
-      Number(saved.settingsRevision) === Number(data.settingsRevision) &&
-      Number(saved.updatedAt) === Number(data.updatedAt);
-    if (!ok) throw new Error('Firebase doğrulama başarısız');
-    try { localStorage.setItem('asil_settings_v2', JSON.stringify(saved)); } catch(e) {}
+    if (!r.ok) throw new Error('Firebase HTTP '+r.status);
+    return r.text();
+  }).then(function(){
     if(cb) cb(true);
-  }).catch(function(err){
-    console.error('Ayar kaydı başarısız:', err);
-    if(cb) cb(false);
-  });
+  }).catch(function(){ if(cb) cb(false); });
 }
 
 function jsonbinLoad(cb) {
   fetch(FIREBASE_URL + '?v=' + Date.now(), {cache:'no-store'})
-    .then(function(r){ if(!r.ok) throw new Error('Firebase HTTP '+r.status); return r.json(); })
+    .then(function(r){
+      if (!r.ok) throw new Error('Firebase HTTP '+r.status);
+      return r.json();
+    })
     .then(function(r){ if(cb) cb(r); })
-    .catch(function(e){ console.error('Ayar yükleme başarısız:',e); if(cb) cb(null); });
+    .catch(function(){ if(cb) cb(null); });
 }
 
 function loadSettings() {
@@ -2924,9 +2923,6 @@ function saveAdmin() {
     settings.hurdaCarp[h.id+'A'] = parseFloat(document.getElementById('hurdaA_'+h.id).value) || h.oran;
     settings.hurdaCarp[h.id+'S'] = parseFloat(document.getElementById('hurdaS_'+h.id).value) || h.oran;
   });
-  // Bu kayıt, sayfa yenilendiğinde eski Firebase snapshot'ı tarafından ezilemez.
-  settings.updatedAt = Date.now();
-  settings.settingsRevision = settings.updatedAt;
   localStorage.setItem('asil_settings_v2', JSON.stringify(settings));
   // Cihazın tema tercihini koru; admin kaydı temayı zorla değiştirmesin.
   applyTheme(); applyShopLogo();
@@ -3025,26 +3021,15 @@ jsonbinLoad(function(cloud) {
   cloudLoaded = true;
   clearTimeout(cloudTimeout);
   if (cloud && cloud.appId === APP_ID && cloud.shopName) {
-    // Local kayıt daha yeniyse Firebase'in eski snapshot'ı ile ASLA ezme.
-    var localFresh = null;
-    try { localFresh = JSON.parse(localStorage.getItem('asil_settings_v2') || 'null'); } catch(e) {}
-    var localRev = localFresh ? Number(localFresh.settingsRevision || localFresh.updatedAt || 0) : 0;
-    var cloudRev = Number(cloud.settingsRevision || cloud.updatedAt || 0);
-    if (localFresh && localFresh.appId === APP_ID && localRev > cloudRev) {
-      settings = localFresh;
-      // Eski bulut kaydını yeni yerel ayarla tekrar senkronla.
-      jsonbinSave(settings, function(ok){ if(!ok) console.warn('Yeni yerel ayar Firebase ile senkronlanamadı'); });
-    } else {
-      settings = cloud;
-      if (typeof settings.logoData !== 'string') settings.logoData = '';
-      if (typeof settings.customLogoEnabled !== 'boolean') settings.customLogoEnabled = false;
-      if (!settings.theme) settings.theme = 'dark';
-      if (typeof settings.shopPhone !== 'string') settings.shopPhone = '';
-      if (settings.adminPass) ADMIN_PASS = settings.adminPass;
-      if (settings.aktifMod) aktifMod = settings.aktifMod;
-      try { localStorage.setItem('asil_settings_v2', JSON.stringify(settings)); } catch(e) {}
-    }
+    settings = cloud;
+    if (typeof settings.logoData !== 'string') settings.logoData = '';
+    if (typeof settings.customLogoEnabled !== 'boolean') settings.customLogoEnabled = false;
+    if (!settings.theme) settings.theme = 'dark';
+    if (typeof settings.shopPhone !== 'string') settings.shopPhone = '';
+    if (settings.adminPass) ADMIN_PASS = settings.adminPass;
+    if (settings.aktifMod) aktifMod = settings.aktifMod;
     updateModBtn();
+    localStorage.setItem('asil_settings_v2', JSON.stringify(settings));
     document.getElementById('priceRows').innerHTML = '';
     renderTable();
     refreshAdminDataViews();
@@ -3410,63 +3395,40 @@ function renderEkstraHurda() {
     } catch(e) {}
   }
 
-  function startPollingFallback() {
-    if (pollTimer) return;
-    fetchOnce(true);
-    pollTimer = setInterval(function(){ fetchOnce(false); }, 8000);
-  }
-
-  function stopPollingFallback() {
-    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-  }
-
   function connectStream() {
-    if (!('EventSource' in window)) { startPollingFallback(); return; }
+    if (!('EventSource' in window)) return;
     try {
       if (stream) { try { stream.close(); } catch(e) {} }
+      // Yalnızca küçük /ayarlarLite düğümünü dinle. Eski büyük /ayarlar düğümüne
+      // artık hiçbir istemci EventSource/REST isteği yapmaz.
       stream = new EventSource(FIREBASE_URL);
-
-      stream.addEventListener('open', function(){
-        stopPollingFallback();
-        fetchOnce(true); // stream açılır açılmaz tam güncel snapshot al
-      });
-
       stream.addEventListener('put', function(ev){
         try {
           var msg = JSON.parse(ev.data || '{}');
-          if (msg.path === '/' && msg.data) {
-            applyRemoteSettings(msg.data, false);
-          } else {
-            // Alt alan değişikliği geldiyse tam snapshot al; veri birleştirme hatasını önler.
-            fetchOnce(true);
-          }
-        } catch(e) { fetchOnce(true); }
+          if (msg.path === '/' && msg.data) applyRemoteSettings(msg.data, false);
+        } catch(e) {}
       });
-
-      stream.addEventListener('patch', function(){ fetchOnce(true); });
-      stream.addEventListener('cancel', function(){ startPollingFallback(); });
+      stream.addEventListener('patch', function(ev){
+        try {
+          var msg = JSON.parse(ev.data || '{}');
+          // Lite düğüm küçük olduğu için patch sonrası yalnızca küçük düğümü bir kez oku.
+          if (msg && msg.path) fetchOnce(false);
+        } catch(e) {}
+      });
       stream.onerror = function(){
-        startPollingFallback();
-        try { stream.close(); } catch(e) {}
-        stream = null;
-        if (reconnectTimer) clearTimeout(reconnectTimer);
-        reconnectTimer = setTimeout(connectStream, 5000);
+        // EventSource kendi yeniden bağlanmasını yapar. Hızlı REST polling YOK.
       };
-    } catch(e) {
-      startPollingFallback();
-    }
+    } catch(e) {}
   }
 
-  function immediateSync() { fetchOnce(true); }
+  function immediateSync() {
+    // Sadece sayfa açılışında/elle odaklanınca tek küçük snapshot.
+    fetchOnce(true);
+  }
 
   document.addEventListener('DOMContentLoaded', function(){
     immediateSync();
     connectStream();
-  });
-  window.addEventListener('online', immediateSync);
-  window.addEventListener('focus', immediateSync);
-  document.addEventListener('visibilitychange', function(){
-    if (!document.hidden) immediateSync();
   });
 })();
 </script>

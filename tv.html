@@ -420,7 +420,7 @@ body:not(.dark) .logo{
 (function(){
 'use strict';
 
-var SETTINGS_URL='https://asil-kuyumculuk-2feb6-default-rtdb.firebaseio.com/ayarlar.json';
+var SETTINGS_URL='https://asil-kuyumculuk-2feb6-default-rtdb.firebaseio.com/ayarlarLite.json';
 var TV_URL='https://asil-kuyumculuk-2feb6-default-rtdb.firebaseio.com/tvDisplay.json';
 var WORKER='https://altin-proxy.ufuk87900.workers.dev';
 
@@ -724,31 +724,21 @@ function applySettingsSnapshot(d){
 
 function startSettingsRealtime(){
   if(!window.EventSource) return;
-
   try{
     var es = new EventSource(SETTINGS_URL);
-
-    function handle(ev){
+    es.addEventListener('put',function(ev){
       try{
-        var msg = JSON.parse(ev.data||'{}');
-        if(!msg || typeof msg!=='object') return;
-
-        /* İlk PUT genelde tam snapshot'tır. PATCH gelirse güvenli şekilde
-           tam ayarı REST'ten bir kez yenile. */
-        if(msg.path==='/' && msg.data && typeof msg.data==='object'){
-          applySettingsSnapshot(msg.data);
-        }else{
-          loadSettings();
-        }
+        var msg=JSON.parse(ev.data||'{}');
+        if(msg.path==='/' && msg.data && typeof msg.data==='object') applySettingsSnapshot(msg.data);
       }catch(e){}
-    }
-
-    es.addEventListener('put',handle);
-    es.addEventListener('patch',handle);
-
-    es.onerror=function(){
-      /* EventSource kendi kendine yeniden bağlanır; 8sn fallback polling zaten aktif. */
-    };
+    });
+    es.addEventListener('patch',function(ev){
+      try{
+        var msg=JSON.parse(ev.data||'{}');
+        if(msg.path) loadSettings();
+      }catch(e){}
+    });
+    // EventSource kendi yeniden bağlanmasını yapar; REST polling yok.
   }catch(e){}
 }
 
@@ -799,8 +789,8 @@ Promise.allSettled([
 startSettingsRealtime();
 
 /* Dengeli polling: hızlı ama sistemi yormaz. */
-setInterval(loadTvDisplay,4000);
-setInterval(loadSettings,8000);
+setInterval(loadTvDisplay,15000);
+// Firebase ayarları artık 8 saniyede bir büyük snapshot olarak çekilmiyor; SSE kullanılıyor.
 setInterval(loadPrices,2000);
 })();
 </script>
