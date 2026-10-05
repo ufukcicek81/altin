@@ -2028,8 +2028,8 @@ var SUPABASE_SETTINGS_URL = SUPABASE_URL + '/rest/v1/app_settings';
 var FIREBASE_URL = SUPABASE_SETTINGS_URL;
 // Büyük/eski /ayarlar düğümünü artık istemci cihazlar okumaz/yazmaz.
 // İşletme ayarları küçük bir düğümde tutulur; bu, gereksiz GB'larca indirmeyi önler.
-var TV_CONFIG_URL = 'https://asil-kuyumculuk-2feb6-default-rtdb.firebaseio.com/tvDisplay.json';
-var CUSTOMER_CONFIG_URL = 'https://asil-kuyumculuk-2feb6-default-rtdb.firebaseio.com/customerDisplay.json';
+var TV_CONFIG_URL = SUPABASE_SETTINGS_URL + '?id=eq.tv_display';
+var CUSTOMER_CONFIG_URL = SUPABASE_SETTINGS_URL + '?id=eq.customer_display';
 var customerDisplayConfig = { showDoviz:true, showHurda:true };
 var CUSTOMER_DISPLAY_CACHE_KEY = 'asil_customer_display_v50';
 
@@ -2089,39 +2089,27 @@ function makeCloudSettings(data) {
 
 function jsonbinSave(data, cb) {
   var payload = makeCloudSettings(data);
-  var row = { id: 'asil_settings', data: payload, updated_at: new Date().toISOString() };
+  var row = { id:'asil_settings', data:payload, updated_at:new Date().toISOString() };
   fetch(SUPABASE_SETTINGS_URL + '?on_conflict=id', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Prefer': 'resolution=merge-duplicates,return=minimal'
-    },
-    body: JSON.stringify(row)
+    method:'POST', cache:'no-store',
+    headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Prefer':'resolution=merge-duplicates,return=minimal'},
+    body:JSON.stringify(row)
   }).then(function(r){
-    if (!r.ok) throw new Error('Supabase HTTP ' + r.status);
+    if(!r.ok) return r.text().then(function(t){throw new Error('Supabase '+r.status+' '+t);});
     if(cb) cb(true);
-  }).catch(function(){ if(cb) cb(false); });
+  }).catch(function(e){ console.error('[Asil Supabase save]',e); if(cb) cb(false); });
 }
 
 function jsonbinLoad(cb) {
-  fetch(SUPABASE_SETTINGS_URL + '?id=eq.asil_settings&select=data,updated_at&limit=1&v=' + Date.now(), {
-    cache:'no-store',
-    headers:{
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY
-    }
-  })
-    .then(function(r){
-      if (!r.ok) throw new Error('Supabase HTTP ' + r.status);
-      return r.json();
-    })
-    .then(function(rows){
-      var row = Array.isArray(rows) && rows.length ? rows[0] : null;
-      if(cb) cb(row && row.data ? row.data : null);
-    })
-    .catch(function(){ if(cb) cb(null); });
+  fetch(SUPABASE_SETTINGS_URL + '?id=eq.asil_settings&select=data,updated_at&limit=1&v='+Date.now(), {
+    method:'GET', cache:'no-store', headers:{'apikey':SUPABASE_KEY}
+  }).then(function(r){
+    if(!r.ok) return r.text().then(function(t){throw new Error('Supabase '+r.status+' '+t);});
+    return r.json();
+  }).then(function(rows){
+    var row = Array.isArray(rows) && rows.length ? rows[0] : null;
+    if(cb) cb(row && row.data ? row.data : null);
+  }).catch(function(e){ console.error('[Asil Supabase load]',e); if(cb) cb(null); });
 }
 
 function loadSettings() {
@@ -2428,36 +2416,20 @@ function applyTvDisplayToAdmin(data){
 }
 
 function loadTvDisplayConfig(cb){
-  fetch(TV_CONFIG_URL + '?v=' + Date.now(), {cache:'no-store'})
-    .then(function(r){ return r.ok ? r.json() : null; })
-    .then(function(data){
-      applyTvDisplayToAdmin(data);
+  fetch(SUPABASE_SETTINGS_URL+'?id=eq.tv_display&select=data&limit=1&v='+Date.now(),{cache:'no-store',headers:{'apikey':SUPABASE_KEY}})
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(rows){
+      var data=Array.isArray(rows)&&rows.length?rows[0].data:null;
+      if(data && typeof data==='object') applyTvDisplayToAdmin(data);
       if(cb) cb(tvDisplayConfig);
-    })
-    .catch(function(){
-      if(cb) cb(tvDisplayConfig);
-    });
+    }).catch(function(){if(cb)cb(tvDisplayConfig);});
 }
 
 function saveTvDisplayConfig(showDoviz, showHurda, cb){
-  var payload = {
-    showDoviz: !!showDoviz,
-    showHurda: !!showHurda,
-    updatedAt: Date.now()
-  };
-  fetch(TV_CONFIG_URL, {
-    method:'PUT',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(payload)
-  }).then(function(r){
-    if(!r.ok) throw new Error('TV config save failed');
-    return r.json();
-  }).then(function(){
-    applyTvDisplayToAdmin(payload);
-    if(cb) cb(true);
-  }).catch(function(){
-    if(cb) cb(false);
-  });
+  var data={showDoviz:!!showDoviz,showHurda:!!showHurda,updatedAt:Date.now()};
+  fetch(SUPABASE_SETTINGS_URL+'?on_conflict=id',{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:'tv_display',data:data,updated_at:new Date().toISOString()})})
+    .then(function(r){if(!r.ok)throw new Error('Supabase '+r.status);tvDisplayConfig=data;if(cb)cb(true);})
+    .catch(function(){if(cb)cb(false);});
 }
 
 /* TV seçenekleri değiştiği anda buluta yazılır.
@@ -2495,29 +2467,20 @@ function applyCustomerDisplayToAdmin(data){
   applyCustomerDisplayLayout();
 }
 function loadCustomerDisplayConfig(cb){
-  fetch(CUSTOMER_CONFIG_URL+'?v='+Date.now(),{cache:'no-store'})
-    .then(function(r){if(!r.ok)throw new Error('customer config');return r.json()})
-    .then(function(data){
+  fetch(SUPABASE_SETTINGS_URL+'?id=eq.customer_display&select=data&limit=1&v='+Date.now(),{cache:'no-store',headers:{'apikey':SUPABASE_KEY}})
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(rows){
+      var data=Array.isArray(rows)&&rows.length?rows[0].data:null;
       if(data && typeof data==='object') applyCustomerDisplayToAdmin(data);
       try{renderEkstraDoviz();renderEkstraHurda();renderDesktopPanel();}catch(e){}
-      applyCustomerDisplayLayout();
       if(cb)cb(customerDisplayConfig);
-    })
-    .catch(function(){
-      applyCustomerDisplayLayout();
-      if(cb)cb(customerDisplayConfig);
-    });
+    }).catch(function(){if(cb)cb(customerDisplayConfig);});
 }
-function saveCustomerDisplayConfig(showDoviz,showHurda,cb){
-  var payload={showDoviz:!!showDoviz,showHurda:!!showHurda,updatedAt:Date.now()};
-  customerDisplayConfig=normalizeCustomerDisplay(payload);
-  try{localStorage.setItem(CUSTOMER_DISPLAY_CACHE_KEY,JSON.stringify(customerDisplayConfig));}catch(e){}
-  applyCustomerDisplayLayout();
-  fetch(CUSTOMER_CONFIG_URL,{
-    method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
-  }).then(function(r){if(!r.ok)throw new Error('customer display save');return r.json()})
-    .then(function(){applyCustomerDisplayToAdmin(payload);if(cb)cb(true)})
-    .catch(function(){if(cb)cb(false)});
+function saveCustomerDisplayConfig(showDoviz, showHurda, cb){
+  var data={showDoviz:!!showDoviz,showHurda:!!showHurda,updatedAt:Date.now()};
+  fetch(SUPABASE_SETTINGS_URL+'?on_conflict=id',{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:'customer_display',data:data,updated_at:new Date().toISOString()})})
+    .then(function(r){if(!r.ok)throw new Error('Supabase '+r.status);customerDisplayConfig=data;if(cb)cb(true);})
+    .catch(function(){if(cb)cb(false);});
 }
 function bindCustomerDisplayControls(){
   var d=document.getElementById('aCustomerShowDoviz');
@@ -3412,32 +3375,17 @@ function renderEkstraHurda() {
   }
 
   function connectStream() {
-    if (!('EventSource' in window)) return;
+  if (window.__asilCloudPoll) clearInterval(window.__asilCloudPoll);
+  function pull(){
     try {
-      if (stream) { try { stream.close(); } catch(e) {} }
-      // Yalnızca küçük /ayarlarLite düğümünü dinle. Eski büyük /ayarlar düğümüne
-      // artık hiçbir istemci EventSource/REST isteği yapmaz.
-      stream = { close:function(){}, addEventListener:function(){} };
-      if (window.__supabaseSettingsPoll) clearInterval(window.__supabaseSettingsPoll);
-      window.__supabaseSettingsPoll = setInterval(function(){ try { jsonbinLoad(function(data){ if (data) applyRemoteSettings(data, false); }); } catch(e) {} }, 5000);
-      stream.addEventListener('put', function(ev){
-        try {
-          var msg = JSON.parse(ev.data || '{}');
-          if (msg.path === '/' && msg.data) applyRemoteSettings(msg.data, false);
-        } catch(e) {}
+      jsonbinLoad(function(data){
+        if(data && typeof applyRemoteSettings === 'function') applyRemoteSettings(data, false);
       });
-      stream.addEventListener('patch', function(ev){
-        try {
-          var msg = JSON.parse(ev.data || '{}');
-          // Lite düğüm küçük olduğu için patch sonrası yalnızca küçük düğümü bir kez oku.
-          if (msg && msg.path) fetchOnce(false);
-        } catch(e) {}
-      });
-      stream.onerror = function(){
-        // EventSource kendi yeniden bağlanmasını yapar. Hızlı REST polling YOK.
-      };
-    } catch(e) {}
+    } catch(e) { console.error('[Asil cloud poll]',e); }
   }
+  pull();
+  window.__asilCloudPoll = setInterval(pull, 1500);
+}
 
   function immediateSync() {
     // Sadece sayfa açılışında/elle odaklanınca tek küçük snapshot.
