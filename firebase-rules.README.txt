@@ -1,0 +1,19 @@
+ASİL KUYUMCULUK FIREBASE GÜVENLİK NOTU
+
+Mevcut uygulama Realtime Database REST API'yi kimlik doğrulaması olmadan kullanıyor.
+Bu nedenle Firebase'de .read/.write yetkisini doğrudan kapatmak mevcut kaydetme sistemini bozar.
+
+ÖNEMLİ: Aşağıdaki kurallar uygulamaya auth eklenmeden doğrudan yayınlanmamalıdır.
+
+Hedef güvenli mimari:
+- Genel müşteri/TV ekranı sadece gerekli fiyat verilerini okuyabilmeli.
+- Admin yazma işlemleri kimliği doğrulanmış yönetici hesabı + uygun Firebase Security Rules ile yapılmalı.
+- adminPass gibi sırlar Realtime Database içinde düz metin tutulmamalı.
+
+Öncelikli düzeltme:
+1) Uygulamaya Firebase Authentication ekle.
+2) Admin yazma token'ı ile REST isteklerini yetkilendir.
+3) Realtime Database rules'ta sadece auth edilmiş admin kullanıcısına yazma izni ver.
+4) Sonra mevcut açık .read/.write kurallarını kapat.
+
+Bu dosya bilerek 'hemen yayınlanacak kural' içermiyor; auth olmadan kuralı kapatmak uygulamanın kaydetmesini durdurur.
