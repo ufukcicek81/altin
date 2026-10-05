@@ -3341,6 +3341,14 @@ function renderEkstraHurda() {
 
     try {
       settings = data;
+      // Remote settings must update the already-open price screen immediately.
+      try {
+        if (typeof renderTable === 'function') renderTable();
+        if (typeof applyShopLogo === 'function') applyShopLogo();
+        if (typeof applyTheme === 'function') applyTheme();
+        if (typeof updateDovizBant === 'function') updateDovizBant({});
+        window.__asilRemoteRenderV2 = true;
+      } catch (e) { console.error('[Asil remote render]', e); }
       settings.tvShowDoviz = tvDisplayConfig.showDoviz;
       settings.tvShowHurda = tvDisplayConfig.showHurda;
       try { localStorage.setItem('asil_settings_v2', JSON.stringify(settings)); } catch(e) {}
