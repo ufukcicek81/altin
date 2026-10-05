@@ -1,4 +1,4 @@
-/* Asil Kuyumculuk - Supabase cross-device sync fix v8 */
+/* Asil Kuyumculuk - Supabase cross-device sync fix v9 */
 (function(){
   'use strict';
   var SUPABASE_URL='https://isrcaoulynycmwnxofgn.supabase.co';
@@ -14,19 +14,22 @@
   window.SUPABASE_KEY=SUPABASE_KEY;
   window.SUPABASE_SETTINGS_URL=TABLE;
 
-  /* Supabase Data API: send both apikey and Authorization explicitly. */
   function headers(extra){
     var h={
       'apikey':SUPABASE_KEY,
       'Authorization':'Bearer '+SUPABASE_KEY,
-      'Accept':'application/json'
+      'Accept':'application/json',
+      'Cache-Control':'no-cache'
     };
     if(extra)Object.keys(extra).forEach(function(k){h[k]=extra[k];});
     return h;
   }
 
   function loadRemote(cb){
-    var url=TABLE+'?id=eq.asil_settings&select=data,updated_at&limit=1&_sync='+Date.now();
+    /* IMPORTANT: do not append arbitrary query parameters to PostgREST.
+       PostgREST treats unknown parameters as filters and rejects a bare value.
+       Browser cache is disabled through fetch/cache headers instead. */
+    var url=TABLE+'?id=eq.asil_settings&select=data,updated_at&limit=1';
     fetch(url,{method:'GET',cache:'no-store',headers:headers()})
       .then(function(r){
         if(!r.ok)return r.text().then(function(t){throw new Error('Supabase GET '+r.status+' '+t);});
