@@ -1,8 +1,8 @@
-const CACHE='asil-v59-static';
+const CACHE='asil-v60-static';
 const SYNC_FIX='supabase-sync-fix.js';
 const LIVE_BRIDGE='supabase-live-bridge.js';
 const REMOTE_RENDER='remote-render.js';
-const SYNC_VER='59';
+const SYNC_VER='60';
 
 self.addEventListener('install',e=>e.waitUntil(self.skipWaiting()));
 self.addEventListener('activate',e=>e.waitUntil((async()=>{
@@ -17,7 +17,7 @@ async function injectScripts(resp){
     if(type.indexOf('text/html')===-1)return resp;
     let text=await resp.text();
     const tag='<script src="/'+LIVE_BRIDGE+'?v='+SYNC_VER+'"></script>\n<script src="/'+SYNC_FIX+'?v='+SYNC_VER+'"></script>\n<script src="/'+REMOTE_RENDER+'?v='+SYNC_VER+'"></script>\n';
-    if(text.indexOf(LIVE_BRIDGE+'?v='+SYNC_VER)===-1){
+    if(text.indexOf(SYNC_FIX+'?v='+SYNC_VER)===-1){
       if(/<\/head>/i.test(text)) text=text.replace(/<\/head>/i,tag+'</head>');
       else text=tag+text;
     }
