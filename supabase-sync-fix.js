@@ -1,4 +1,4 @@
-/* Asil Kuyumculuk - Supabase cross-device sync fix v7 */
+/* Asil Kuyumculuk - Supabase cross-device sync fix v8 */
 (function(){
   'use strict';
   var SUPABASE_URL='https://isrcaoulynycmwnxofgn.supabase.co';
@@ -14,9 +14,13 @@
   window.SUPABASE_KEY=SUPABASE_KEY;
   window.SUPABASE_SETTINGS_URL=TABLE;
 
-  /* sb_publishable_* is the public Data API key. Send it as apikey. */
+  /* Supabase Data API: send both apikey and Authorization explicitly. */
   function headers(extra){
-    var h={'apikey':SUPABASE_KEY,'Accept':'application/json'};
+    var h={
+      'apikey':SUPABASE_KEY,
+      'Authorization':'Bearer '+SUPABASE_KEY,
+      'Accept':'application/json'
+    };
     if(extra)Object.keys(extra).forEach(function(k){h[k]=extra[k];});
     return h;
   }
@@ -34,6 +38,7 @@
       })
       .catch(function(e){
         console.warn('[Supabase sync] load failed:',e);
+        window.__lastSupabaseLoadError=String(e&&e.message||e);
         if(cb)cb(null,null,e);
       });
   }
@@ -48,8 +53,6 @@
     saveInProgress=true;
     lastLocalSaveAt=Date.now();
 
-    /* The row already exists in app_settings. Use PATCH instead of an upsert POST.
-       This avoids requiring INSERT permission just to change the single settings row. */
     fetch(TABLE+'?id=eq.asil_settings',{
       method:'PATCH',
       cache:'no-store',
@@ -60,16 +63,21 @@
       body:JSON.stringify({data:row.data,updated_at:row.updated_at})
     })
     .then(function(r){
-      if(!r.ok)return r.text().then(function(t){throw new Error('Supabase PATCH '+r.status+' '+t);});
-      return r.json().catch(function(){return [];});
+      return r.text().then(function(text){
+        if(!r.ok)throw new Error('Supabase PATCH '+r.status+' '+text);
+        var rows=[];
+        try{rows=text?JSON.parse(text):[];}catch(e){rows=[];}
+        return rows;
+      });
     })
     .then(function(rows){
       saveInProgress=false;
       var returned=Array.isArray(rows)&&rows.length?rows[0]:null;
       if(!returned || !returned.updated_at){
-        throw new Error('Supabase PATCH başarılı göründü fakat güncellenen satır geri dönmedi. RLS/grant kontrol edilmeli.');
+        throw new Error('Supabase PATCH satırı değiştirmedi. RLS UPDATE policy veya API yetkisi kontrol edilmeli.');
       }
       console.log('[Supabase sync] SAVE OK',returned.updated_at);
+      window.__lastSupabaseSaveError='';
       if(cb)cb(true,null,returned.updated_at);
     })
     .catch(function(e){
@@ -84,7 +92,6 @@
 
   function applyRemote(data,updatedAt){
     if(!data||data.appId!==APP_ID||isEditing())return;
-    /* Do not let the 2-second poll immediately overwrite a just-saved local state. */
     if(saveInProgress || (Date.now()-lastLocalSaveAt)<4000)return;
     try{
       localStorage.setItem(LOCAL_KEY,JSON.stringify(data));
