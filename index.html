@@ -2072,25 +2072,41 @@ function openAdminLogin() {
 }
 
 function jsonbinSave(data, cb) {
-  try { data.appId = APP_ID; } catch(e) {}
-  fetch(FIREBASE_URL, {
+  try {
+    data.appId = APP_ID;
+    data.updatedAt = Date.now();
+    data.settingsRevision = Math.max(Number(data.settingsRevision) || 0, Date.now());
+  } catch(e) {}
+  var payload = JSON.stringify(data);
+  try { localStorage.setItem('asil_settings_v2', payload); } catch(e) {}
+  fetch(FIREBASE_URL + '?v=' + Date.now(), {
     method: 'PUT',
+    cache: 'no-store',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-    cache: 'no-store'
+    body: payload
   }).then(function(r){
-    if (!r.ok) throw new Error('Firebase save failed: ' + r.status);
+    if (!r.ok) throw new Error('Firebase HTTP ' + r.status);
     return r.json();
-  }).then(function(){
+  }).then(function(saved){
+    // Firebase REST PUT returns the object actually stored. Do not claim success
+    // unless the saved revision/timestamp matches the object we sent.
+    var ok = !!saved && saved.appId === APP_ID &&
+      Number(saved.settingsRevision) === Number(data.settingsRevision) &&
+      Number(saved.updatedAt) === Number(data.updatedAt);
+    if (!ok) throw new Error('Firebase doğrulama başarısız');
+    try { localStorage.setItem('asil_settings_v2', JSON.stringify(saved)); } catch(e) {}
     if(cb) cb(true);
-  }).catch(function(){ if(cb) cb(false); });
+  }).catch(function(err){
+    console.error('Ayar kaydı başarısız:', err);
+    if(cb) cb(false);
+  });
 }
 
 function jsonbinLoad(cb) {
-  fetch(FIREBASE_URL)
-    .then(function(r){ return r.json(); })
+  fetch(FIREBASE_URL + '?v=' + Date.now(), {cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error('Firebase HTTP '+r.status); return r.json(); })
     .then(function(r){ if(cb) cb(r); })
-    .catch(function(){ if(cb) cb(null); });
+    .catch(function(e){ console.error('Ayar yükleme başarısız:',e); if(cb) cb(null); });
 }
 
 function loadSettings() {
@@ -2752,12 +2768,6 @@ function toggleUrun(id) {
     settings.hiddenItems.splice(idx, 1);
     showToast('Gosterildi');
   }
-
-  // ÖNEMLİ: Gizle/Göster ayarı daha önce sadece ekranda değişiyordu.
-  // Sayfa yenilenince Firebase/localStorage'a hiç yazılmadığı için ayar kayboluyordu.
-  // Burada hem cihaz belleğine hem Firebase'e kalıcı olarak kaydediyoruz.
-  persistQuickSettings();
-
   document.getElementById('priceRows').innerHTML = '';
   renderTable();
   renderUrunList();
@@ -2765,11 +2775,7 @@ function toggleUrun(id) {
 
 
 function persistQuickSettings(msg) {
-  try {
-    settings.appId = APP_ID;
-    settings.updatedAt = Date.now();
-    localStorage.setItem('asil_settings_v2', JSON.stringify(settings));
-  } catch(e) {}
+  try { localStorage.setItem('asil_settings_v2', JSON.stringify(settings)); } catch(e) {}
   jsonbinSave(settings, function(ok) {
     if (msg) showToast(ok ? msg : (msg + ' (yerel kaydedildi)'));
   });
@@ -2918,11 +2924,10 @@ function saveAdmin() {
     settings.hurdaCarp[h.id+'A'] = parseFloat(document.getElementById('hurdaA_'+h.id).value) || h.oran;
     settings.hurdaCarp[h.id+'S'] = parseFloat(document.getElementById('hurdaS_'+h.id).value) || h.oran;
   });
-  // Her admin kaydında kesinlikle yeni bir sürüm damgası üret.
-  // Bu damga, sayfa açılışında eski Firebase snapshot'ının yeni işçilik ayarlarını
-  // tekrar fabrika değerlerine çevirmesini engeller.
+  // Bu kayıt, sayfa yenilendiğinde eski Firebase snapshot'ı tarafından ezilemez.
   settings.updatedAt = Date.now();
-  try { localStorage.setItem('asil_settings_v2', JSON.stringify(settings)); } catch(e) {}
+  settings.settingsRevision = settings.updatedAt;
+  localStorage.setItem('asil_settings_v2', JSON.stringify(settings));
   // Cihazın tema tercihini koru; admin kaydı temayı zorla değiştirmesin.
   applyTheme(); applyShopLogo();
   renderTable();
@@ -3020,28 +3025,26 @@ jsonbinLoad(function(cloud) {
   cloudLoaded = true;
   clearTimeout(cloudTimeout);
   if (cloud && cloud.appId === APP_ID && cloud.shopName) {
-    var localLatest = null;
-    try { localLatest = JSON.parse(localStorage.getItem('asil_settings_v2') || 'null'); } catch(e) { localLatest = null; }
-    var localTime = localLatest && Number(localLatest.updatedAt || 0) || 0;
-    var cloudTime = Number(cloud.updatedAt || 0) || 0;
-
-    // Aynı cihazda daha yeni bir değişiklik varsa eski Firebase snapshot'ı
-    // sayfa açılışında bunun üzerine yazıp ayarı geri alamasın.
-    if (localLatest && localLatest.appId === APP_ID && localTime >= cloudTime) {
-      // Yereldeki kayıt aynı anda veya daha yeni ise onu koru.
-      settings = localLatest;
-      try { jsonbinSave(settings, function(){}); } catch(e) {}
+    // Local kayıt daha yeniyse Firebase'in eski snapshot'ı ile ASLA ezme.
+    var localFresh = null;
+    try { localFresh = JSON.parse(localStorage.getItem('asil_settings_v2') || 'null'); } catch(e) {}
+    var localRev = localFresh ? Number(localFresh.settingsRevision || localFresh.updatedAt || 0) : 0;
+    var cloudRev = Number(cloud.settingsRevision || cloud.updatedAt || 0);
+    if (localFresh && localFresh.appId === APP_ID && localRev > cloudRev) {
+      settings = localFresh;
+      // Eski bulut kaydını yeni yerel ayarla tekrar senkronla.
+      jsonbinSave(settings, function(ok){ if(!ok) console.warn('Yeni yerel ayar Firebase ile senkronlanamadı'); });
     } else {
       settings = cloud;
+      if (typeof settings.logoData !== 'string') settings.logoData = '';
+      if (typeof settings.customLogoEnabled !== 'boolean') settings.customLogoEnabled = false;
+      if (!settings.theme) settings.theme = 'dark';
+      if (typeof settings.shopPhone !== 'string') settings.shopPhone = '';
+      if (settings.adminPass) ADMIN_PASS = settings.adminPass;
+      if (settings.aktifMod) aktifMod = settings.aktifMod;
+      try { localStorage.setItem('asil_settings_v2', JSON.stringify(settings)); } catch(e) {}
     }
-    if (typeof settings.logoData !== 'string') settings.logoData = '';
-    if (typeof settings.customLogoEnabled !== 'boolean') settings.customLogoEnabled = false;
-    if (!settings.theme) settings.theme = 'dark';
-    if (typeof settings.shopPhone !== 'string') settings.shopPhone = '';
-    if (settings.adminPass) ADMIN_PASS = settings.adminPass;
-    if (settings.aktifMod) aktifMod = settings.aktifMod;
     updateModBtn();
-    localStorage.setItem('asil_settings_v2', JSON.stringify(settings));
     document.getElementById('priceRows').innerHTML = '';
     renderTable();
     refreshAdminDataViews();
@@ -3373,16 +3376,6 @@ function renderEkstraHurda() {
     if (typeof isAdminEditing === 'function' && isAdminEditing()) return;
 
     try {
-      // Eski bir Firebase yayını, bu cihazda daha yeni kaydedilmiş admin
-      // işçilik ayarlarının üzerine yazamasın.
-      var localNow = null;
-      try { localNow = JSON.parse(localStorage.getItem('asil_settings_v2') || 'null'); } catch(e) { localNow = null; }
-      var remoteTime = Number(data.updatedAt || 0) || 0;
-      var localTime = localNow && localNow.appId === APP_ID ? (Number(localNow.updatedAt || 0) || 0) : 0;
-      if (!force && localNow && localTime > remoteTime) {
-        settings = localNow;
-        return;
-      }
       settings = data;
       settings.tvShowDoviz = tvDisplayConfig.showDoviz;
       settings.tvShowHurda = tvDisplayConfig.showHurda;
