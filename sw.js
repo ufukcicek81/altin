@@ -1,4 +1,4 @@
-const CACHE='asil-v54-static';
+const CACHE='asil-v55-static';
 const SYNC_FIX='supabase-sync-fix.js';
 self.addEventListener('install',e=>e.waitUntil(self.skipWaiting()));
 self.addEventListener('activate',e=>e.waitUntil((async()=>{for(const k of await caches.keys())if(k!==CACHE)await caches.delete(k);await self.clients.claim()})()));
@@ -9,8 +9,8 @@ async function injectSyncFix(resp){
     const type=resp.headers.get('content-type')||'';
     if(type.indexOf('text/html')===-1)return resp;
     const text=await resp.text();
-    if(text.indexOf(SYNC_FIX+'?v=54')!==-1)return new Response(text,{status:resp.status,statusText:resp.statusText,headers:resp.headers});
-    const tag='<script src="/'+SYNC_FIX+'?v=54"></script>\n';
+    if(text.indexOf(SYNC_FIX+'?v=55')!==-1)return new Response(text,{status:resp.status,statusText:resp.statusText,headers:resp.headers});
+    const tag='<script src="/'+SYNC_FIX+'?v=55"></script>\n';
     const out=text.replace(/<\/body>/i,tag+'</body>');
     const headers=new Headers(resp.headers);headers.delete('content-length');
     return new Response(out,{status:resp.status,statusText:resp.statusText,headers:headers});
