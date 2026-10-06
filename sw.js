@@ -1,5 +1,5 @@
-const CACHE='asil-v63-static';
-const SYNC_FIX='supabase-sync-v63.js';
+const CACHE='asil-v64-static';
+const SYNC_FIX='supabase-sync-fix.js';
 
 self.addEventListener('install',e=>e.waitUntil(self.skipWaiting()));
 self.addEventListener('activate',e=>e.waitUntil((async()=>{
@@ -14,7 +14,8 @@ async function injectScripts(resp){
     const type=resp.headers.get('content-type')||'';
     if(type.indexOf('text/html')===-1)return resp;
     let text=await resp.text();
-    const tag='<script src="/'+SYNC_FIX+'"></script>\n';
+    const fixUrl=new URL(SYNC_FIX,self.registration.scope).href;
+    const tag='<script src="'+fixUrl+'"></script>\n';
     if(text.indexOf(SYNC_FIX)===-1){
       if(/<\/head>/i.test(text))text=text.replace(/<\/head>/i,tag+'</head>');
       else text=tag+text;
