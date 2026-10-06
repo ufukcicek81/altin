@@ -6,9 +6,6 @@
   var TABLE=SUPABASE_URL+'/rest/v1/app_settings';
   var APP_ID='asil-kuyumculuk-v2';
   var LOCAL_KEY='asil_settings_v2';
-  /* 2-second polling was unnecessarily expensive on the Free plan. 10 seconds
-     is still fast enough for cross-device settings while greatly reducing
-     Supabase egress. Explicit saves remain immediate. */
   var POLL_MS=10000;
   var saveInProgress=false;
   var lastLocalSaveAt=0;
@@ -19,9 +16,6 @@
   window.SUPABASE_KEY=SUPABASE_KEY;
   window.SUPABASE_SETTINGS_URL=TABLE;
 
-  /* Safety net: some older app code appends ?v=95 to the Supabase REST URL.
-     PostgREST treats unknown query parameters as filters and returns PGRST100.
-     Strip only the cache-busting v parameter from app_settings requests. */
   var originalFetch=window.fetch.bind(window);
   window.fetch=function(input,init){
     try{
@@ -91,9 +85,6 @@
     try{payload=JSON.parse(JSON.stringify(data||{}));}catch(e){payload={};}
     delete payload.logoData;
     payload.appId=APP_ID;
-
-    /* Do not issue a database write when the exact same settings payload was
-       already saved in this page session. */
     var payloadKey='';
     try{payloadKey=JSON.stringify(payload);}catch(e){}
     if(payloadKey && payloadKey===lastSavedPayload){
@@ -101,11 +92,9 @@
       if(cb)cb(true,null,null);
       return;
     }
-
     var row={id:'asil_settings',data:payload,updated_at:new Date().toISOString()};
     saveInProgress=true;
     lastLocalSaveAt=Date.now();
-
     fetch(TABLE+'?id=eq.asil_settings',{
       method:'PATCH',
       cache:'no-store',
@@ -169,7 +158,6 @@
     window.jsonbinSave=saveRemote;
     document.addEventListener('input',markAdminDirty,true);
     document.addEventListener('change',markAdminDirty,true);
-
     if(window.__supabaseSettingsPoll)clearInterval(window.__supabaseSettingsPoll);
     var lastRemote='';
     function poll(){
@@ -185,4 +173,70 @@
     document.addEventListener('visibilitychange',function(){if(!document.hidden)poll();});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+})();
+
+/* Local portfolio normalizer: holdings of the same asset type are stored as
+   one position. Quantity and total cost are added, so the displayed cost per
+   unit becomes the weighted average automatically. This never writes to
+   Supabase; portfolio data stays in this device's localStorage. */
+(function(){
+  'use strict';
+  var KEY='asil_portfolio_v1';
+  var rawSetItem=Storage.prototype.setItem;
+  var normalizing=false;
+
+  function normalize(value){
+    var items;
+    try{items=JSON.parse(value||'[]');}catch(e){return value;}
+    if(!Array.isArray(items)||!items.length)return JSON.stringify([]);
+    var groups=Object.create(null), order=[];
+    items.forEach(function(item){
+      if(!item||!item.type)return;
+      var type=String(item.type);
+      if(!groups[type]){
+        groups[type]={
+          id:item.id||('pf_'+Date.now()+'_'+order.length),
+          type:type,
+          qty:0,
+          cost:0,
+          note:item.note||''
+        };
+        order.push(type);
+      }
+      groups[type].qty += Number(item.qty||0);
+      groups[type].cost += Number(item.cost||0);
+      if(item.note)groups[type].note=String(item.note);
+    });
+    return JSON.stringify(order.map(function(type){return groups[type];}));
+  }
+
+  function writeNormalized(){
+    try{
+      var current=localStorage.getItem(KEY);
+      if(!current)return;
+      var normalized=normalize(current);
+      if(normalized!==current){
+        normalizing=true;
+        rawSetItem.call(localStorage,KEY,normalized);
+        normalizing=false;
+      }
+    }catch(e){normalizing=false;}
+  }
+
+  Storage.prototype.setItem=function(k,v){
+    if(!normalizing && k===KEY){
+      try{v=normalize(v);}catch(e){}
+    }
+    return rawSetItem.call(this,k,v);
+  };
+
+  function refresh(){
+    writeNormalized();
+    try{
+      if(typeof window.renderPortfolio==='function')window.renderPortfolio();
+    }catch(e){}
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});
+  else refresh();
 })();
