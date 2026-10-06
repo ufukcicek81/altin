@@ -1,4 +1,4 @@
-const CACHE='asil-v65-static';
+const CACHE='asil-v66-static';
 const SYNC_FIX='supabase-sync-fix.js';
 
 self.addEventListener('install',e=>e.waitUntil(self.skipWaiting()));
@@ -14,18 +14,15 @@ async function injectScripts(resp){
     const type=resp.headers.get('content-type')||'';
     if(type.indexOf('text/html')===-1)return resp;
     let text=await resp.text();
-
-    /* GitHub Pages project site is /altin/. The old bridge used a root-absolute
-       URL (/supabase-live-bridge.js), which can never resolve on this project.
-       Remove that obsolete tag and rely on the working relative sync bridge. */
     text=text.replace(/<script[^>]+src=["']\/supabase-live-bridge\.js[^>]*><\/script>\s*/gi,'');
     text=text.replace(/<script[^>]+src=["'][^"']*supabase-sync-v63\.js[^"']*[^>]*><\/script>\s*/gi,'');
-
     const fixUrl=new URL(SYNC_FIX,self.registration.scope).href;
-    const tag='<script src="'+fixUrl+'"></script>\n';
+    const tag='<script src="'+fixUrl+'?v=10"></script>\n';
     if(text.indexOf(SYNC_FIX)===-1){
       if(/<\/head>/i.test(text))text=text.replace(/<\/head>/i,tag+'</head>');
       else text=tag+text;
+    }else{
+      text=text.replace(/<script[^>]+src=["'][^"']*supabase-sync-fix\.js(?:\?[^"']*)?["'][^>]*><\/script>\s*/gi,tag);
     }
     const headers=new Headers(resp.headers);
     headers.delete('content-length');
