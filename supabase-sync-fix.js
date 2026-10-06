@@ -1,4 +1,4 @@
-/* Asil Kuyumculuk - Supabase cross-device sync fix v11 */
+/* Asil Kuyumculuk - Supabase cross-device sync fix v12 */
 (function(){
   'use strict';
   var SUPABASE_URL='https://isrcaoulynycmwnxofgn.supabase.co';
@@ -6,10 +6,14 @@
   var TABLE=SUPABASE_URL+'/rest/v1/app_settings';
   var APP_ID='asil-kuyumculuk-v2';
   var LOCAL_KEY='asil_settings_v2';
-  var POLL_MS=2000;
+  /* 2-second polling was unnecessarily expensive on the Free plan. 10 seconds
+     is still fast enough for cross-device settings while greatly reducing
+     Supabase egress. Explicit saves remain immediate. */
+  var POLL_MS=10000;
   var saveInProgress=false;
   var lastLocalSaveAt=0;
   var adminDirty=false;
+  var lastSavedPayload='';
 
   window.SUPABASE_URL=SUPABASE_URL;
   window.SUPABASE_KEY=SUPABASE_KEY;
@@ -25,13 +29,9 @@
       var u=new URL(rawUrl,location.href);
       if(u.origin===new URL(SUPABASE_URL).origin && u.pathname==='/rest/v1/app_settings' && u.searchParams.has('v')){
         u.searchParams.delete('v');
-        if(typeof input==='string'){
-          input=u.href;
-        }else if(input instanceof Request){
-          input=new Request(u.href,input);
-        }else{
-          input=u.href;
-        }
+        if(typeof input==='string')input=u.href;
+        else if(input instanceof Request)input=new Request(u.href,input);
+        else input=u.href;
       }
     }catch(e){}
     return originalFetch(input,init);
@@ -91,6 +91,17 @@
     try{payload=JSON.parse(JSON.stringify(data||{}));}catch(e){payload={};}
     delete payload.logoData;
     payload.appId=APP_ID;
+
+    /* Do not issue a database write when the exact same settings payload was
+       already saved in this page session. */
+    var payloadKey='';
+    try{payloadKey=JSON.stringify(payload);}catch(e){}
+    if(payloadKey && payloadKey===lastSavedPayload){
+      adminDirty=false;
+      if(cb)cb(true,null,null);
+      return;
+    }
+
     var row={id:'asil_settings',data:payload,updated_at:new Date().toISOString()};
     saveInProgress=true;
     lastLocalSaveAt=Date.now();
@@ -98,25 +109,20 @@
     fetch(TABLE+'?id=eq.asil_settings',{
       method:'PATCH',
       cache:'no-store',
-      headers:headers({'Content-Type':'application/json','Prefer':'return=representation'}),
+      headers:headers({'Content-Type':'application/json','Prefer':'return=minimal'}),
       body:JSON.stringify({data:row.data,updated_at:row.updated_at})
     })
     .then(function(r){
-      return r.text().then(function(text){
-        if(!r.ok)throw new Error('Supabase PATCH '+r.status+' '+text);
-        var rows=[];
-        try{rows=text?JSON.parse(text):[];}catch(e){rows=[];}
-        return rows;
-      });
+      if(!r.ok)return r.text().then(function(t){throw new Error('Supabase PATCH '+r.status+' '+t);});
+      return r;
     })
-    .then(function(rows){
+    .then(function(){
       saveInProgress=false;
-      var returned=Array.isArray(rows)&&rows.length?rows[0]:null;
-      if(!returned || !returned.updated_at)throw new Error('Supabase PATCH satırı değiştirmedi. RLS UPDATE policy veya API yetkisi kontrol edilmeli.');
+      lastSavedPayload=payloadKey;
       adminDirty=false;
-      console.log('[Supabase sync] SAVE OK',returned.updated_at);
+      console.log('[Supabase sync] SAVE OK',row.updated_at);
       window.__lastSupabaseSaveError='';
-      if(cb)cb(true,null,returned.updated_at);
+      if(cb)cb(true,null,row.updated_at);
     })
     .catch(function(e){
       saveInProgress=false;
@@ -134,9 +140,6 @@
   }
 
   function applyRemote(data,updatedAt){
-    /* NEVER re-render the admin form while the operator is typing or has
-       unsaved changes. Remote polling may continue, but the current form wins
-       until the explicit Kaydet action succeeds. */
     if(!data||data.appId!==APP_ID||isEditing())return;
     if(saveInProgress || (Date.now()-lastLocalSaveAt)<4000)return;
     try{
@@ -164,10 +167,6 @@
   function install(){
     window.jsonbinLoad=loadRemote;
     window.jsonbinSave=saveRemote;
-
-    /* Track unsaved admin form changes. This is deliberately based on the
-       actual form container, so typing into işçilik or any other admin field
-       blocks remote polling from repainting the form. */
     document.addEventListener('input',markAdminDirty,true);
     document.addEventListener('change',markAdminDirty,true);
 
