@@ -1,7 +1,8 @@
-/* Asil Kuyumculuk local customer display + portfolio aggregation patch v2 */
+/* Asil Kuyumculuk local customer display + portfolio aggregation patch v3 */
 (function(){
   'use strict';
   var DISPLAY_KEYS={doviz:'asil_customer_show_doviz_local',hurda:'asil_customer_show_hurda_local'};
+  var PORTFOLIO_KEY='asil_portfolio_v1';
   var ASSET_KEY_RE=/(varlik|varlık|asset|portfolio|holding)/i;
   var GOLD_KEY_RE=/(ayar|altın|altin|gram|çeyrek|ceyrek|yarım|yarim|tam|ata|reşat|resat|cumhuriyet|ziynet)/i;
   var installed=false;
@@ -21,9 +22,60 @@
   function pick(o,names){for(var i=0;i<names.length;i++)if(o&&o[names[i]]!=null)return o[names[i]];return undefined;}
   function setFirst(o,names,val){for(var i=0;i<names.length;i++)if(Object.prototype.hasOwnProperty.call(o,names[i])){o[names[i]]=val;return names[i];}return null;}
   function identity(o){var raw=pick(o,['assetKey','symbol','type','assetType','urun','ürün','urunAdi','ürünAdi','name','ad','title','label','birim','karat','ayar']);var s=String(raw==null?'':raw).toLocaleLowerCase('tr-TR').replace(/\s+/g,' ').trim();var ayar=String(pick(o,['karat','ayar','purity','milyem'])||'').toLocaleLowerCase('tr-TR');return s+'|'+ayar;}
-  function normalizeArray(arr){if(!Array.isArray(arr)||arr.length<2)return arr;var groups={};arr.forEach(function(o,idx){if(!o||typeof o!=='object')return;var label=String(pick(o,['assetKey','symbol','type','assetType','urun','ürün','urunAdi','ürünAdi','name','ad','title','label','birim','karat','ayar'])||'');if(!GOLD_KEY_RE.test(label)&&!GOLD_KEY_RE.test(JSON.stringify(o).slice(0,500)))return;var qty=pick(o,['quantity','qty','miktar','adet','gram','amount','units','count']);var cost=pick(o,['unitCost','costPerUnit','averageCost','maliyetBirim','birimMaliyet','maliyet','cost','alisFiyati','alışFiyatı','fiyat','price']);qty=num(qty);cost=num(cost);if(!(qty>0)||!(cost>=0))return;var key=identity(o);if(!groups[key])groups[key]={items:[],qty:0,total:0};groups[key].items.push({o:o,idx:idx,qty:qty,cost:cost});groups[key].qty+=qty;groups[key].total+=qty*cost;});Object.keys(groups).forEach(function(k){var g=groups[k];if(g.items.length<2)return;var first=g.items[0].o;var avg=g.total/g.qty;setFirst(first,['quantity','qty','miktar','adet','gram','amount','units','count'],g.qty);setFirst(first,['unitCost','costPerUnit','averageCost','maliyetBirim','birimMaliyet','maliyet','cost','alisFiyati','alışFiyatı','fiyat','price'],avg);setFirst(first,['totalCost','toplamMaliyet','toplam','total'],g.total);for(var i=g.items.length-1;i>0;i--)arr.splice(g.items[i].idx,1);});return arr;}
-  function normalizeStorageValue(key,value){if(!ASSET_KEY_RE.test(key))return value;try{var parsed=JSON.parse(value),before=JSON.stringify(parsed);if(Array.isArray(parsed))normalizeArray(parsed);else if(parsed&&typeof parsed==='object')Object.keys(parsed).forEach(function(k){if(Array.isArray(parsed[k]))normalizeArray(parsed[k]);});return before!==JSON.stringify(parsed)?JSON.stringify(parsed):value;}catch(e){return value;}}
-  function installStorageNormalizer(){var nativeSet=Storage.prototype.setItem;if(nativeSet.__asilPortfolioWrapped)return;var wrapped=function(key,value){try{if(this===localStorage)value=normalizeStorageValue(String(key),String(value));}catch(e){}return nativeSet.call(this,key,value);};wrapped.__asilPortfolioWrapped=true;Storage.prototype.setItem=wrapped;function scan(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(!k||!ASSET_KEY_RE.test(k))continue;var v=localStorage.getItem(k),nv=normalizeStorageValue(k,v);if(nv!==v)nativeSet.call(localStorage,k,nv);}}catch(e){}}scan();setInterval(scan,2000);}
-  function init(){if(installed)return;installed=true;installStorageNormalizer();installToggleHandlers();installCloseFix();applyCustomerPanels();var mo=new MutationObserver(function(){installToggleHandlers();applyCustomerPanels();});mo.observe(document.documentElement,{subtree:true,childList:true});window.addEventListener('storage',function(e){if(e.key===DISPLAY_KEYS.doviz||e.key===DISPLAY_KEYS.hurda)applyCustomerPanels();});window.aggregateVarliklar=function(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&ASSET_KEY_RE.test(k)){var v=localStorage.getItem(k),nv=normalizeStorageValue(k,v);if(nv!==v)localStorage.setItem(k,nv);}}}catch(e){}};}
+  function normalizeGenericArray(arr){if(!Array.isArray(arr)||arr.length<2)return arr;var groups={};arr.forEach(function(o,idx){if(!o||typeof o!=='object')return;var label=String(pick(o,['assetKey','symbol','type','assetType','urun','ürün','urunAdi','ürünAdi','name','ad','title','label','birim','karat','ayar'])||'');if(!GOLD_KEY_RE.test(label)&&!GOLD_KEY_RE.test(JSON.stringify(o).slice(0,500)))return;var qty=pick(o,['quantity','qty','miktar','adet','gram','amount','units','count']);var cost=pick(o,['unitCost','costPerUnit','averageCost','maliyetBirim','birimMaliyet','maliyet','cost','alisFiyati','alışFiyatı','fiyat','price']);qty=num(qty);cost=num(cost);if(!(qty>0)||!(cost>=0))return;var key=identity(o);if(!groups[key])groups[key]={items:[],qty:0,total:0};groups[key].items.push({o:o,idx:idx,qty:qty,cost:cost});groups[key].qty+=qty;groups[key].total+=qty*cost;});Object.keys(groups).forEach(function(k){var g=groups[k];if(g.items.length<2)return;var first=g.items[0].o;var avg=g.total/g.qty;setFirst(first,['quantity','qty','miktar','adet','gram','amount','units','count'],g.qty);setFirst(first,['unitCost','costPerUnit','averageCost','maliyetBirim','birimMaliyet','maliyet','cost','alisFiyati','alışFiyatı','fiyat','price'],avg);setFirst(first,['totalCost','toplamMaliyet','toplam','total'],g.total);for(var i=g.items.length-1;i>0;i--)arr.splice(g.items[i].idx,1);});return arr;}
+
+  /* Portfolio UI stores `cost` as TOTAL cost of the purchase, not unit cost. */
+  function normalizePortfolio(arr){
+    if(!Array.isArray(arr)||arr.length<2)return arr;
+    var groups=Object.create(null),order=[];
+    arr.forEach(function(o){
+      if(!o||!o.type)return;
+      var key=String(o.type);
+      if(!groups[key]){groups[key]={id:o.id||('pf_'+Date.now()+'_'+order.length),type:key,qty:0,cost:0,note:o.note||''};order.push(key);}
+      groups[key].qty+=Number(o.qty||0);
+      groups[key].cost+=Number(o.cost||0);
+      if(o.note)groups[key].note=String(o.note);
+    });
+    return order.map(function(key){return groups[key];});
+  }
+
+  function normalizeStorageValue(key,value){
+    try{
+      var parsed=JSON.parse(value);
+      if(String(key)===PORTFOLIO_KEY && Array.isArray(parsed)){
+        var normalized=normalizePortfolio(parsed);
+        return JSON.stringify(normalized);
+      }
+      if(!ASSET_KEY_RE.test(key))return value;
+      var before=JSON.stringify(parsed);
+      if(Array.isArray(parsed))normalizeGenericArray(parsed);
+      else if(parsed&&typeof parsed==='object')Object.keys(parsed).forEach(function(k){if(Array.isArray(parsed[k]))normalizeGenericArray(parsed[k]);});
+      return before!==JSON.stringify(parsed)?JSON.stringify(parsed):value;
+    }catch(e){return value;}
+  }
+
+  function installStorageNormalizer(){
+    var nativeSet=Storage.prototype.setItem;
+    if(nativeSet.__asilPortfolioWrapped)return;
+    var wrapped=function(key,value){try{if(this===localStorage)value=normalizeStorageValue(String(key),String(value));}catch(e){}return nativeSet.call(this,key,value);};
+    wrapped.__asilPortfolioWrapped=true;
+    Storage.prototype.setItem=wrapped;
+    function scan(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(!k)continue;var v=localStorage.getItem(k),nv=normalizeStorageValue(k,v);if(nv!==v)nativeSet.call(localStorage,k,nv);}}catch(e){}}
+    scan();
+    setInterval(scan,2000);
+  }
+
+  function init(){
+    if(installed)return;
+    installed=true;
+    installStorageNormalizer();
+    installToggleHandlers();
+    installCloseFix();
+    applyCustomerPanels();
+    var mo=new MutationObserver(function(){installToggleHandlers();applyCustomerPanels();});
+    mo.observe(document.documentElement,{subtree:true,childList:true});
+    window.addEventListener('storage',function(e){if(e.key===DISPLAY_KEYS.doviz||e.key===DISPLAY_KEYS.hurda)applyCustomerPanels();});
+    window.aggregateVarliklar=function(){try{var v=localStorage.getItem(PORTFOLIO_KEY),nv=normalizeStorageValue(PORTFOLIO_KEY,v);if(nv!==v)localStorage.setItem(PORTFOLIO_KEY,nv);if(typeof window.renderPortfolio==='function')window.renderPortfolio();}catch(e){}};
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
