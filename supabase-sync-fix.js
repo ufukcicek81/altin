@@ -1,4 +1,4 @@
-/* Asil Kuyumculuk - Supabase cross-device sync fix v10 */
+/* Asil Kuyumculuk - Supabase cross-device sync fix v11 */
 (function(){
   'use strict';
   var SUPABASE_URL='https://isrcaoulynycmwnxofgn.supabase.co';
@@ -9,6 +9,7 @@
   var POLL_MS=2000;
   var saveInProgress=false;
   var lastLocalSaveAt=0;
+  var adminDirty=false;
 
   window.SUPABASE_URL=SUPABASE_URL;
   window.SUPABASE_KEY=SUPABASE_KEY;
@@ -46,6 +47,25 @@
     };
     if(extra)Object.keys(extra).forEach(function(k){h[k]=extra[k];});
     return h;
+  }
+
+  function markAdminDirty(e){
+    try{
+      var t=e&&e.target;
+      if(!t)return;
+      var panel=t.closest&&t.closest('.admin-panel');
+      if(panel)adminDirty=true;
+    }catch(err){}
+  }
+
+  function isAdminInputActive(){
+    try{
+      var a=document.activeElement;
+      if(!a)return false;
+      var tag=String(a.tagName||'').toLowerCase();
+      if(tag!=='input'&&tag!=='textarea'&&tag!=='select'&&a.isContentEditable!==true)return false;
+      return !!(a.closest&&a.closest('.admin-panel'));
+    }catch(e){return false;}
   }
 
   function loadRemote(cb){
@@ -93,6 +113,7 @@
       saveInProgress=false;
       var returned=Array.isArray(rows)&&rows.length?rows[0]:null;
       if(!returned || !returned.updated_at)throw new Error('Supabase PATCH satırı değiştirmedi. RLS UPDATE policy veya API yetkisi kontrol edilmeli.');
+      adminDirty=false;
       console.log('[Supabase sync] SAVE OK',returned.updated_at);
       window.__lastSupabaseSaveError='';
       if(cb)cb(true,null,returned.updated_at);
@@ -105,9 +126,17 @@
     });
   }
 
-  function isEditing(){try{return typeof window.isAdminEditing==='function'&&!!window.isAdminEditing();}catch(e){return false;}}
+  function isEditing(){
+    try{
+      return adminDirty || isAdminInputActive() ||
+        (typeof window.isAdminEditing==='function'&&!!window.isAdminEditing());
+    }catch(e){return adminDirty||isAdminInputActive();}
+  }
 
   function applyRemote(data,updatedAt){
+    /* NEVER re-render the admin form while the operator is typing or has
+       unsaved changes. Remote polling may continue, but the current form wins
+       until the explicit Kaydet action succeeds. */
     if(!data||data.appId!==APP_ID||isEditing())return;
     if(saveInProgress || (Date.now()-lastLocalSaveAt)<4000)return;
     try{
@@ -135,6 +164,13 @@
   function install(){
     window.jsonbinLoad=loadRemote;
     window.jsonbinSave=saveRemote;
+
+    /* Track unsaved admin form changes. This is deliberately based on the
+       actual form container, so typing into işçilik or any other admin field
+       blocks remote polling from repainting the form. */
+    document.addEventListener('input',markAdminDirty,true);
+    document.addEventListener('change',markAdminDirty,true);
+
     if(window.__supabaseSettingsPoll)clearInterval(window.__supabaseSettingsPoll);
     var lastRemote='';
     function poll(){
