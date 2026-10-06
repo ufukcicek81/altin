@@ -1,6 +1,7 @@
-const CACHE='asil-v67-static';
+const CACHE='asil-v68-static';
 const SYNC_FIX='supabase-sync-fix.js';
 const TV_ENHANCE='tv-enhance.js';
+const LOCAL_PATCH='portfolio-local-v1.js';
 
 self.addEventListener('install',e=>e.waitUntil(self.skipWaiting()));
 self.addEventListener('activate',e=>e.waitUntil((async()=>{
@@ -28,6 +29,10 @@ async function injectScripts(resp){
     if(text.indexOf(TV_ENHANCE)===-1&&/<\/head>/i.test(text)){
       const tvUrl=new URL(TV_ENHANCE,self.registration.scope).href;
       text=text.replace(/<\/head>/i,'<script src="'+tvUrl+'?v=1"></script>\n</head>');
+    }
+    if(text.indexOf(LOCAL_PATCH)===-1&&/<\/head>/i.test(text)){
+      const localUrl=new URL(LOCAL_PATCH,self.registration.scope).href;
+      text=text.replace(/<\/head>/i,'<script src="'+localUrl+'?v=1"></script>\n</head>');
     }
     const headers=new Headers(resp.headers);
     headers.delete('content-length');
