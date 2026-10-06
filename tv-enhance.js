@@ -16,9 +16,15 @@ style.textContent='\n'+
 document.head.appendChild(style);
 document.documentElement.classList.add('tv-enhance-ready');
 function applyMotion(s){
- var v=s&& (s.motionMode!==undefined?s.motionMode:(s.tvMotion!==undefined?s.tvMotion:(s.displayMode!==undefined?s.displayMode:s.tvMode)));
- var on=v===true||v==='hareketli'||v==='Hareketli'||v==='animated'||v==='animation'||v==='motion';
- var off=v===false||v==='normal'||v==='Normal'||v==='static';
+ var v;
+ var keys=Object.keys(s||{});
+ for(var i=0;i<keys.length;i++){
+  var k=keys[i].toLowerCase();
+  if(/motion|hareket|anim|displaymode|tvmode/.test(k)){v=s[keys[i]];break;}
+ }
+ if(v===undefined)return;
+ var on=v===true||v===1||v==='hareketli'||v==='Hareketli'||v==='animated'||v==='animation'||v==='motion';
+ var off=v===false||v===0||v==='normal'||v==='Normal'||v==='static';
  if(!on&&!off)return;
  document.body.classList.toggle('tv-enhance-motion',on);
  document.body.classList.toggle('tv-enhance-normal',!on);
@@ -35,10 +41,7 @@ async function row(id){
  var a=await r.json();return a&&a[0]&&a[0].data?a[0]:null;
 }
 async function sync(){
- try{
-  var a=await row('asil_settings');
-  if(a){applyTheme(a.data||{});applyMotion(a.data||{});}
- }catch(e){}
+ try{var a=await row('asil_settings');if(a){applyTheme(a.data||{});applyMotion(a.data||{});}}catch(e){}
 }
 sync();setInterval(sync,3000);
 })();
