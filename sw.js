@@ -1,4 +1,4 @@
-const CACHE='asil-v68-static';
+const CACHE='asil-v69-static';
 const SYNC_FIX='supabase-sync-fix.js';
 const TV_ENHANCE='tv-enhance.js';
 const LOCAL_PATCH='portfolio-local-v1.js';
@@ -19,7 +19,7 @@ async function injectScripts(resp){
     text=text.replace(/<script[^>]+src=["']\/supabase-live-bridge\.js[^>]*><\/script>\s*/gi,'');
     text=text.replace(/<script[^>]+src=["'][^"']*supabase-sync-v63\.js[^"']*[^>]*><\/script>\s*/gi,'');
     const fixUrl=new URL(SYNC_FIX,self.registration.scope).href;
-    const tag='<script src="'+fixUrl+'?v=12"></script>\n';
+    const tag='<script src="'+fixUrl+'?v=13"></script>\n';
     if(text.indexOf(SYNC_FIX)===-1){
       if(/<\/head>/i.test(text))text=text.replace(/<\/head>/i,tag+'</head>');
       else text=tag+text;
@@ -32,7 +32,7 @@ async function injectScripts(resp){
     }
     if(text.indexOf(LOCAL_PATCH)===-1&&/<\/head>/i.test(text)){
       const localUrl=new URL(LOCAL_PATCH,self.registration.scope).href;
-      text=text.replace(/<\/head>/i,'<script src="'+localUrl+'?v=1"></script>\n</head>');
+      text=text.replace(/<\/head>/i,'<script src="'+localUrl+'?v=2"></script>\n</head>');
     }
     const headers=new Headers(resp.headers);
     headers.delete('content-length');
