@@ -17,7 +17,7 @@ async function injectScripts(resp){
     text=text.replace(/<script[^>]+src=["']\/supabase-live-bridge\.js[^>]*><\/script>\s*/gi,'');
     text=text.replace(/<script[^>]+src=["'][^"']*supabase-sync-v63\.js[^"']*[^>]*><\/script>\s*/gi,'');
     const fixUrl=new URL(SYNC_FIX,self.registration.scope).href;
-    const tag='<script src="'+fixUrl+'?v=10"></script>\n';
+    const tag='<script src="'+fixUrl+'?v=11"></script>\n';
     if(text.indexOf(SYNC_FIX)===-1){
       if(/<\/head>/i.test(text))text=text.replace(/<\/head>/i,tag+'</head>');
       else text=tag+text;
