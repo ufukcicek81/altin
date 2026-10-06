@@ -1,4 +1,4 @@
-/* Asil Kuyumculuk - Supabase cross-device sync fix v9 */
+/* Asil Kuyumculuk - Supabase cross-device sync fix v10 */
 (function(){
   'use strict';
   var SUPABASE_URL='https://isrcaoulynycmwnxofgn.supabase.co';
@@ -14,21 +14,41 @@
   window.SUPABASE_KEY=SUPABASE_KEY;
   window.SUPABASE_SETTINGS_URL=TABLE;
 
+  /* Safety net: some older app code appends ?v=95 to the Supabase REST URL.
+     PostgREST treats unknown query parameters as filters and returns PGRST100.
+     Strip only the cache-busting v parameter from app_settings requests. */
+  var originalFetch=window.fetch.bind(window);
+  window.fetch=function(input,init){
+    try{
+      var rawUrl=typeof input==='string' ? input : (input&&input.url)||'';
+      var u=new URL(rawUrl,location.href);
+      if(u.origin===new URL(SUPABASE_URL).origin && u.pathname==='/rest/v1/app_settings' && u.searchParams.has('v')){
+        u.searchParams.delete('v');
+        if(typeof input==='string'){
+          input=u.href;
+        }else if(input instanceof Request){
+          input=new Request(u.href,input);
+        }else{
+          input=u.href;
+        }
+      }
+    }catch(e){}
+    return originalFetch(input,init);
+  };
+
   function headers(extra){
     var h={
       'apikey':SUPABASE_KEY,
       'Authorization':'Bearer '+SUPABASE_KEY,
       'Accept':'application/json',
-      'Cache-Control':'no-cache'
+      'Cache-Control':'no-cache',
+      'Pragma':'no-cache'
     };
     if(extra)Object.keys(extra).forEach(function(k){h[k]=extra[k];});
     return h;
   }
 
   function loadRemote(cb){
-    /* IMPORTANT: do not append arbitrary query parameters to PostgREST.
-       PostgREST treats unknown parameters as filters and rejects a bare value.
-       Browser cache is disabled through fetch/cache headers instead. */
     var url=TABLE+'?id=eq.asil_settings&select=data,updated_at&limit=1';
     fetch(url,{method:'GET',cache:'no-store',headers:headers()})
       .then(function(r){
@@ -51,7 +71,6 @@
     try{payload=JSON.parse(JSON.stringify(data||{}));}catch(e){payload={};}
     delete payload.logoData;
     payload.appId=APP_ID;
-
     var row={id:'asil_settings',data:payload,updated_at:new Date().toISOString()};
     saveInProgress=true;
     lastLocalSaveAt=Date.now();
@@ -59,10 +78,7 @@
     fetch(TABLE+'?id=eq.asil_settings',{
       method:'PATCH',
       cache:'no-store',
-      headers:headers({
-        'Content-Type':'application/json',
-        'Prefer':'return=representation'
-      }),
+      headers:headers({'Content-Type':'application/json','Prefer':'return=representation'}),
       body:JSON.stringify({data:row.data,updated_at:row.updated_at})
     })
     .then(function(r){
@@ -76,9 +92,7 @@
     .then(function(rows){
       saveInProgress=false;
       var returned=Array.isArray(rows)&&rows.length?rows[0]:null;
-      if(!returned || !returned.updated_at){
-        throw new Error('Supabase PATCH satırı değiştirmedi. RLS UPDATE policy veya API yetkisi kontrol edilmeli.');
-      }
+      if(!returned || !returned.updated_at)throw new Error('Supabase PATCH satırı değiştirmedi. RLS UPDATE policy veya API yetkisi kontrol edilmeli.');
       console.log('[Supabase sync] SAVE OK',returned.updated_at);
       window.__lastSupabaseSaveError='';
       if(cb)cb(true,null,returned.updated_at);
